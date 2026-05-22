@@ -9,8 +9,6 @@
 <meta name="apple-mobile-web-app-title" content="CH.W. Pumps PPM">
 <meta name="description" content="AL MAJAL — HVAC Preventive Maintenance System — King Faisal Medical Complex">
 <title>Chilled Water Pumps PPM — King Faisal Medical Complex</title>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script>
@@ -491,13 +489,18 @@ const firebaseConfig={
   messagingSenderId:"429823910983",
   appId:"1:429823910983:web:1836576203d10cbc9c3d62"
 };
-firebase.initializeApp(firebaseConfig);
-const db=firebase.firestore();
+let db=null;
+try{
+  if(!window.firebase){throw new Error('Firebase not loaded');}
+  if(!firebase.apps||!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+  db=firebase.firestore();
+}catch(e){console.warn('Firebase init skipped:',e);}
 const COL='chw_pump_records';
 
 let fbConnected=false;
 
 function startRealtimeListener(){
+  if(!db){console.warn('Firebase unavailable — offline mode');updateCloudStatus(false);return;}
   db.collection(COL).orderBy('ts','desc').limit(500)
     .onSnapshot(function(snap){
       fbConnected=true;
