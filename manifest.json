@@ -1,0 +1,47 @@
+{
+  "name": "CMMS — King Faisal Medical Complex",
+  "short_name": "CMMS KFMC",
+  "description": "AL MAJAL HVAC Preventive Maintenance System — King Faisal Medical Complex",
+  "start_url": "/PWA/login.html",
+  "scope": "/PWA/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#0a2e5c",
+  "background_color": "#0a2e5c",
+  "lang": "en",
+  "categories": [
+    "utilities",
+    "productivity"
+  ],
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
