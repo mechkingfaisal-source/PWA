@@ -1,6 +1,6 @@
 {
   "name": "CMMS King Faisal Medical Complex",
-  "short_name": "CMMS KFMC",
+  "short_name": "اHVACKFMC",
   "description": "Computerized Maintenance Management System for King Faisal Medical Complex, Taif Health Cluster",
   "start_url": "/PWA/index.html",
   "scope": "/PWA/",
