@@ -1,7 +1,7 @@
 {
   "name": "CMMS — King Faisal Medical Complex",
   "short_name": "CMMS KFMC",
-  "description": "Computerized Maintenance Management System — King Faisal Medical Complex, Taif Health Cluster",
+  "description": "Computerized Maintenance Management System for King Faisal Medical Complex, Taif Health Cluster",
   "start_url": "/PWA/index.html",
   "scope": "/PWA/",
   "display": "standalone",
@@ -10,6 +10,8 @@
   "theme_color": "#0a2e5c",
   "lang": "en",
   "dir": "ltr",
+  "categories": ["medical", "productivity", "utilities"],
+  "id": "/PWA/index.html",
   "icons": [
     { "src": "icons/icon-72x72.png",   "sizes": "72x72",   "type": "image/png", "purpose": "any" },
     { "src": "icons/icon-72x72.png",   "sizes": "72x72",   "type": "image/png", "purpose": "maskable" },
@@ -27,5 +29,21 @@
     { "src": "icons/icon-384x384.png", "sizes": "384x384", "type": "image/png", "purpose": "maskable" },
     { "src": "icons/icon-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
     { "src": "icons/icon-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "screenshots": [
+    {
+      "src": "screenshots/screenshot-wide.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "CMMS Dashboard"
+    },
+    {
+      "src": "screenshots/screenshot-narrow.png",
+      "sizes": "720x1280",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "CMMS Mobile View"
+    }
   ]
 }
