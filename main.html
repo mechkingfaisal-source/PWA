@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.googleapis.com https://*.gstatic.com https://*.firebaseio.com https://*.firebasedatabase.app https://*.firebaseapp.com wss://*.firebaseio.com data: blob:;">
 <meta name="theme-color" content="#0a2e5c">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="HVAC Maintenance">
@@ -277,8 +278,6 @@ body{background:#f0f2f5;color:#0d1b2a}
 #rec-list[data-filter="unit"] .ri-zone{display:none!important}
 #rec-list[data-filter="zone"] .ri-unit{display:none!important}
 </style>
-  <link rel="manifest" href="manifest.json">
-  <link rel="apple-touch-icon" href="icon-192.png">
 </head>
 <body>
 <div class="app">
@@ -1169,17 +1168,7 @@ function zsOpenPrint(sigs,autoPrint){
       '<span>HVAC Zone Log Sheet — Auto-generated</span>'+
       '<span>King Faisal Medical Complex | '+new Date().toLocaleDateString('ar-SA')+'</span>'+
     '</div>'+
-    '
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function () {
-          navigator.serviceWorker.register('sw.js')
-            .then(function (reg) { console.log('SW registered:', reg.scope); })
-            .catch(function (err) { console.warn('SW registration failed:', err); });
-        });
-      }
-    </script>
-</body></html>');
+    '</body></html>');
   w.document.close();
   if(autoPrint) setTimeout(function(){w.print();},400);
 }
