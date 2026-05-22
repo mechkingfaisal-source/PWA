@@ -1,6 +1,6 @@
 {
-  "name": "HVAC KFMC",
-  "short_name": "HVAC KFMC",
+  "name": "CMMSKFMC",
+  "short_name": "CMMSKFMC",
   "description": "HVAC Maintenance PPM - King Faisal Medical Complex",
   "start_url": "/",
   "scope": "/",
