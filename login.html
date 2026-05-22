@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<script>
+  // Auto-redirect if already logged in (either persistent or session)
+  (function(){
+    const ls = localStorage.getItem("cmms_user");
+    const ss = sessionStorage.getItem("cmms_user");
+    if(ls || ss){ window.location.replace("index.html"); }
+  })();
+</script>
+<meta name="theme-color" content="#0a2e5c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Login — CMMS King Faisal Medical Complex</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{min-height:100%;font-family:'Poppins',Arial,sans-serif}
+body{
+  background:linear-gradient(135deg,#0a2e5c 0%,#0f4c81 60%,#1565c0 100%);
+  min-height:100vh;display:flex;flex-direction:column;
+  align-items:center;justify-content:flex-start;padding:16px;
+}
+
+/* ── Header ─────────────────────────────────────────────── */
+.header{
+  width:100%;max-width:480px;
+  display:flex;justify-content:space-between;align-items:center;
+  padding:14px 18px;margin-bottom:28px;
+  background:rgba(255,255,255,.08);border-radius:16px;
+  border:1px solid rgba(255,255,255,.15);backdrop-filter:blur(10px);
+}
+.header img{height:42px;object-fit:contain}
+.header-center{text-align:center;flex:1;padding:0 10px}
+.header-center h1{font-size:13px;font-weight:900;color:#fff;
+  text-transform:uppercase;letter-spacing:.04em}
+.header-center p{font-size:10px;color:rgba(255,255,255,.6);margin-top:2px;font-weight:600}
+
+/* ── Login Card ──────────────────────────────────────────── */
+.login-card{
+  width:100%;max-width:420px;
+  background:linear-gradient(145deg,#ffffff,#f0f4f9);
+  border-radius:22px;padding:36px 32px 32px;
+  box-shadow:0 20px 60px rgba(0,0,0,.35);
+  border:2px solid rgba(255,255,255,.5);
+  position:relative;overflow:hidden;
+  animation:slideUp .5s ease forwards;
+}
+@keyframes slideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+.login-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:5px;
+  background:linear-gradient(90deg,#0a2e5c,#00b4d8);
+}
+
+.login-title{
+  font-size:22px;font-weight:900;color:#0a2e5c;
+  text-transform:uppercase;letter-spacing:.04em;
+  margin-bottom:4px;text-align:center;
+}
+.login-sub{
+  font-size:11px;font-weight:700;color:#607d9f;
+  text-transform:uppercase;letter-spacing:.12em;
+  text-align:center;margin-bottom:28px;
+}
+
+/* ── Role Toggle ─────────────────────────────────────────── */
+.role-toggle{
+  display:flex;background:#e8edf3;border-radius:12px;
+  padding:4px;margin-bottom:24px;gap:4px;
+}
+.role-btn{
+  flex:1;padding:10px 8px;border:none;background:transparent;
+  border-radius:9px;font-family:'Poppins',sans-serif;
+  font-size:12px;font-weight:700;color:#607d9f;
+  text-transform:uppercase;letter-spacing:.06em;cursor:pointer;
+  transition:all .25s ease;
+}
+.role-btn.active{
+  background:linear-gradient(135deg,#0a2e5c,#1565c0);
+  color:#fff;box-shadow:0 4px 14px rgba(10,46,92,.35);
+}
+
+/* ── Form Fields ─────────────────────────────────────────── */
+.field-group{margin-bottom:16px}
+.field-label{
+  display:block;font-size:11px;font-weight:800;
+  color:#0a2e5c;text-transform:uppercase;letter-spacing:.1em;
+  margin-bottom:7px;
+}
+.field-input{
+  width:100%;padding:13px 16px;border-radius:12px;
+  border:2px solid #d0dce9;background:#fff;
+  font-family:'Poppins',sans-serif;font-size:14px;font-weight:600;
+  color:#1a2e4a;outline:none;transition:border-color .2s,box-shadow .2s;
+  -webkit-appearance:none;
+}
+.field-input:focus{
+  border-color:#0f4c81;
+  box-shadow:0 0 0 4px rgba(15,76,129,.12);
+}
+.field-input::placeholder{color:#b0c0d0;font-weight:500}
+
+/* ── Keep Me Logged In ───────────────────────────────────── */
+.remember-row{
+  display:flex;align-items:center;gap:10px;margin-top:4px;margin-bottom:2px;
+  cursor:pointer;user-select:none;
+}
+.remember-row input[type=checkbox]{
+  width:18px;height:18px;accent-color:#0a2e5c;cursor:pointer;
+  border-radius:4px;flex-shrink:0;
+}
+.remember-label{
+  font-size:12px;font-weight:700;color:#607d9f;
+  text-transform:uppercase;letter-spacing:.06em;
+}
+
+/* ── Login Button ────────────────────────────────────────── */
+.login-btn{
+  width:100%;margin-top:22px;padding:15px;
+  background:linear-gradient(135deg,#0a2e5c 0%,#1565c0 100%);
+  color:#fff;border:none;border-radius:14px;
+  font-family:'Poppins',sans-serif;font-size:14px;font-weight:800;
+  text-transform:uppercase;letter-spacing:.1em;cursor:pointer;
+  box-shadow:0 8px 24px rgba(10,46,92,.4);
+  transition:transform .15s,box-shadow .15s,background .2s;
+}
+.login-btn:hover{
+  transform:translateY(-2px);
+  box-shadow:0 12px 30px rgba(10,46,92,.5);
+}
+.login-btn:active{transform:translateY(0);box-shadow:0 4px 12px rgba(10,46,92,.3)}
+.login-btn:disabled{opacity:.6;cursor:not-allowed;transform:none}
+
+/* ── Messages ────────────────────────────────────────────── */
+.msg{
+  display:none;margin-top:16px;padding:12px 16px;border-radius:12px;
+  font-size:13px;font-weight:700;text-align:center;
+}
+.msg.error{background:#fde8e8;color:#c0392b;border:1px solid #f5b7b1}
+.msg.success{background:#e8f8f0;color:#1a7a4a;border:1px solid #a9dfbf}
+
+/* ── Footer ──────────────────────────────────────────────── */
+.footer{
+  margin-top:28px;text-align:center;
+  font-size:11px;font-weight:700;color:rgba(255,255,255,.45);
+  text-transform:uppercase;letter-spacing:.08em;line-height:1.7;
+}
+.footer a{color:#00d4ff;text-decoration:none}
+
+/* ── Lock Icon ───────────────────────────────────────────── */
+.lock-icon{
+  width:56px;height:56px;background:linear-gradient(135deg,#0a2e5c,#1565c0);
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+  margin:0 auto 20px;box-shadow:0 8px 24px rgba(10,46,92,.4);
+}
+.lock-icon svg{width:26px;height:26px;fill:#fff}
+
+/* ── Loading spinner ─────────────────────────────────────── */
+.spinner{
+  display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.4);
+  border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;
+  vertical-align:middle;margin-right:8px;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
+</head>
+<body>
+
+<!-- ── HEADER ─────────────────────────────────────────── -->
+<div class="header">
+  <!-- Replace src with your actual logo paths -->
+  <img src="mag_logo.png" alt="MAG" onerror="this.style.display='none'">
+  <div class="header-center">
+    <h1>CMMS — King Faisal Medical Complex</h1>
+    <p>AL MAJAL AL ARABI GROUP</p>
+  </div>
+  <img src="taif_logo.png" alt="Taif Health Cluster" onerror="this.style.display='none'">
+</div>
+
+<!-- ── LOGIN CARD ──────────────────────────────────────── -->
+<div class="login-card">
+
+  <div class="lock-icon">
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path d="M18 8h-1V6A5 5 0 0 0 7 6v2H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2zm-6 9a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm3.1-9H8.9V6a3.1 3.1 0 0 1 6.2 0v2z"/>
+    </svg>
+  </div>
+
+  <div class="login-title">System Login</div>
+  <div class="login-sub">Maintenance Staff Access</div>
+
+  <!-- Role Toggle -->
+  <div class="role-toggle">
+    <button class="role-btn active" id="btn-tech" onclick="setRole('technician')">🔧 Technician</button>
+    <button class="role-btn" id="btn-eng"  onclick="setRole('engineer')">👷 Engineer</button>
+  </div>
+
+  <!-- Iqama Number -->
+  <div class="field-group">
+    <label class="field-label" for="iqama">Iqama Number</label>
+    <input class="field-input" type="text" id="iqama"
+           inputmode="numeric" pattern="[0-9]*"
+           placeholder="Enter your Iqama number" autocomplete="off">
+  </div>
+
+  <!-- File Number -->
+  <div class="field-group">
+    <label class="field-label" for="file">File Number</label>
+    <input class="field-input" type="text" id="file"
+           placeholder="e.g. F001 or E001" autocomplete="off">
+  </div>
+
+  <!-- Keep Me Logged In -->
+  <label class="remember-row">
+    <input type="checkbox" id="rememberMe" checked>
+    <span class="remember-label">🔓 Keep me logged in</span>
+  </label>
+
+  <!-- Login Button -->
+  <button class="login-btn" id="loginBtn" onclick="doLogin()">
+    LOGIN →
+  </button>
+
+  <!-- Messages -->
+  <div class="msg error"   id="errorMsg"></div>
+  <div class="msg success" id="successMsg"></div>
+  <div class="msg"         id="debugMsg" style="display:none;background:#fff8e1;color:#795548;border:1px solid #ffe082;font-size:11px;text-align:left;line-height:1.6"></div>
+
+</div>
+
+<!-- ── FOOTER ──────────────────────────────────────────── -->
+<div class="footer">
+  CMMS MAINTENANCE SYSTEM &nbsp;|&nbsp; AL MAJAL AL ARABI GROUP<br>
+  <span style="margin-top:6px;display:inline-block;font-size:10px;color:rgba(255,255,255,.55);">
+    ✦ Designed by Eng. Ahmed Gweely &nbsp;|&nbsp;
+    📞 <a href="tel:00966546957912">00966546957912</a> ✦
+  </span>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     CREDENTIAL ARRAYS
+     ─────────────────────────────────────────────────────
+     Paste output from convert_excel.py into each array.
+     Each entry:  { iqama: "...", file: "...", name: "..." }
+     ════════════════════════════════════════════════════════ -->
+<script>
+
+// ── TECHNICIANS ────────────────────────────────────────────
+// Paste your Technician block here (from convert_excel.py output)
+const TECHNICIANS = [
+      { iqama: "2370919900", file: "123064", name: "احمد محمد زيشان" },
+      { iqama: "2483858839", file: "123074", name: "مجمل غياسالدين" },
+      { iqama: "2568667683", file: "123350", name: "سيف علي سهير محمد" },
+      { iqama: "2567115932", file: "123496", name: "محمد ساجد راجا مد ذكير حسين" },
+      { iqama: "2589322854", file: "125828", name: "محمد امجد" },
+      { iqama: "2607550189", file: "129096", name: "نهال الدين انصاري ساجر علم" },
+      { iqama: "2594107985", file: "129163", name: "اصغر محمد محمد مقصود" },
+      { iqama: "2609421884", file: "135320", name: "محمد سارفراز علم" },
+      { iqama: "2609887019", file: "136269", name: "مد ارشاد مد امتياز" },
+      { iqama: "2613144050", file: "136756", name: "حبيب ساينوالدين شيخ" },
+      { iqama: "2620093951", file: "142459", name: "محمد كامل رازا  محمد عريف فاهورا" },
+      { iqama: "I0342021",   file: "148167", name: "مد جلفام" },
+      { iqama: "1042337152", file: "122224", name: "ثامر غزاى مزيد الحارثى" },
+      { iqama: "1072886821", file: "122250", name: "عادل محمد عطية الطويرقى" },
+      { iqama: "1106529801", file: "122313", name: "معاذ عبدالله عواض الحارثى" },
+      { iqama: "1079028823", file: "122324", name: "يوسف الشربي" },
+      { iqama: "1103470173", file: "143574", name: "عبد العزيز ساعد سعد الشريف" },
+      { iqama: "2532189582", file: "122932", name: "محمد الودن محمد نجم الدين" },
+      { iqama: "2582650780", file: "124303", name: "ارشاد شيخ علي امام" },
+      { iqama: "2582659807", file: "124474", name: "مانوج كومار شارما" },
+      { iqama: "2608310591", file: "133919", name: "محمد جونيد محمد" },
+      { iqama: "2626409904", file: "146898", name: "محمد دانيش خان" },
+      { iqama: "1126466844", file: "130254", name: "محمد علي محمد الاسمري" },
+      { iqama: "1109182723", file: "131666", name: "حازم محمد عاتق البقمي" },
+];
+
+// ── ENGINEERS ──────────────────────────────────────────────
+// Paste your Engineer block here (from convert_excel.py output)
+const ENGINEERS = [
+      { iqama: "1107068478", file: "122322", name: "يزيد سعود ردة الربيعي" },
+      { iqama: "2337227264", file: "123068", name: "احمد محمد مسعد ابراهيم" },
+      { iqama: "1106947334", file: "128262", name: "محمد عبد الرحمن معيض الثقفي" },
+      { iqama: "2358072466", file: "123310", name: "احمد محروس محمد جويلي" },
+];
+
+// ── Page to open after successful login ───────────────────
+const DASHBOARD_URL = "index.html";   // ← your main dashboard
+
+// ══════════════════════════════════════════════════════════
+//   DO NOT EDIT BELOW THIS LINE
+// ══════════════════════════════════════════════════════════
+
+let currentRole = "technician";
+
+// Normalize: convert to string, remove all spaces, lowercase
+function norm(v) {
+  return String(v === null || v === undefined ? "" : v).replace(/\s+/g, "").toLowerCase();
+}
+
+function setRole(role) {
+  currentRole = role;
+  document.getElementById("btn-tech").classList.toggle("active", role === "technician");
+  document.getElementById("btn-eng").classList.toggle("active",  role === "engineer");
+  hideMessages();
+}
+
+function hideMessages() {
+  document.getElementById("errorMsg").style.display   = "none";
+  document.getElementById("successMsg").style.display = "none";
+  document.getElementById("debugMsg").style.display   = "none";
+}
+
+function showError(msg) {
+  const el = document.getElementById("errorMsg");
+  el.innerHTML = msg;
+  el.style.display = "block";
+  document.getElementById("successMsg").style.display = "none";
+  const card = document.querySelector(".login-card");
+  card.style.animation = "none";
+  card.offsetHeight;
+  card.style.animation = "shake .4s ease";
+}
+
+// Add shake keyframe dynamically
+(function(){
+  const s = document.createElement("style");
+  s.textContent = "@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}";
+  document.head.appendChild(s);
+})();
+
+function doLogin() {
+  const iqamaRaw = document.getElementById("iqama").value;
+  const fileRaw  = document.getElementById("file").value;
+  const iqama    = norm(iqamaRaw);
+  const file     = norm(fileRaw);
+  const btn      = document.getElementById("loginBtn");
+
+  hideMessages();
+
+  if (!iqama) { showError("⚠ Please enter your Iqama Number."); return; }
+  if (!file)  { showError("⚠ Please enter your File Number.");  return; }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Checking...';
+
+  setTimeout(() => {
+    const list  = currentRole === "technician" ? TECHNICIANS : ENGINEERS;
+
+    // Robust match: normalize both sides before comparing
+    const match = list.find(u => norm(u.iqama) === iqama && norm(u.file) === file);
+
+    if (match) {
+      const name = match.name || (currentRole === "technician" ? "Technician" : "Engineer");
+      const el = document.getElementById("successMsg");
+      el.innerHTML = "✅ Welcome, <strong>" + name + "</strong>! Redirecting…";
+      el.style.display = "block";
+
+      const remember = document.getElementById("rememberMe").checked;
+      const store = remember ? localStorage : sessionStorage;
+
+      // Clear both first so no stale data remains
+      localStorage.removeItem("cmms_user");  localStorage.removeItem("cmms_role");  localStorage.removeItem("cmms_iqama");
+      sessionStorage.removeItem("cmms_user"); sessionStorage.removeItem("cmms_role"); sessionStorage.removeItem("cmms_iqama");
+
+      store.setItem("cmms_user",  name);
+      store.setItem("cmms_role",  currentRole);
+      store.setItem("cmms_iqama", iqama);
+
+      setTimeout(() => { window.location.href = DASHBOARD_URL; }, 1200);
+    } else {
+      btn.disabled = false;
+      btn.innerHTML = "LOGIN →";
+
+      // ── Helpful debug: tell user exactly what was NOT found ──
+      const iqamaOnly = list.find(u => norm(u.iqama) === iqama);
+      const fileOnly  = list.find(u => norm(u.file)  === file);
+
+      let hint = "";
+      if (!iqamaOnly && !fileOnly) {
+        hint = "<br><small>Neither Iqama nor File Number was found in the " + currentRole + " list.<br>Check the role (Technician / Engineer) and your data arrays.</small>";
+      } else if (iqamaOnly && !fileOnly) {
+        hint = "<br><small>Iqama found ✓ — but File Number <b>" + fileRaw.trim() + "</b> did not match.<br>Expected: <b>" + iqamaOnly.file + "</b></small>";
+      } else if (!iqamaOnly && fileOnly) {
+        hint = "<br><small>File Number found ✓ — but Iqama <b>" + iqamaRaw.trim() + "</b> did not match.</small>";
+      } else {
+        hint = "<br><small>Both found separately, but not as a matching pair. Check the correct combination.</small>";
+      }
+
+      showError("❌ Login failed. " + hint);
+    }
+  }, 600);
+}
+
+// Allow Enter key to submit
+document.addEventListener("keydown", function(e) {
+  if (e.key === "Enter") doLogin();
+});
+
+// Auto-clear messages when user types
+["iqama","file"].forEach(id => {
+  document.getElementById(id).addEventListener("input", hideMessages);
+});
+
+</script>
+
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function () {
+          navigator.serviceWorker.register('sw.js')
+            .then(function (reg) { console.log('SW registered:', reg.scope); })
+            .catch(function (err) { console.warn('SW registration failed:', err); });
+        });
+      }
+    </script>
+</body>
+</html>
