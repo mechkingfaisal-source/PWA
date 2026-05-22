@@ -5,6 +5,17 @@
 <script>if(!localStorage.getItem("cmms_user") && !sessionStorage.getItem("cmms_user")){window.location.replace("login.html");}</script>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <title>CMMS — King Faisal Medical Complex</title>
+<!-- PWA Manifest -->
+<link rel="manifest" href="/PWA/manifest.json">
+<!-- iOS PWA support -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CMMS KFMC">
+<link rel="apple-touch-icon" href="/PWA/icons/icon-192x192.png">
+<!-- Android / Chrome -->
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0a2e5c">
+<meta name="application-name" content="CMMS KFMC">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -313,5 +324,20 @@ function goBack(){
     </script>
 
 <button id="installBanner" onclick="installPWA()">📲 Install App</button>
+
+<!-- ── Service Worker Registration ── -->
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('/PWA/sw.js')
+        .then(function (reg) {
+          console.log('✅ Service Worker registered. Scope:', reg.scope);
+        })
+        .catch(function (err) {
+          console.error('❌ Service Worker registration failed:', err);
+        });
+    });
+  }
+</script>
 </body>
 </html>
