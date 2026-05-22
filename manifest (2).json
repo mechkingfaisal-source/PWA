@@ -1,0 +1,46 @@
+{
+  "background_color": "#0a525c",
+  "dir": "ltr",
+  "display": "standalone",
+  "name": "HVAC KFMC",
+  "orientation": "any",
+  "scope": "/",
+  "short_name": "HVSCKFMC",
+  "start_url": "/",
+  "theme_color": "#0a4a5c",
+  "icons": [
+    {
+      "src": "https://mechkingfaisal-source.github.io/PWA/icons/icon-192x192.png",
+      "isSquare": false,
+      "isPng": true,
+      "isWebp": false,
+      "isJpg": false,
+      "width": 0,
+      "is512x512": false,
+      "is256x256": false,
+      "is192x192": false
+    },
+    {
+      "src": "https://mechkingfaisal-source.github.io/PWA/icons/icon-192x192.png",
+      "isSquare": false,
+      "isPng": true,
+      "isWebp": false,
+      "isJpg": false,
+      "width": 0,
+      "is512x512": false,
+      "is256x256": false,
+      "is192x192": false
+    },
+    {
+      "src": "https://mechkingfaisal-source.github.io/PWA/icons/icon-144x144.png",
+      "isSquare": false,
+      "isPng": true,
+      "isWebp": false,
+      "isJpg": false,
+      "width": 0,
+      "is512x512": false,
+      "is256x256": false,
+      "is192x192": false
+    }
+  ]
+}
