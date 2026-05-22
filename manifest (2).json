@@ -1,46 +1,23 @@
 {
-  "background_color": "#0a525c",
-  "dir": "ltr",
-  "display": "standalone",
   "name": "HVAC KFMC",
-  "orientation": "any",
-  "scope": "/",
-  "short_name": "HVSCKFMC",
-  "start_url": "/",
+  "short_name": "HVAC",
+  "description": "Professional HVAC Preventive Maintenance and CMMS System",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0a525c",
   "theme_color": "#0a4a5c",
+  "orientation": "portrait",
   "icons": [
     {
-      "src": "https://mechkingfaisal-source.github.io/PWA/icons/icon-192x192.png",
-      "isSquare": false,
-      "isPng": true,
-      "isWebp": false,
-      "isJpg": false,
-      "width": 0,
-      "is512x512": false,
-      "is256x256": false,
-      "is192x192": false
+      "src": "./icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
     },
     {
-      "src": "https://mechkingfaisal-source.github.io/PWA/icons/icon-192x192.png",
-      "isSquare": false,
-      "isPng": true,
-      "isWebp": false,
-      "isJpg": false,
-      "width": 0,
-      "is512x512": false,
-      "is256x256": false,
-      "is192x192": false
-    },
-    {
-      "src": "https://mechkingfaisal-source.github.io/PWA/icons/icon-144x144.png",
-      "isSquare": false,
-      "isPng": true,
-      "isWebp": false,
-      "isJpg": false,
-      "width": 0,
-      "is512x512": false,
-      "is256x256": false,
-      "is192x192": false
+      "src": "./icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
     }
   ]
 }
