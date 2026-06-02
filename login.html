@@ -492,6 +492,16 @@
     document.getElementById('alert').className = 'alert';
   }
 
+  // ── Credential Database ──
+  // Format: { iqama: { fileNumber, name, role } }
+  // Add your real users here. Role must match 'tech' or 'eng'.
+  const USERS = {
+    '2358072466': { fileNumber: '123310', name: 'Ahmed Al-Rashidi',   role: 'eng'  },
+    '1098765432': { fileNumber: '100011', name: 'Khalid Al-Zahrani',  role: 'tech' },
+    '2012345678': { fileNumber: '200022', name: 'Mohammed Al-Ghamdi', role: 'eng'  },
+    '1122334455': { fileNumber: '300033', name: 'Faisal Al-Otaibi',   role: 'tech' },
+  };
+
   function doLogin() {
     const iqama  = document.getElementById('iqama').value.trim();
     const fileno = document.getElementById('fileno').value.trim();
@@ -516,11 +526,58 @@
     setTimeout(() => {
       btn.classList.remove('loading');
       btn.disabled = false;
+
       const alertEl = document.getElementById('alert');
-      alertEl.className = 'alert error';
-      alertEl.innerHTML = '⚠ Invalid credentials. Please check your Iqama and File numbers.';
-    }, 2000);
+      const user    = USERS[iqama];
+
+      // Check: iqama exists, file number matches, and selected role matches
+      if (user && user.fileNumber === fileno && user.role === currentRole) {
+        alertEl.className = 'alert success';
+        alertEl.innerHTML = '✔ Welcome, ' + user.name + '! Redirecting…';
+
+        // Save session if "Keep me signed in" is checked
+        if (document.getElementById('remember').checked) {
+          localStorage.setItem('cmms_session', JSON.stringify({
+            iqama, name: user.name, role: user.role
+          }));
+        }
+
+        // ── Redirect after short delay ──
+        // Replace these URLs with your actual dashboard pages
+        setTimeout(() => {
+          if (user.role === 'eng') {
+            window.location.href = 'engineer-dashboard.html';
+          } else {
+            window.location.href = 'technician-dashboard.html';
+          }
+        }, 1200);
+
+      } else if (user && user.fileNumber === fileno && user.role !== currentRole) {
+        // Credentials correct but wrong role selected
+        alertEl.className = 'alert error';
+        alertEl.innerHTML = '⚠ Incorrect role selected. Please choose <strong>'
+          + (user.role === 'eng' ? 'Engineer' : 'Technician') + '</strong>.';
+      } else {
+        // Wrong iqama or file number
+        alertEl.className = 'alert error';
+        alertEl.innerHTML = '⚠ Invalid credentials. Please check your Iqama and File numbers.';
+      }
+    }, 1500);
   }
+
+  // ── Auto-login if session saved ──
+  window.addEventListener('DOMContentLoaded', () => {
+    const session = localStorage.getItem('cmms_session');
+    if (session) {
+      try {
+        const s = JSON.parse(session);
+        document.getElementById('iqama').value  = s.iqama || '';
+        setRole(s.role || 'tech');
+      } catch(e) {
+        localStorage.removeItem('cmms_session');
+      }
+    }
+  });
 
   // ── Enter key ──
   document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
