@@ -706,7 +706,7 @@ function buildForm(){
   Object.keys(LVL).forEach(function(k){html+='<button class="lt '+(selLvl===k?'active':'')+'" onclick="setLvl(\''+k+'\')">'+LVL[k]+'</button>';});
   html+='</div>';
   html+='<div class="stitle">Technician Info</div><div class="finrow">';
-  html+='<input class="fin" id="tech" placeholder="👷 Technician Name" value="'+(fd._tech||_loggedInName||'')+'" '+(_loggedInName?'readonly style=\"background:#e8f0ff;cursor:not-allowed\"':'')><input class="fin" id="fdate" type="date" value="'+(fd._date||new Date().toISOString().split('T')[0])+'"></div>';
+  html+='<input class="fin" id="tech" placeholder="👷 Technician Name" value="'+(fd._tech||_loggedInName||'')+'"'+(_loggedInName?' readonly style="background:#e8f0ff;cursor:not-allowed"':'')+' ><input class="fin" id="fdate" type="date" value="'+(fd._date||new Date().toISOString().split('T')[0])+'"></div>';
   html+='<div class="pbar-row">Form Completion <span>'+pct+'%</span></div><div class="pbar"><div class="pfill" style="width:'+pct+'%"></div></div>';
   html+='<div class="stitle">Checklist — '+LVL[selLvl]+'</div><div class="clwrap">';
   checks.forEach(function(c){
@@ -915,7 +915,7 @@ function zsRenderTechCard(){
     +'<div class="zs-tech-info">'
     +'<div class="zs-tech-label">👷 Technician — '+zone.id+'</div>'
     +'<div class="zs-tech-zone">'+zone.en+' Zone ('+zone.units.length+' units)</div>'
-    +'<input class="zs-tech-input" id="zs-tech-'+zsZone+'" placeholder="Enter technician name for '+zone.en+'..." value="'+val+'" oninput="zsTechPerZone[\''+zsZone+'\']=this.value"'+(_loggedInName?' readonly style="background:#e8f0ff;cursor:not-allowed"':'')+' >'  '
+    +'<input class="zs-tech-input" id="zs-tech-'+zsZone+'" placeholder="Enter technician name for '+zone.en+'..." value="'+val+'" oninput="zsTechPerZone[\''+zsZone+'\']=this.value"'+(_loggedInName?' readonly style="background:#e8f0ff;cursor:not-allowed"':'')+'>'
     +'</div>'
     +'</div>';
 }
