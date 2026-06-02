@@ -565,11 +565,12 @@
         alertEl.className = 'alert success';
         alertEl.innerHTML = '✔ Welcome, ' + user.name + '! Redirecting…';
 
-        // Save session if "Keep me signed in" is checked
+        // Always save to sessionStorage (clears when browser closes)
+        const sessionData = JSON.stringify({ iqama, name: user.name, role: user.role });
+        sessionStorage.setItem('cmms_user', sessionData);
+        // Also save to localStorage if "Keep me signed in" is checked
         if (document.getElementById('remember').checked) {
-          localStorage.setItem('cmms_user', JSON.stringify({
-            iqama, name: user.name, role: user.role
-          }));
+          localStorage.setItem('cmms_user', sessionData);
         }
 
         // ── Redirect after short delay ──
