@@ -369,12 +369,15 @@
 
     <!-- Role Toggle -->
     <div class="role-label">Select Access Role</div>
-    <div class="role-toggle">
+    <div class="role-toggle" style="grid-template-columns:1fr 1fr 1fr">
       <button class="role-btn active" id="btnTech" onclick="setRole('tech')">
         <span class="role-icon">🔧</span> Technician
       </button>
       <button class="role-btn" id="btnEng" onclick="setRole('eng')">
         <span class="role-icon">👷</span> Engineer
+      </button>
+      <button class="role-btn" id="btnAdmin" onclick="setRole('admin')">
+        <span class="role-icon">🛡️</span> Admin
       </button>
     </div>
 
@@ -394,7 +397,7 @@
                placeholder="Enter your 10-digit Iqama number" autocomplete="off"
                oninput="clearErr('iqama')" />
       </div>
-      <div class="error-msg" id="err-iqama">⚠ Iqama number must be exactly 10 digits</div>
+      <div class="error-msg" id="err-iqama">⚠ Please enter your Iqama / User ID</div>
     </div>
 
     <div class="field-group">
@@ -483,6 +486,7 @@
     currentRole = r;
     document.getElementById('btnTech').classList.toggle('active', r === 'tech');
     document.getElementById('btnEng').classList.toggle('active', r === 'eng');
+    document.getElementById('btnAdmin').classList.toggle('active', r === 'admin');
   }
 
   // ── Validation ──
@@ -492,14 +496,40 @@
     document.getElementById('alert').className = 'alert';
   }
 
-  // ── Credential Database ──
-  // Format: { iqama: { fileNumber, name, role } }
-  // Add your real users here. Role must match 'tech' or 'eng'.
+  // ── ALL STAFF from log_in.xlsx ──
   const USERS = {
-    '2358072466': { fileNumber: '123310', name: 'Ahmed Al-Rashidi',   role: 'eng'  },
-    '1098765432': { fileNumber: '100011', name: 'Khalid Al-Zahrani',  role: 'tech' },
-    '2012345678': { fileNumber: '200022', name: 'Mohammed Al-Ghamdi', role: 'eng'  },
-    '1122334455': { fileNumber: '300033', name: 'Faisal Al-Otaibi',   role: 'tech' },
+    '2370919900': { fileNumber: '123064', name: 'AHMED DESHAN', role: 'tech' },
+    '2483858839': { fileNumber: '123074', name: 'MOZAMIL HUSSAIN', role: 'tech' },
+    '2568667683': { fileNumber: '123350', name: 'SAIF ALI', role: 'tech' },
+    '2567115932': { fileNumber: '123496', name: 'MOHAMED SAJED', role: 'tech' },
+    '2589322854': { fileNumber: '125828', name: 'MOHAMED AMJAD', role: 'tech' },
+    '2607550189': { fileNumber: '129096', name: 'NEHALUDIN ANSARY', role: 'tech' },
+    '2594107985': { fileNumber: '129163', name: 'ASGHAR MOHAMED', role: 'tech' },
+    '2609421884': { fileNumber: '135320', name: 'MOHAMED SARFARAZ', role: 'tech' },
+    '2609887019': { fileNumber: '136269', name: 'MD IRSHAD', role: 'tech' },
+    '88452': { fileNumber: '88452', name: 'MD SHAHWNAZ', role: 'tech' },
+    '2620093951': { fileNumber: '142459', name: 'MOHAMED KAMEL', role: 'tech' },
+    'I0342021': { fileNumber: '148167', name: 'MD GULFAM', role: 'tech' },
+    '1042337152': { fileNumber: '122224', name: 'SAMER ELHARTHY', role: 'tech' },
+    '1072886821': { fileNumber: '122250', name: 'ADEL ELTWERQEY', role: 'tech' },
+    '1106529801': { fileNumber: '122313', name: 'MOAZ ELHARTHY', role: 'tech' },
+    '1079028823': { fileNumber: '122324', name: 'YOUSSEF ELSHERBY', role: 'tech' },
+    '1103470173': { fileNumber: '143574', name: 'ABDELAZIZ ELSHERREF', role: 'tech' },
+    '123496': { fileNumber: '123496', name: 'SAJED RAJA', role: 'tech' },
+    '2582650780': { fileNumber: '124303', name: 'IRSHAD EMAM', role: 'tech' },
+    '2582659807': { fileNumber: '124474', name: 'MANOJ KUMAR', role: 'tech' },
+    '2608310591': { fileNumber: '133919', name: 'MOHAMED GONEID', role: 'tech' },
+    '2626409904': { fileNumber: '146898', name: 'MOHAMED DANISH', role: 'tech' },
+    '1126466844': { fileNumber: '130254', name: 'MOHAMED ELASMARY', role: 'tech' },
+    '1109182723': { fileNumber: '131666', name: 'HAZEM ELBAQAMY', role: 'tech' },
+    '1107068478': { fileNumber: '122322', name: 'YAZID ELROBEAY', role: 'eng' },
+    '2337227264': { fileNumber: '123068', name: 'AHMED MOASAD', role: 'eng' },
+    '1106947334': { fileNumber: '128262', name: 'MOHAMED ELTHAQAFY', role: 'eng' },
+    '1111': { fileNumber: '1111', name: 'AHMED ELGHAMDY', role: 'admin' },
+    '146884': { fileNumber: '146884', name: 'FAYZAN ALI', role: 'tech' },
+    '2222': { fileNumber: '2222', name: 'RAKAN ELSHEBY', role: 'admin' },
+    '142364': { fileNumber: '142364', name: 'AZHAR', role: 'tech' },
+    '2358072466': { fileNumber: '123310', name: 'AHMED GWEELY', role: 'eng' },
   };
 
   function doLogin() {
@@ -507,7 +537,7 @@
     const fileno = document.getElementById('fileno').value.trim();
     let valid = true;
 
-    if (!/^\d{10}$/.test(iqama)) {
+    if (!iqama || iqama.length < 4) {
       document.getElementById('iqama').classList.add('error');
       document.getElementById('err-iqama').classList.add('show');
       valid = false;
@@ -547,6 +577,8 @@
         setTimeout(() => {
           if (user.role === 'eng') {
             window.location.href = 'engineer-dashboard.html';
+          } else if (user.role === 'admin') {
+            window.location.href = 'admin-dashboard.html';
           } else {
             window.location.href = 'technician-dashboard.html';
           }
