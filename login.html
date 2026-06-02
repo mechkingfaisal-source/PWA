@@ -567,7 +567,7 @@
 
         // Save session if "Keep me signed in" is checked
         if (document.getElementById('remember').checked) {
-          localStorage.setItem('cmms_session', JSON.stringify({
+          localStorage.setItem('cmms_user', JSON.stringify({
             iqama, name: user.name, role: user.role
           }));
         }
@@ -575,13 +575,7 @@
         // ── Redirect after short delay ──
         // Replace these URLs with your actual dashboard pages
         setTimeout(() => {
-          if (user.role === 'eng') {
-            window.location.href = 'engineer-dashboard.html';
-          } else if (user.role === 'admin') {
-            window.location.href = 'admin-dashboard.html';
-          } else {
-            window.location.href = 'technician-dashboard.html';
-          }
+          window.location.href = 'index.html';
         }, 1200);
 
       } else if (user && user.fileNumber === fileno && user.role !== currentRole) {
@@ -599,14 +593,14 @@
 
   // ── Auto-login if session saved ──
   window.addEventListener('DOMContentLoaded', () => {
-    const session = localStorage.getItem('cmms_session');
+    const session = localStorage.getItem('cmms_user');
     if (session) {
       try {
         const s = JSON.parse(session);
         document.getElementById('iqama').value  = s.iqama || '';
         setRole(s.role || 'tech');
       } catch(e) {
-        localStorage.removeItem('cmms_session');
+        localStorage.removeItem('cmms_user');
       }
     }
   });
