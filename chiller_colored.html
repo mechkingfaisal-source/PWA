@@ -927,7 +927,7 @@ function buildForm(){
     <div class="lvl-tabs">${Object.entries(LVL).map(([k,v])=>`<button class="lt ${selLvl===k?'active':''}" onclick="setLvl('${k}')">${v}</button>`).join('')}</div>
     <div class="sctitle">Technician Info</div>
     <div class="finrow">
-      <input class="fin" id="tech" placeholder="👷 Technician Name" value="${fd._tech||''}">
+      <input class="fin" id="tech" placeholder="👷 Technician Name" value="${fd._tech||_loggedInName||''}" ${_loggedInName?'readonly style="background:#e8f0ff;cursor:not-allowed"':''}>
       <input class="fin" id="fdate" type="date" value="${fd._date||new Date().toISOString().split('T')[0]}">
     </div>
     <div class="pbar-wrap">
@@ -1463,10 +1463,13 @@ function renderQR(){
 // =====================================================
 // ZONE SHEET
 // =====================================================
+// ── Auto-fill logged-in technician name ──
+var _cmmsSession=(function(){try{return JSON.parse(sessionStorage.getItem('cmms_user')||localStorage.getItem('cmms_user')||'null');}catch(e){return null;}})();
+var _loggedInName=_cmmsSession&&_cmmsSession.name?_cmmsSession.name:'';
 var zsLvl='monthly';
 var zsZoneId=ZONES[0].id;
 var zsData={};
-var zsTechName='';
+var zsTechName=_loggedInName;
 
 function zsGetZone(){return ZONES.find(function(z){return z.id===zsZoneId;})||ZONES[0];}
 
@@ -1491,7 +1494,7 @@ function initZoneSheet(){
       +'<div class="zs-tech-info">'
       +'<div class="zs-tech-label">👷 Technician — '+zone.name+'</div>'
       +'<div class="zs-tech-zone">'+zone.en+' ('+zone.units.length+' units)</div>'
-      +'<input class="zs-tech-input" id="zs-tech-input" placeholder="Enter technician name..." value="'+(zsTechName||'')+'" oninput="zsTechName=this.value">'
+      +'<input class="zs-tech-input" id="zs-tech-input" placeholder="Enter technician name..." value="'+(zsTechName||'')+'" oninput="zsTechName=this.value"'+(_loggedInName?' readonly style="background:#e8f0ff;cursor:not-allowed"':'')+' >'  '
       +'</div></div>';
   }
   // Level tabs
