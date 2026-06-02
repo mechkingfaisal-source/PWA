@@ -986,7 +986,7 @@ function buildForm(){
  <div class="lvl-tabs">${Object.entries(LVL).map(([k,v])=>`<button class="lt ${selLvl===k?'active':''}" onclick="setLvl('${k}')">${v}</button>`).join('')}</div>
  <div class="sctitle">Technician Info</div>
  <div class="finrow">
- <input class="fin" id="tech" placeholder="👷 Technician Name" value="${fd._tech||''}">
+ <input class="fin" id="tech" placeholder="👷 Technician Name" value="${fd._tech||_loggedInName||''}" ${_loggedInName?'readonly style="background:#e8f0ff;cursor:not-allowed"':''}>
  <input class="fin" id="fdate" type="date" value="${fd._date||new Date().toISOString().split('T')[0]}">
  </div>
  <div class="pbar-wrap">
@@ -1603,7 +1603,11 @@ if(document.readyState==='loading'){
 var zsZone = null;
 var zsLvl  = 'monthly';
 var zsData = {}; // {unitId: {checkId: true/false/null/'value'}}
+// ── Auto-fill logged-in technician name ──
+var _cmmsSession=(function(){try{return JSON.parse(sessionStorage.getItem('cmms_user')||localStorage.getItem('cmms_user')||'null');}catch(e){return null;}})();
+var _loggedInName=_cmmsSession&&_cmmsSession.name?_cmmsSession.name:'';
 var zsTechPerZone = {}; // {zoneId: techName}
+// pre-fill all zones with logged-in name when set
 
 function initZoneSheet(){
   var d = document.getElementById('zs-date');
@@ -1643,14 +1647,14 @@ function zsRenderTechCard(){
   if(!wrap || !zsZone) return;
   var zone = ZONES.find(function(z){ return z.id === zsZone; });
   if(!zone) return;
-  var val = zsTechPerZone[zsZone] || '';
+  var val = zsTechPerZone[zsZone] || _loggedInName || '';
   wrap.innerHTML =
     '<div class="zs-tech-card">'+
     '<div class="zs-tech-icon"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>'+
     '<div class="zs-tech-info">'+
     '<div class="zs-tech-label">👷 Technician — '+zone.id+'</div>'+
     '<div class="zs-tech-zone">'+zone.en+' Zone ('+zone.units.length+' units)</div>'+
-    '<input class="zs-tech-input" id="zs-tech-'+zsZone+'" placeholder="Enter technician name for '+zone.en+'..." value="'+val+'" oninput="zsTechPerZone[\''+zsZone+'\']=this.value">'+
+    '<input class="zs-tech-input" id="zs-tech-'+zsZone+'" placeholder="Enter technician name for '+zone.en+'..." value="'+val+'" oninput="zsTechPerZone[\''+zsZone+'\']=this.value"'+(_loggedInName?' readonly style="background:#e8f0ff;cursor:not-allowed"':'')+'>'+
     '</div>'+
     '</div>';
 }
