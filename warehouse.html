@@ -128,6 +128,7 @@ tr:hover td{background:#f0f7ff}
     <option value="ok">✅ OK Stock</option>
   </select>
   <button class="btn btn-green no-print" onclick="openReceiveModal()">➕ Receive Stock</button>
+  <button class="btn btn-blue no-print" onclick="openAddItemModal()">🆕 Add Item</button>
   <button class="btn btn-gold no-print" onclick="printInventory()">🖨️ Print</button>
 </div>
 
@@ -315,8 +316,10 @@ function renderInventory(){
     h+='<td>'+it.min_stock+'</td>';
     h+='<td>'+stockStatus(it)+'</td>';
     h+='<td class="no-print" style="white-space:nowrap">';
-    h+='<button class="btn btn-red" style="padding:4px 8px;font-size:11px" onclick="quickIssue('+it.id+')">📤 Issue</button> ';
-    h+='<button class="btn btn-green" style="padding:4px 8px;font-size:11px" onclick="quickReceive('+it.id+')">➕</button>';
+    h+='<button class="btn btn-red" style="padding:4px 8px;font-size:11px" onclick="quickIssue('+it.id+')">📤</button> ';
+    h+='<button class="btn btn-green" style="padding:4px 8px;font-size:11px" onclick="quickReceive('+it.id+')">➕</button> ';
+    h+='<button class="btn" style="padding:4px 8px;font-size:11px;background:#1565c0;color:#fff" onclick="openEditModal('+it.id+')">✏️</button> ';
+    h+='<button class="btn" style="padding:4px 8px;font-size:11px;background:#b71c1c;color:#fff" onclick="deleteItem('+it.id+')">🗑️</button>';
     h+='</td>';
     h+='</tr>';
   });
@@ -387,6 +390,8 @@ function openReceiveModal(){
 function closeModals(){
   document.getElementById('issueOverlay').classList.remove('show');
   document.getElementById('receiveOverlay').classList.remove('show');
+  document.getElementById('editOverlay').classList.remove('show');
+  document.getElementById('addItemOverlay').classList.remove('show');
 }
 function quickIssue(id){
   document.getElementById('issueMat').value=id;
@@ -435,12 +440,203 @@ function printInventory(){
   window.print();
 }
 
+
+// ═══════════════ EDIT ITEM ═══════════════
+function openEditModal(id){
+  var it=items.find(function(i){return i.id===id;});
+  if(!it)return;
+  document.getElementById('editId').value=id;
+  document.getElementById('editName').value=it.name;
+  document.getElementById('editCat').value=it.category;
+  document.getElementById('editNett').value=it.nett;
+  document.getElementById('editMin').value=it.min_stock;
+  document.getElementById('editUnit').value=it.unit;
+  document.getElementById('editOverlay').classList.add('show');
+}
+function saveEdit(){
+  var id=parseInt(document.getElementById('editId').value);
+  var it=items.find(function(i){return i.id===id;});
+  if(!it)return;
+  var name=document.getElementById('editName').value.trim();
+  if(!name){alert('Name is required!');return;}
+  it.name=name;
+  it.category=document.getElementById('editCat').value;
+  it.nett=parseFloat(document.getElementById('editNett').value)||0;
+  it.min_stock=parseFloat(document.getElementById('editMin').value)||0;
+  it.unit=document.getElementById('editUnit').value;
+  saveState();
+  populateSelects();
+  renderStats();
+  closeModals();
+  renderInventory();
+}
+
+// ═══════════════ DELETE ITEM ═══════════════
+function deleteItem(id){
+  var it=items.find(function(i){return i.id===id;});
+  if(!it)return;
+  if(!confirm('🗑️ Delete "'+it.name+'"?\nThis cannot be undone.'))return;
+  items=items.filter(function(i){return i.id!==id;});
+  saveState();
+  populateSelects();
+  renderStats();
+  renderInventory();
+}
+
+// ═══════════════ ADD NEW ITEM ═══════════════
+function openAddItemModal(){
+  document.getElementById('addName').value='';
+  document.getElementById('addOpening').value='0';
+  document.getElementById('addMin').value='3';
+  document.getElementById('addUnit').value='pcs';
+  document.getElementById('addItemOverlay').classList.add('show');
+}
+function saveNewItem(){
+  var name=document.getElementById('addName').value.trim();
+  if(!name){alert('Material name is required!');return;}
+  var maxId=items.reduce(function(m,i){return Math.max(m,i.id);},0);
+  var opening=parseFloat(document.getElementById('addOpening').value)||0;
+  var newItem={
+    id:maxId+1,
+    name:name,
+    category:document.getElementById('addCat').value,
+    opening:opening,
+    in_stock:0,
+    nett:opening,
+    monthly_avg:0,
+    unit:document.getElementById('addUnit').value,
+    min_stock:parseFloat(document.getElementById('addMin').value)||3
+  };
+  items.push(newItem);
+  saveState();
+  populateSelects();
+  renderStats();
+  closeModals();
+  renderInventory();
+  alert('✅ Item added: '+name);
+}
+
 // ═══════════════ CLOSE ON BG CLICK ═══════════════
 document.getElementById('issueOverlay').addEventListener('click',function(e){if(e.target===this)closeModals();});
 document.getElementById('receiveOverlay').addEventListener('click',function(e){if(e.target===this)closeModals();});
+document.getElementById('editOverlay').addEventListener('click',function(e){if(e.target===this)closeModals();});
+document.getElementById('addItemOverlay').addEventListener('click',function(e){if(e.target===this)closeModals();});
 
 // ═══════════════ START ═══════════════
 init();
 </script>
+
+<!-- Edit Item Modal -->
+<div class="overlay" id="editOverlay">
+  <div class="modal">
+    <h2>✏️ Edit Item</h2>
+    <input type="hidden" id="editId">
+    <div class="form-row">
+      <label>Material Name</label>
+      <input type="text" id="editName" placeholder="Material name...">
+    </div>
+    <div class="form-row">
+      <label>Category</label>
+      <select id="editCat">
+        <option>Rubber Belts</option>
+        <option>Refrigerant Gas</option>
+        <option>Electrical</option>
+        <option>Motors</option>
+        <option>Compressors</option>
+        <option>Piping</option>
+        <option>Insulation & Tapes</option>
+        <option>Filters</option>
+        <option>Fittings & Valves</option>
+        <option>Chemicals & Sealants</option>
+        <option>General</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:10px">
+      <div class="form-row" style="flex:1">
+        <label>Current Stock</label>
+        <input type="number" id="editNett" min="0">
+      </div>
+      <div class="form-row" style="flex:1">
+        <label>Min Stock Level</label>
+        <input type="number" id="editMin" min="0">
+      </div>
+    </div>
+    <div style="display:flex;gap:10px">
+      <div class="form-row" style="flex:1">
+        <label>Unit</label>
+        <select id="editUnit">
+          <option value="pcs">pcs</option>
+          <option value="M">M (Meter)</option>
+          <option value="Cyl">Cyl (Cylinder)</option>
+          <option value="Kg">Kg</option>
+          <option value="L">L (Liter)</option>
+          <option value="Roll">Roll</option>
+          <option value="Box">Box</option>
+          <option value="Set">Set</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-red" onclick="closeModals()">Cancel</button>
+      <button class="btn btn-blue" onclick="saveEdit()">💾 Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Item Modal -->
+<div class="overlay" id="addItemOverlay">
+  <div class="modal">
+    <h2>🆕 Add New Item</h2>
+    <div class="form-row">
+      <label>Material Name *</label>
+      <input type="text" id="addName" placeholder="e.g. RUBBER BELT (A-55)">
+    </div>
+    <div class="form-row">
+      <label>Category</label>
+      <select id="addCat">
+        <option>Rubber Belts</option>
+        <option>Refrigerant Gas</option>
+        <option>Electrical</option>
+        <option>Motors</option>
+        <option>Compressors</option>
+        <option>Piping</option>
+        <option>Insulation & Tapes</option>
+        <option>Filters</option>
+        <option>Fittings & Valves</option>
+        <option>Chemicals & Sealants</option>
+        <option selected>General</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:10px">
+      <div class="form-row" style="flex:1">
+        <label>Opening Stock</label>
+        <input type="number" id="addOpening" min="0" value="0">
+      </div>
+      <div class="form-row" style="flex:1">
+        <label>Min Stock Level</label>
+        <input type="number" id="addMin" min="0" value="3">
+      </div>
+    </div>
+    <div style="display:flex;gap:10px">
+      <div class="form-row" style="flex:1">
+        <label>Unit</label>
+        <select id="addUnit">
+          <option value="pcs">pcs</option>
+          <option value="M">M (Meter)</option>
+          <option value="Cyl">Cyl (Cylinder)</option>
+          <option value="Kg">Kg</option>
+          <option value="L">L (Liter)</option>
+          <option value="Roll">Roll</option>
+          <option value="Box">Box</option>
+          <option value="Set">Set</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-red" onclick="closeModals()">Cancel</button>
+      <button class="btn btn-green" onclick="saveNewItem()">✅ Add Item</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
