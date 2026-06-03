@@ -137,6 +137,15 @@ body.app-mode{overflow:hidden;background:#f0f2f5}
 .lt{padding:6px 14px;border-radius:20px;border:1.5px solid #e2e8f0;font-size:11px;font-weight:700;
   cursor:pointer;background:#fff;color:#4a5568;white-space:nowrap;transition:all .15s;flex-shrink:0}
 .lt.active{color:#fff;border-color:transparent;font-weight:800}
+/* ── Unit Form PPM level tabs — per-level colors ── */
+.lt-daily{border-color:#e67e22;color:#e67e22;background:#fff8f0}
+.lt-daily.active{background:#e67e22;color:#fff;border-color:#e67e22}
+.lt-monthly{border-color:#2980b9;color:#1a5fae;background:#f0f8ff}
+.lt-monthly.active{background:#2980b9;color:#fff;border-color:#2980b9}
+.lt-quarterly{border-color:#8e44ad;color:#8e44ad;background:#faf0ff}
+.lt-quarterly.active{background:#8e44ad;color:#fff;border-color:#8e44ad}
+.lt-annually{border-color:#c0392b;color:#c0392b;background:#fff0f0}
+.lt-annually.active{background:#c0392b;color:#fff;border-color:#c0392b}
 .pbar-wrap{margin-bottom:10px}
 .pbar-lbl{display:flex;justify-content:space-between;font-size:10px;color:#8a94a6;margin-bottom:5px}
 .pbar-lbl span{font-weight:700;font-family:monospace}
@@ -289,6 +298,15 @@ body.app-mode{overflow:hidden;background:#f0f2f5}
 .zs-lvl-tabs::-webkit-scrollbar{display:none}
 .zs-ltab{padding:6px 11px;border-radius:8px;border:1.5px solid #d1d8e0;background:#fff;font-size:10px;font-weight:700;color:#4a5568;cursor:pointer;white-space:nowrap;font-family:Arial,sans-serif;transition:all .18s}
 .zs-ltab.active{background:#0a2e5c;color:#fff;border-color:#0a2e5c}
+/* ── Zone sheet maintenance level tabs — per-level colors ── */
+#zs-lvl-tabs .zs-ltab[onclick*="daily"]{border-color:#e67e22;color:#e67e22;background:#fff8f0}
+#zs-lvl-tabs .zs-ltab[onclick*="daily"].active{background:#e67e22;color:#fff;border-color:#e67e22}
+#zs-lvl-tabs .zs-ltab[onclick*="monthly"]{border-color:#2980b9;color:#1a5fae;background:#f0f8ff}
+#zs-lvl-tabs .zs-ltab[onclick*="monthly"].active{background:#2980b9;color:#fff;border-color:#2980b9}
+#zs-lvl-tabs .zs-ltab[onclick*="quarterly"]{border-color:#8e44ad;color:#8e44ad;background:#faf0ff}
+#zs-lvl-tabs .zs-ltab[onclick*="quarterly"].active{background:#8e44ad;color:#fff;border-color:#8e44ad}
+#zs-lvl-tabs .zs-ltab[onclick*="annually"]{border-color:#c0392b;color:#c0392b;background:#fff0f0}
+#zs-lvl-tabs .zs-ltab[onclick*="annually"].active{background:#c0392b;color:#fff;border-color:#c0392b}
 .zs-table-wrap{overflow-x:auto;border-radius:10px;border:1.5px solid #d1d8e0;margin-bottom:12px}
 .zs-table{width:100%;border-collapse:collapse;font-size:11px;min-width:500px}
 .zs-table th{background:#0a2e5c;color:#fff;padding:7px 6px;text-align:center;font-size:10px;font-weight:700;border-right:1px solid rgba(255,255,255,.15);white-space:nowrap}
@@ -980,7 +998,7 @@ function buildForm() {
       <p style="margin-top:2px;font-size:9px;opacity:.6">King Faisal Medical Complex — EX FAN PPM</p>
     </div>
     <div class="sctitle">Maintenance Level</div>
-    <div class="lvl-tabs">${Object.entries(LVL).map(([k,v])=>`<button class="lt ${selLvl===k?'active':''}" onclick="setLvl('${k}')">${v}</button>`).join('')}</div>
+    <div class="lvl-tabs">${Object.entries(LVL).map(([k,v])=>`<button class="lt lt-${k} ${selLvl===k?'active':''}" onclick="setLvl('${k}')">${v}</button>`).join('')}</div>
     <div class="sctitle">Technician Info</div>
     <div class="finrow">
       <input class="fin" id="tech" placeholder="👷 Technician Name" value="${fd._tech||_loggedInName||''}" ${_loggedInName?'readonly style="background:#e8f0ff;cursor:not-allowed"':''}>
