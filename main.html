@@ -56,6 +56,17 @@ body{background:#f0f2f5;color:#0d1b2a}
 .lvltabs::-webkit-scrollbar{display:none}
 .lt{padding:5px 12px;border-radius:20px;border:1.5px solid #e2e8f0;font-size:11px;font-weight:800;cursor:pointer;background:#fff;color:#4a5568;white-space:nowrap;transition:all .15s;flex-shrink:0;font-family:Arial,sans-serif;letter-spacing:.02em}
 .lt.active{background:#0a2e5c;color:#fff;border-color:#0a2e5c;font-weight:900}
+/* ── Unit Form PPM level tabs — same colors as Zone Sheet ── */
+.lt-daily{border-color:#e67e22;color:#e67e22;background:#fff8f0}
+.lt-daily.active{background:#e67e22;color:#fff;border-color:#e67e22}
+.lt-weekly{border-color:#27ae60;color:#1a7a4a;background:#f0fff5}
+.lt-weekly.active{background:#27ae60;color:#fff;border-color:#27ae60}
+.lt-monthly{border-color:#2980b9;color:#1a5fae;background:#f0f8ff}
+.lt-monthly.active{background:#2980b9;color:#fff;border-color:#2980b9}
+.lt-halfyearly{border-color:#8e44ad;color:#8e44ad;background:#faf0ff}
+.lt-halfyearly.active{background:#8e44ad;color:#fff;border-color:#8e44ad}
+.lt-annually{border-color:#c0392b;color:#c0392b;background:#fff0f0}
+.lt-annually.active{background:#c0392b;color:#fff;border-color:#c0392b}
 .pbar-row{display:flex;justify-content:space-between;font-size:10px;color:#8a94a6;margin-bottom:4px}
 .pbar-row span{color:#0a2e5c;font-weight:600}
 .pbar{height:4px;background:#e2e8f0;border-radius:2px;margin-bottom:9px;overflow:hidden}
@@ -703,7 +714,7 @@ function buildForm(){
 
   var html='<div class="fhdr"><h2>'+selUnit.name+'</h2><p>📍 '+selUnit.zoneName+' | King Faisal Medical Complex</p></div>';
   html+='<div class="stitle">Maintenance Level</div><div class="lvltabs">';
-  Object.keys(LVL).forEach(function(k){html+='<button class="lt '+(selLvl===k?'active':'')+'" onclick="setLvl(\''+k+'\')">'+LVL[k]+'</button>';});
+  Object.keys(LVL).forEach(function(k){html+='<button class="lt lt-'+k+' '+(selLvl===k?'active':'')+'" onclick="setLvl(\''+k+'\')">'+LVL[k]+'</button>';});
   html+='</div>';
   html+='<div class="stitle">Technician Info</div><div class="finrow">';
   html+='<input class="fin" id="tech" placeholder="👷 Technician Name" value="'+(fd._tech||_loggedInName||'')+'"'+(_loggedInName?' readonly style="background:#e8f0ff;cursor:not-allowed"':'')+' ><input class="fin" id="fdate" type="date" value="'+(fd._date||new Date().toISOString().split('T')[0])+'"></div>';
