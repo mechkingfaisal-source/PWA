@@ -143,9 +143,9 @@ iframe{width:100%;height:88vh;border:none;border-radius:14px;
 .card:nth-child(2) .card-icon{animation:float 3s ease-in-out infinite .4s}
 .card:nth-child(3) .card-icon{animation:float 3s ease-in-out infinite .8s}
 .card:nth-child(4) .card-icon{animation:float 3s ease-in-out infinite 1.2s}
-.card:nth-child(5) .card-icon{animation:float 3s ease-in-out infinite 1.6s}
-.card:nth-child(6) .card-icon{animation:float 3s ease-in-out infinite 2s}
 .card:nth-child(7) .card-icon{animation:float 3s ease-in-out infinite 2.4s}
+.card:nth-child(8) .card-icon{animation:float 3s ease-in-out infinite 2.8s}
+.card:nth-child(9) .card-icon{animation:float 3s ease-in-out infinite 3.2s}
 
 @media(max-width:520px){
   .cards{grid-template-columns:1fr 1fr}
@@ -247,6 +247,14 @@ iframe{width:100%;height:88vh;border:none;border-radius:14px;
       <div class="card-sub">All Zones — S.B.1 to Zone 9<br>Preventive Maintenance</div>
       <div class="card-badge">💨 EX Fans PPM</div>
       <div class="card-btn">OPEN →</div>
+    
+    <!-- Material Request -->
+    <div class="card" onclick="openSystem('material_request.html')">
+      <div class="card-icon-wrap"><span class="card-icon">📋</span></div>
+      <div class="card-title">Material Request</div>
+      <div class="card-sub">Issue Materials<br>نموذج صرف مواد</div>
+      <div class="card-badge">📤 Request</div>
+      <div class="card-btn">OPEN →</div>
     </div>
 
     <!-- Warehouse -->
@@ -257,6 +265,17 @@ iframe{width:100%;height:88vh;border:none;border-radius:14px;
       <div class="card-badge">📦 Inventory</div>
       <div class="card-btn">OPEN →</div>
     </div>
+
+    <!-- Engineer Approval -->
+    <div class="card" onclick="openSystem('engineer_approval.html')">
+      <div class="card-icon-wrap"><span class="card-icon">👷‍♂️</span></div>
+      <div class="card-title">Eng. Approval</div>
+      <div class="card-sub">Approve Requests<br>اعتماد الطلبات</div>
+      <div class="card-badge">✅ Engineer</div>
+      <div class="card-btn">OPEN →</div>
+    </div>
+
+</div>
 
   </div>
 
