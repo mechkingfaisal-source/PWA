@@ -493,7 +493,8 @@ function toggleNotifDropdown(e){
 function openApprovals(e){
   e.stopPropagation();
   document.getElementById('notifDropdown').style.display = 'none';
-  window.open('engineer_approval.html', '_blank');
+  openInventory();
+  setTimeout(function(){ openSystem('engineer_approval.html'); }, 100);
 }
 
 // Close dropdown when clicking outside
