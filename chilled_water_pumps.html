@@ -71,7 +71,7 @@ body{background:#f0f2f5;color:#0d1b2a}
 .zone-hdr{background:#0a2e5c;color:#fff;padding:6px 10px;border-radius:7px;font-size:11px;font-weight:600;margin:9px 0 5px;display:flex;justify-content:space-between;align-items:center}
 .zone-cnt{font-size:9px;opacity:.6;font-weight:400}
 /* Zone icon picker — Units tab */
-.unit-zone-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:12px}
+.unit-zone-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:6px;margin-bottom:12px}
 .uzb{padding:8px 4px 7px;border-radius:10px;border:1.5px solid #d1d8e0;background:#fff;font-size:9px;font-weight:700;color:#0a2e5c;cursor:pointer;font-family:Arial,sans-serif;transition:all .18s;text-align:center;line-height:1.3;box-shadow:0 1px 3px rgba(0,0,0,.06);position:relative}
 .uzb .uzb-icon{display:flex;align-items:center;justify-content:center;width:26px;height:26px;background:#f0f6ff;border-radius:6px;margin:0 auto 4px}
 .uzb .uzb-icon svg{width:13px;height:13px}
@@ -115,7 +115,7 @@ body{background:#f0f2f5;color:#0d1b2a}
 .uzb-badge.pending{background:#f87171}
 
 /* ── Units Panel Frame ── */
-.units-panel{animation:fadeInUp .18s ease;background:#f4f7fb;border:1.5px solid #d1d8e0;border-radius:13px;padding:10px 10px 6px;margin-top:2px}
+.units-panel{animation:fadeIn .18s ease;background:#f4f7fb;border:1.5px solid #d1d8e0;border-radius:13px;padding:10px 10px 6px;margin-top:2px}
 .units-panel-hdr{display:flex;align-items:center;gap:8px;margin-bottom:9px;padding:0 2px}
 .units-panel-hdr-bar{width:4px;height:20px;border-radius:3px;background:linear-gradient(180deg,#0a2e5c,#00b4d8);flex-shrink:0}
 .units-panel-hdr-title{font-size:11px;font-weight:900;color:#0a2e5c;letter-spacing:.04em;text-transform:uppercase;font-family:Arial,sans-serif;flex:1}
@@ -134,7 +134,7 @@ body{background:#f0f2f5;color:#0d1b2a}
 .b-due{background:#fff3e0;color:#a05c00;border:.5px solid #f5d5a0}
 .umeta{font-size:10px;color:#8a94a6;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ucard-arrow{color:#b0bec5;font-size:13px;flex-shrink:0;margin-left:2px}
-@keyframes fadeInUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 .fhdr{background:linear-gradient(135deg,#0a2e5c,#1a5fae);color:#fff;border-radius:10px;padding:11px 13px;margin-bottom:10px}
 .fhdr h2{font-size:13px;font-weight:600;font-family:monospace;margin-bottom:2px}
 .fhdr p{font-size:10px;opacity:.7}
@@ -604,6 +604,7 @@ try{records=JSON.parse(localStorage.getItem('chw_records')||'[]');}catch(e){}
 function go(tab){
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===tab));
   document.querySelectorAll('.pg').forEach(p=>p.classList.toggle('active',p.id==='pg-'+tab));
+  if(tab==='units'){renderZoneIcons();renderUnitsList();}
   if(tab==='zonesheet')initZoneSheet();
   if(tab==='qr'){renderQRZoneTabs();renderQR();}
 }
@@ -664,10 +665,6 @@ function renderUnitsList(filter) {
     return;
   }
   if (selectedZone) {
-    const z = ZONES.find(zz => zz.id === selectedZone);
-    if (z) {
-      html = '<div class="units-panel">';
-      html += `<div class="zone-hdr">${z.name} <span style="font-size:10px;opacity:.7">${z.en}</span><span class="zone-cnt">${z.units.length}   if (selectedZone) {
     const z = ZONES.find(zz => zz.id === selectedZone);
     if (z) {
       const doneCount = z.units.filter(u => records.some(r => r.unitId === u.id)).length;
