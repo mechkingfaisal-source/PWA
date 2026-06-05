@@ -36,14 +36,18 @@ body{background:#f0f2f5;color:#0d1b2a}
 .zone-hdr{background:#0a2e5c;color:#fff;padding:6px 10px;border-radius:7px;font-size:11px;font-weight:600;margin:9px 0 5px;display:flex;justify-content:space-between;align-items:center}
 .zone-cnt{font-size:9px;opacity:.6;font-weight:400}
 /* Unit card */
-.ucard{border:.5px solid #e2e8f0;border-radius:10px;padding:9px 11px;margin-bottom:6px;cursor:pointer;background:#fff;transition:all .15s;box-shadow:0 1px 3px rgba(0,0,0,.05)}
-.ucard:active{transform:scale(.98);border-color:#0a2e5c;background:#f0f6ff}
+.ucard{border:.5px solid #e2e8f0;border-radius:10px;padding:9px 11px 8px;cursor:pointer;background:#fff;transition:all .15s;box-shadow:0 1px 4px rgba(0,0,0,.06);border-left:3px solid #0a2e5c;display:flex;align-items:center;gap:10px}
+.ucard:active,.ucard.sel{transform:scale(.98);border-color:#0a2e5c;border-left-color:#00b4d8;background:#f0f6ff;box-shadow:0 3px 10px rgba(10,46,92,.12)}
+.ucard-icon{width:32px;height:32px;border-radius:8px;background:#f0f6ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px}
+.ucard-icon.done{background:#e8f8f0}
+.ucard-body{flex:1;min-width:0}
+.ucard-arrow{color:#b0bec5;font-size:13px;flex-shrink:0;margin-left:2px}
 .urow{display:flex;justify-content:space-between;align-items:center;margin-bottom:2px}
-.uname{font-weight:900;font-size:13px;color:#0a2e5c;font-family:Arial,monospace;letter-spacing:.02em;-webkit-text-stroke:0.4px #0a2e5c}
-.bdg{font-size:9px;padding:2px 7px;border-radius:20px;font-weight:500}
-.b-ok{background:#e8f8f0;color:#1a7a4a}
-.b-due{background:#fff3e0;color:#a05c00}
-.umeta{font-size:10px;color:#8a94a6}
+.uname{font-weight:900;font-size:13px;color:#0a2e5c;font-family:Arial,monospace;letter-spacing:.02em;-webkit-text-stroke:0.4px #0a2e5c;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bdg{font-size:9px;padding:2px 7px;border-radius:20px;font-weight:600;flex-shrink:0}
+.b-ok{background:#e8f8f0;color:#1a7a4a;border:.5px solid #a3d9be}
+.b-due{background:#fff3e0;color:#a05c00;border:.5px solid #f5d5a0}
+.umeta{font-size:10px;color:#8a94a6;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* Form */
 .fhdr{background:linear-gradient(135deg,#0a2e5c,#1a5fae);color:#fff;border-radius:10px;padding:11px 13px;margin-bottom:10px}
 .fhdr h2{font-size:13px;font-weight:600;font-family:monospace;margin-bottom:2px}
@@ -116,6 +120,60 @@ body{background:#f0f2f5;color:#0d1b2a}
 .empty-icon{font-size:32px;margin-bottom:8px;opacity:.5}
 /* Info */
 .info{background:#EBF4FF;border:.5px solid #B5D4F4;border-radius:8px;padding:8px 11px;font-size:11px;color:#0a2e5c;margin-bottom:10px;line-height:1.7}
+/* Zone icon picker — Units tab */
+.unit-zone-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:12px}
+.uzb{padding:8px 4px 7px;border-radius:10px;border:1.5px solid #d1d8e0;background:#fff;font-size:9px;font-weight:700;color:#0a2e5c;cursor:pointer;font-family:Arial,sans-serif;transition:all .18s;text-align:center;line-height:1.3;box-shadow:0 1px 3px rgba(0,0,0,.06);position:relative}
+.uzb .uzb-icon{display:flex;align-items:center;justify-content:center;width:26px;height:26px;background:#f0f6ff;border-radius:6px;margin:0 auto 4px}
+.uzb .uzb-icon svg{width:13px;height:13px}
+.uzb .uzb-id{font-size:10px;font-weight:900;color:#0a2e5c;letter-spacing:.03em;display:block}
+.uzb .uzb-cnt{font-size:8px;font-weight:500;color:#8a94a6;display:block;margin-top:1px}
+.uzb.active{background:#0a2e5c;color:#fff;border-color:#0a2e5c;box-shadow:0 3px 10px rgba(10,46,92,.28)}
+.uzb.active .uzb-icon{background:rgba(255,255,255,.18)}
+.uzb.active .uzb-icon svg{stroke:#fff}
+.uzb.active .uzb-id,.uzb.active .uzb-cnt{color:#fff}
+.uzb.active .uzb-cnt{color:rgba(255,255,255,.7)}
+.uzb:nth-child(1){border-color:#0a2e5c;color:#0a2e5c;background:#f0f6ff}
+.uzb:nth-child(1) .uzb-icon{background:#e0eaff}
+.uzb:nth-child(1).active{background:#0a2e5c}
+.uzb:nth-child(2){border-color:#1a5fae;color:#1a5fae;background:#e8f0ff}
+.uzb:nth-child(2) .uzb-icon{background:#d0e4ff}
+.uzb:nth-child(2).active{background:#1a5fae;border-color:#1a5fae}
+.uzb:nth-child(3){border-color:#0e7490;color:#0e7490;background:#ecfeff}
+.uzb:nth-child(3) .uzb-icon{background:#cffafe}
+.uzb:nth-child(3).active{background:#0e7490;border-color:#0e7490}
+.uzb:nth-child(4){border-color:#15803d;color:#15803d;background:#f0fdf4}
+.uzb:nth-child(4) .uzb-icon{background:#dcfce7}
+.uzb:nth-child(4).active{background:#15803d;border-color:#15803d}
+.uzb:nth-child(5){border-color:#b45309;color:#b45309;background:#fffbeb}
+.uzb:nth-child(5) .uzb-icon{background:#fef3c7}
+.uzb:nth-child(5).active{background:#b45309;border-color:#b45309}
+.uzb:nth-child(6){border-color:#7c3aed;color:#7c3aed;background:#faf5ff}
+.uzb:nth-child(6) .uzb-icon{background:#ede9fe}
+.uzb:nth-child(6).active{background:#7c3aed;border-color:#7c3aed}
+.uzb:nth-child(7){border-color:#be185d;color:#be185d;background:#fdf2f8}
+.uzb:nth-child(7) .uzb-icon{background:#fce7f3}
+.uzb:nth-child(7).active{background:#be185d;border-color:#be185d}
+.uzb:nth-child(8){border-color:#c0392b;color:#c0392b;background:#fff0f0}
+.uzb:nth-child(8) .uzb-icon{background:#fde8e8}
+.uzb:nth-child(8).active{background:#c0392b;border-color:#c0392b}
+.uzb:nth-child(9){border-color:#0f766e;color:#0f766e;background:#f0fdfa}
+.uzb:nth-child(9) .uzb-icon{background:#ccfbf1}
+.uzb:nth-child(9).active{background:#0f766e;border-color:#0f766e}
+.uzb:nth-child(10){border-color:#92400e;color:#92400e;background:#fdf6ec}
+.uzb:nth-child(10) .uzb-icon{background:#fde8c8}
+.uzb:nth-child(10).active{background:#92400e;border-color:#92400e}
+.uzb.active .uzb-id,.uzb.active .uzb-cnt{color:#fff!important}
+/* Units panel slide */
+.units-panel{animation:fadeIn .18s ease;background:#f4f7fb;border:1.5px solid #d1d8e0;border-radius:13px;padding:10px 10px 6px;margin-top:2px}
+.units-panel-hdr{display:flex;align-items:center;gap:8px;margin-bottom:9px;padding:0 2px}
+.units-panel-hdr-bar{width:4px;height:20px;border-radius:3px;background:linear-gradient(180deg,#0a2e5c,#00b4d8);flex-shrink:0}
+.units-panel-hdr-title{font-size:11px;font-weight:900;color:#0a2e5c;letter-spacing:.04em;text-transform:uppercase;font-family:Arial,sans-serif;flex:1}
+.units-panel-hdr-count{font-size:10px;font-weight:700;color:#fff;background:#0a2e5c;border-radius:20px;padding:2px 9px}
+.units-panel-hdr-done{font-size:10px;font-weight:700;color:#1a7a4a;background:#e8f8f0;border-radius:20px;padding:2px 8px;border:.5px solid #a3d9be}
+.units-grid{display:flex;flex-direction:column;gap:5px}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.uzb-badge{position:absolute;top:3px;right:3px;width:14px;height:14px;background:#4ade80;border-radius:50%;font-size:7px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;line-height:1}
+.uzb-badge.pending{background:#f87171}
 /* QR */
 .qgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:7px}
 .qcard{background:#fff;border:.5px solid #e2e8f0;border-radius:9px;padding:10px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.05)}
@@ -315,7 +373,8 @@ body{background:#f0f2f5;color:#0d1b2a}
         <span style="font-size:14px;color:#8a94a6">🔍</span>
         <input id="search-input" placeholder="Search for a unit..." oninput="filterUnits(this.value)">
       </div>
-      <div id="units-list"><div class="empty"><div class="empty-icon">⏳</div><div>Loading...</div></div></div>
+      <div id="unit-zone-grid" class="unit-zone-grid"></div>
+      <div id="units-list"></div>
     </div>
 
     <!-- FORM -->
@@ -609,6 +668,7 @@ var selUnit=null,selLvl='daily',fd={};
 var records=[];
 var fbConnected=false;
 var qrZone='BSM';
+var selectedZone=null; // currently expanded zone in Units tab
 var SITE_URL=(function(){return window.location.href.split('?')[0].replace(/\/+$/,'');})();
 
 // Real-time listener — Updates records immediately on any technician change
@@ -665,38 +725,97 @@ function updateOnlineStatus(online){
 //---
 // UNITS
 //---
-function renderUnits(filter){
-  var html='';
+function renderZoneIcons(){
+  var grid=document.getElementById('unit-zone-grid');
+  if(!grid)return;
+  grid.innerHTML=ZONES.map(function(z){
+    var icon=ZONE_ICONS[z.id]||'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>';
+    var total=z.units.length;
+    var done=z.units.filter(function(uid){return records.some(function(r){return r.unitId===uid;});}).length;
+    var allDone=(done===total);
+    var badgeHtml=done>0?'<span class="uzb-badge'+(allDone?'':' pending')+'">'+(allDone?'✓':done)+'</span>':'';
+    var isActive=selectedZone===z.id;
+    return '<button class="uzb'+(isActive?' active':'')+'" onclick="selectZone(\''+z.id+'\')">'
+      +badgeHtml
+      +'<span class="uzb-icon">'+icon+'</span>'
+      +'<span class="uzb-id">'+z.id+'</span>'
+      +'<span class="uzb-cnt">'+total+' units</span>'
+      +'</button>';
+  }).join('');
+}
+
+function selectZone(zid){
+  selectedZone=(selectedZone===zid)?null:zid;
+  document.getElementById('search-input').value='';
+  renderZoneIcons();
+  renderUnitsList();
+}
+
+function renderUnitsList(filter){
   var q=(filter||'').toLowerCase().trim();
-  ZONES.forEach(function(z){
-    var units=z.units.filter(function(uid){
-      if(!q) return true;
-      var u=ALL_UNITS[uid];
-      if(!u) return false;
-      return (u.name||'').toLowerCase().includes(q)||z.name.includes(q)||(z.en||'').toLowerCase().includes(q);
+  var html='';
+  // If searching, show all matching across zones
+  if(q){
+    ZONES.forEach(function(z){
+      var units=z.units.filter(function(uid){
+        var u=ALL_UNITS[uid];if(!u)return false;
+        return (u.name||'').toLowerCase().includes(q)||z.name.toLowerCase().includes(q)||(z.en||'').toLowerCase().includes(q);
+      });
+      if(!units.length)return;
+      html+='<div class="zone-hdr">'+z.name+' <span style="font-size:9px;font-weight:400;opacity:.6">'+z.en+'</span><span class="zone-cnt">'+units.length+' units</span></div>';
+      html+='<div class="units-grid">';
+      units.forEach(function(uid){html+=buildUnitCard(uid);});
+      html+='</div>';
     });
-    if(!units.length) return;
-    html+='<div class="zone-hdr">'+z.name+' <span style="font-size:9px;font-weight:400;opacity:.6">'+z.en+'</span><span class="zone-cnt">'+units.length+' units</span></div>';
-    units.forEach(function(uid){
-      var u=ALL_UNITS[uid];
-      if(!u) return;
-      var lr=records.find(function(r){return r.unitId===uid;});
-      html+='<div class="ucard" onclick="pickUnit(\''+uid+'\')">'+
-        '<div class="urow"><span class="uname">'+(u.name||uid)+'</span>'+
-        '<span class="bdg '+(lr?'b-ok':'b-due')+'">'+(lr?'✓ Done':'⏳ Due')+'</span></div>'+
-        '<div class="umeta">📍 '+(u.zoneName||'')+(lr?' | Last Maintenance: '+lr.date:'')+'</div></div>';
-    });
-  });
-  if(!html) html='<div class="empty"><div class="empty-icon">🔍</div><div>No results found</div></div>';
+    if(!html)html='<div class="empty"><div class="empty-icon">🔍</div><div>No results found</div></div>';
+    document.getElementById('units-list').innerHTML=html;
+    return;
+  }
+  // Zone selected — show its units
+  if(selectedZone){
+    var z=ZONES.find(function(zz){return zz.id===selectedZone;});
+    if(z){
+      var doneCount=z.units.filter(function(uid){return records.some(function(r){return r.unitId===uid;});}).length;
+      html='<div class="units-panel">';
+      html+='<div class="units-panel-hdr"><div class="units-panel-hdr-bar"></div><div class="units-panel-hdr-title">'+z.name+'</div><span class="units-panel-hdr-done">'+doneCount+'/'+z.units.length+' done</span><span class="units-panel-hdr-count">'+z.units.length+' units</span></div>';
+      html+='<div class="units-grid">';
+      z.units.forEach(function(uid){html+=buildUnitCard(uid);});
+      html+='</div></div>';
+    }
+  } else {
+    html='<div class="empty" style="padding:28px 16px"><div class="empty-icon" style="font-size:36px;opacity:.35">👆</div><div style="font-size:12px;margin-top:6px;color:#607d9f">Tap a zone icon above to view its units</div></div>';
+  }
   document.getElementById('units-list').innerHTML=html;
 }
 
-function filterUnits(q){renderUnits(q);}
+function buildUnitCard(uid){
+  var u=ALL_UNITS[uid];if(!u)return'';
+  var lr=records.find(function(r){return r.unitId===uid;});
+  var isSel=(selUnit&&selUnit.id===uid);
+  return '<div class="ucard'+(isSel?' sel':'')+'" onclick="pickUnit(\''+uid+'\')">'+
+    '<div class="ucard-icon'+(lr?' done':'')+'">'+( lr?'✅':'❄️')+'</div>'+
+    '<div class="ucard-body">'+
+    '<div class="urow"><span class="uname">'+(u.name||uid)+'</span>'+
+    '<span class="bdg '+(lr?'b-ok':'b-due')+'">'+(lr?'✓ Done':'⏳ Due')+'</span></div>'+
+    '<div class="umeta">📍 '+(u.zoneName||'')+(lr?' · '+lr.date:'')+'</div>'+
+    '</div><span class="ucard-arrow">›</span></div>';
+}
+
+function renderUnits(filter){
+  renderZoneIcons();
+  renderUnitsList(filter);
+}
+
+function filterUnits(q){
+  if(q&&q.trim()){selectedZone=null;renderZoneIcons();}
+  renderUnitsList(q);
+}
 
 function pickUnit(id){
   selUnit=ALL_UNITS[id];
   selLvl='daily';
   fd={};
+  selectedZone=selUnit.zone; // keep zone highlighted when returning
   renderUnits();
   document.getElementById('hdrsub').textContent=selUnit.name+' — '+selUnit.zoneName;
   buildForm();
