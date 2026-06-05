@@ -319,6 +319,51 @@ body{background:#f0f2f5;color:#0d1b2a}
 /* Zone */
 .zone-hdr{background:#0a2e5c;color:#fff;padding:7px 12px;border-radius:7px;font-size:11px;font-weight:700;margin:9px 0 5px;display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #00b4d8}
 .zone-cnt{font-size:9px;opacity:.6;font-weight:400}
+/* Zone icon picker — Units tab */
+.unit-zone-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:12px}
+.uzb{padding:8px 4px 7px;border-radius:10px;border:1.5px solid #d1d8e0;background:#fff;font-size:9px;font-weight:700;color:#0a2e5c;cursor:pointer;font-family:Arial,sans-serif;transition:all .18s;text-align:center;line-height:1.3;box-shadow:0 1px 3px rgba(0,0,0,.06);position:relative}
+.uzb .uzb-icon{display:flex;align-items:center;justify-content:center;width:26px;height:26px;background:#f0f6ff;border-radius:6px;margin:0 auto 4px}
+.uzb .uzb-icon svg{width:13px;height:13px}
+.uzb .uzb-id{font-size:10px;font-weight:900;color:#0a2e5c;letter-spacing:.03em;display:block}
+.uzb .uzb-cnt{font-size:8px;font-weight:500;color:#8a94a6;display:block;margin-top:1px}
+.uzb.active{background:#0a2e5c;color:#fff;border-color:#0a2e5c;box-shadow:0 3px 10px rgba(10,46,92,.28)}
+.uzb.active .uzb-icon{background:rgba(255,255,255,.18)}
+.uzb.active .uzb-icon svg{stroke:#fff!important}
+.uzb.active .uzb-id,.uzb.active .uzb-cnt{color:#fff!important}
+.uzb:nth-child(1){border-color:#0a2e5c;background:#f0f6ff}
+.uzb:nth-child(1) .uzb-icon{background:#e0eaff}
+.uzb:nth-child(1).active{background:#0a2e5c;border-color:#0a2e5c}
+.uzb:nth-child(2){border-color:#1a5fae;color:#1a5fae;background:#e8f0ff}
+.uzb:nth-child(2) .uzb-icon{background:#d0e4ff}
+.uzb:nth-child(2).active{background:#1a5fae;border-color:#1a5fae}
+.uzb:nth-child(3){border-color:#0e7490;color:#0e7490;background:#ecfeff}
+.uzb:nth-child(3) .uzb-icon{background:#cffafe}
+.uzb:nth-child(3).active{background:#0e7490;border-color:#0e7490}
+.uzb:nth-child(4){border-color:#15803d;color:#15803d;background:#f0fdf4}
+.uzb:nth-child(4) .uzb-icon{background:#dcfce7}
+.uzb:nth-child(4).active{background:#15803d;border-color:#15803d}
+.uzb:nth-child(5){border-color:#b45309;color:#b45309;background:#fffbeb}
+.uzb:nth-child(5) .uzb-icon{background:#fef3c7}
+.uzb:nth-child(5).active{background:#b45309;border-color:#b45309}
+.uzb:nth-child(6){border-color:#7c3aed;color:#7c3aed;background:#faf5ff}
+.uzb:nth-child(6) .uzb-icon{background:#ede9fe}
+.uzb:nth-child(6).active{background:#7c3aed;border-color:#7c3aed}
+.uzb:nth-child(7){border-color:#be185d;color:#be185d;background:#fdf2f8}
+.uzb:nth-child(7) .uzb-icon{background:#fce7f3}
+.uzb:nth-child(7).active{background:#be185d;border-color:#be185d}
+.uzb:nth-child(8){border-color:#c0392b;color:#c0392b;background:#fff0f0}
+.uzb:nth-child(8) .uzb-icon{background:#fde8e8}
+.uzb:nth-child(8).active{background:#c0392b;border-color:#c0392b}
+.uzb:nth-child(9){border-color:#0f766e;color:#0f766e;background:#f0fdfa}
+.uzb:nth-child(9) .uzb-icon{background:#ccfbf1}
+.uzb:nth-child(9).active{background:#0f766e;border-color:#0f766e}
+.uzb:nth-child(10){border-color:#92400e;color:#92400e;background:#fdf6ec}
+.uzb:nth-child(10) .uzb-icon{background:#fde8c8}
+.uzb:nth-child(10).active{background:#92400e;border-color:#92400e}
+.uzb-badge{position:absolute;top:3px;right:3px;width:14px;height:14px;background:#4ade80;border-radius:50%;font-size:7px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;line-height:1}
+.uzb-badge.pending{background:#f87171}
+.units-panel{animation:fadeInUp .18s ease}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 /* Unit card */
 .ucard{border:.5px solid #e2e8f0;border-radius:10px;padding:9px 11px;margin-bottom:6px;cursor:pointer;background:#fff;transition:all .15s;box-shadow:0 1px 3px rgba(0,0,0,.05)}
 .ucard:active,.ucard.sel{transform:scale(.98);border-color:#0a2e5c;background:#f0f6ff}
@@ -630,6 +675,7 @@ body{background:#f0f2f5;color:#0d1b2a}
  <span style="font-size:14px;color:#8a94a6">🔍</span>
  <input id="search-input" placeholder="Search unit..." oninput="filterUnits(this.value)">
  </div>
+ <div id="unit-zone-grid" class="unit-zone-grid"></div>
  <div id="units-list"></div>
  </div>
 
@@ -936,46 +982,122 @@ function updateCloudStatus(online){
 // =====================================================
 // STATE
 // =====================================================
+
+var ZONE_ICONS_UNITS = {
+  '2ND': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>',
+  'BSM': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="14" width="20" height="8" rx="2"/><path d="M6 14V8"/><path d="M18 14V8"/><path d="M2 10h20"/><circle cx="12" cy="5" r="3"/></svg>',
+  '6TH': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-6 9 6v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',
+  '3RD': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>'
+};
 let selUnit=null,selLvl='daily',fd={},qrZone='2ND';
 let records=[];
 try{records=JSON.parse(localStorage.getItem('hvac_kfmc')||'[]');}catch(e){}
 
+
 // =====================================================
-// UNITS
+// UNITS — Zone Icon Picker
 // =====================================================
-function filterUnits(q){renderUnits(q);}
-function renderUnits(filter){
- let html='';
- const q=(filter||'').toLowerCase().trim();
- ZONES.forEach(z=>{
- const units=z.units.filter(u=>{
- if(!q) return true;
- const unit=ALL_UNITS[u.id];
- return unit.name.toLowerCase().includes(q)||z.name.includes(q)||z.en.toLowerCase().includes(q);
- });
- if(!units.length) return;
- html+=`<div class="zone-hdr">${z.name} <span style="font-size:10px;opacity:.7">${z.en}</span><span class="zone-cnt">${units.length} Units</span></div>`;
- units.forEach(u=>{
- const unit=ALL_UNITS[u.id];
- const lastRec=records.find(r=>r.unitId===u.id);
- html+=`<div class="ucard ${(selUnit&&selUnit.id===u.id)?'sel':''}" onclick="pickUnit('${u.id}')">
- <div class="urow"><span class="uname">${unit.name}</span><span class="bdg ${lastRec?'b-ok':'b-due'}">${lastRec?'✓ Done':'⏳ Due'}</span></div>
- <div class="umeta">📍 ${unit.zoneName}${lastRec?' | Last: '+lastRec.date:''}</div>
- </div>`;
- });
- });
- if(!html) html='<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-txt">No results found</div></div>';
- document.getElementById('units-list').innerHTML=html;
+let selectedZone = null;
+
+function renderZoneIcons(){
+  const grid = document.getElementById('unit-zone-grid');
+  if(!grid) return;
+  grid.innerHTML = ZONES.map((z, i) => {
+    const icon = (ZONE_ICONS_UNITS && ZONE_ICONS_UNITS[z.id])
+      ? ZONE_ICONS_UNITS[z.id]
+      : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>';
+    const total = z.units.length;
+    const done = z.units.filter(u => records.some(r => r.unitId === u.id)).length;
+    const allDone = done === total;
+    const badge = done > 0
+      ? `<span class="uzb-badge${allDone ? '' : ' pending'}">${allDone ? '✓' : done}</span>`
+      : '';
+    const isActive = selectedZone === z.id;
+    return `<button class="uzb${isActive ? ' active' : ''}" onclick="selectZone('${z.id}')">`
+      + badge
+      + `<span class="uzb-icon">${icon}</span>`
+      + `<span class="uzb-id">${z.id}</span>`
+      + `<span class="uzb-cnt">${total} units</span>`
+      + `</button>`;
+  }).join('');
+}
+
+function selectZone(zid) {
+  selectedZone = (selectedZone === zid) ? null : zid;
+  document.getElementById('search-input').value = '';
+  renderZoneIcons();
+  renderUnitsList();
+}
+
+function renderUnitsList(filter) {
+  const q = (filter || '').toLowerCase().trim();
+  let html = '';
+  if (q) {
+    ZONES.forEach(z => {
+      const units = z.units.filter(u => {
+        const unit = ALL_UNITS[u.id];
+        return unit && (unit.name.toLowerCase().includes(q) || z.name.toLowerCase().includes(q) || (z.en||'').toLowerCase().includes(q));
+      });
+      if (!units.length) return;
+      html += `<div class="zone-hdr">${z.name} <span style="font-size:10px;opacity:.7">${z.en}</span><span class="zone-cnt">${units.length} units</span></div>`;
+      html += '<div class="units-grid">';
+    units.forEach(u => { html += buildUnitCard(u.id); });
+    html += '</div>';
+    });
+    if (!html) html = '<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-txt">No results found</div></div>';
+    document.getElementById('units-list').innerHTML = html;
+    return;
+  }
+  if (selectedZone) {
+    const z = ZONES.find(zz => zz.id === selectedZone);
+    if (z) {
+      html = '<div class="units-panel">';
+      html += `<div class="zone-hdr">${z.name} <span style="font-size:10px;opacity:.7">${z.en}</span><span class="zone-cnt">${z.units.length}   if (selectedZone) {
+    const z = ZONES.find(zz => zz.id === selectedZone);
+    if (z) {
+      const doneCount = z.units.filter(u => records.some(r => r.unitId === u.id)).length;
+      html = '<div class="units-panel">';
+      html += `<div class="units-panel-hdr"><div class="units-panel-hdr-bar"></div><div class="units-panel-hdr-title">${z.name}</div><span class="units-panel-hdr-done">${doneCount}/${z.units.length} done</span><span class="units-panel-hdr-count">${z.units.length} units</span></div>`;
+      html += '<div class="units-grid">';
+      z.units.forEach(u => { html += buildUnitCard(u.id); });
+      html += '</div></div>';
+    }
+  } else {
+    html = '<div class="empty-state" style="padding:28px 16px"><div class="empty-icon" style="font-size:36px;opacity:.35">👆</div><div class="empty-txt" style="font-size:12px;margin-top:6px;color:#607d9f">Tap a zone icon above to view its units</div></div>';
+  }
+  document.getElementById('units-list').innerHTML = html;
+}
+
+function buildUnitCard(uid) {
+  const unit = ALL_UNITS[uid]; if (!unit) return '';
+  const lastRec = records.find(r => r.unitId === uid);
+  const isSel = (selUnit && selUnit.id === uid);
+  return `<div class="ucard ${isSel?'sel':''}" onclick="pickUnit('${uid}')">
+    <div class="ucard-icon ${lastRec?'done':''}">${lastRec?'✅':'❄️'}</div>
+    <div class="ucard-body">
+      <div class="urow"><span class="uname">${unit.name}</span><span class="bdg ${lastRec?'b-ok':'b-due'}">${lastRec?'✓ Done':'⏳ Due'}</span></div>
+      <div class="umeta">📍 ${unit.zoneName}${lastRec?' · '+lastRec.date:''}</div>
+    </div>
+    <span class="ucard-arrow">›</span>
+  </div>`;
+}
+
+function renderUnits(filter) {
+  renderZoneIcons();
+  renderUnitsList(filter);
+}
+
+function filterUnits(q) {
+  if (q && q.trim()) { selectedZone = null; renderZoneIcons(); }
+  renderUnitsList(q);
 }
 
 function pickUnit(id){
- selUnit=ALL_UNITS[id];
- selLvl='daily';
- fd={};
- renderUnits();
- document.getElementById('hdrsub').textContent=selUnit.name+' — '+selUnit.zoneName;
- buildForm();
- go('form');
+  selUnit=ALL_UNITS[id]; selLvl='daily'; fd={};
+  selectedZone = selUnit.zone;
+  renderUnits();
+  document.getElementById('hdrsub').textContent=selUnit.name+' — '+selUnit.zoneName;
+  buildForm(); go('form');
 }
 
 // =====================================================
