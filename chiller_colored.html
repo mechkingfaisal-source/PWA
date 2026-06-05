@@ -322,7 +322,7 @@ body{background:#f0f2f5;color:#0d1b2a}
 .zone-hdr{background:#0a2e5c;color:#fff;padding:6px 10px;border-radius:7px;font-size:11px;font-weight:600;margin:9px 0 5px;display:flex;justify-content:space-between;align-items:center}
 .zone-cnt{font-size:9px;opacity:.6;font-weight:400}
 /* Zone icon picker — Units tab */
-.unit-zone-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:12px}
+.unit-zone-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:6px;margin-bottom:12px}
 .uzb{padding:8px 4px 7px;border-radius:10px;border:1.5px solid #d1d8e0;background:#fff;font-size:9px;font-weight:700;color:#0a2e5c;cursor:pointer;font-family:Arial,sans-serif;transition:all .18s;text-align:center;line-height:1.3;box-shadow:0 1px 3px rgba(0,0,0,.06);position:relative}
 .uzb .uzb-icon{display:flex;align-items:center;justify-content:center;width:26px;height:26px;background:#f0f6ff;border-radius:6px;margin:0 auto 4px}
 .uzb .uzb-icon svg{width:13px;height:13px}
@@ -364,17 +364,27 @@ body{background:#f0f2f5;color:#0d1b2a}
 .uzb:nth-child(10).active{background:#92400e;border-color:#92400e}
 .uzb-badge{position:absolute;top:3px;right:3px;width:14px;height:14px;background:#4ade80;border-radius:50%;font-size:7px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;line-height:1}
 .uzb-badge.pending{background:#f87171}
-.units-panel{animation:fadeInUp .18s ease}
-@keyframes fadeInUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.units-panel{animation:fadeIn .18s ease;background:#f4f7fb;border:1.5px solid #d1d8e0;border-radius:13px;padding:10px 10px 6px;margin-top:2px}
+.units-panel-hdr{display:flex;align-items:center;gap:8px;margin-bottom:9px;padding:0 2px}
+.units-panel-hdr-bar{width:4px;height:20px;border-radius:3px;background:linear-gradient(180deg,#0a2e5c,#00b4d8);flex-shrink:0}
+.units-panel-hdr-title{font-size:11px;font-weight:900;color:#0a2e5c;letter-spacing:.04em;text-transform:uppercase;font-family:Arial,sans-serif;flex:1}
+.units-panel-hdr-count{font-size:10px;font-weight:700;color:#fff;background:#0a2e5c;border-radius:20px;padding:2px 9px}
+.units-panel-hdr-done{font-size:10px;font-weight:700;color:#1a7a4a;background:#e8f8f0;border-radius:20px;padding:2px 8px;border:.5px solid #a3d9be}
+.units-grid{display:flex;flex-direction:column;gap:5px}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 /* Unit card */
-.ucard{border:.5px solid #e2e8f0;border-radius:10px;padding:9px 11px;margin-bottom:6px;cursor:pointer;background:#fff;transition:all .15s;box-shadow:0 1px 3px rgba(0,0,0,.05)}
-.ucard:active,.ucard.sel{transform:scale(.98);border-color:#0a2e5c;background:#f0f6ff}
+.ucard{border:.5px solid #e2e8f0;border-radius:10px;padding:9px 11px 8px;cursor:pointer;background:#fff;transition:all .15s;box-shadow:0 1px 4px rgba(0,0,0,.06);border-left:3px solid #0a2e5c;display:flex;align-items:center;gap:10px}
+.ucard:active,.ucard.sel{transform:scale(.98);border-color:#0a2e5c;border-left-color:#00b4d8;background:#f0f6ff;box-shadow:0 3px 10px rgba(10,46,92,.12)}
+.ucard-icon{width:32px;height:32px;border-radius:8px;background:#f0f6ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px}
+.ucard-icon.done{background:#e8f8f0}
+.ucard-body{flex:1;min-width:0}
+.ucard-arrow{color:#b0bec5;font-size:13px;flex-shrink:0;margin-left:2px}
 .urow{display:flex;justify-content:space-between;align-items:center;margin-bottom:2px}
-.uname{font-weight:900;font-size:13px;color:#0a2e5c;font-family:Arial,monospace;letter-spacing:.02em;-webkit-text-stroke:0.4px #0a2e5c}
-.bdg{font-size:9px;padding:2px 7px;border-radius:20px;font-weight:500}
-.b-ok{background:#e8f8f0;color:#1a7a4a}
-.b-due{background:#fff3e0;color:#a05c00}
-.umeta{font-size:10px;color:#8a94a6}
+.uname{font-weight:900;font-size:13px;color:#0a2e5c;font-family:Arial,monospace;letter-spacing:.02em;-webkit-text-stroke:0.4px #0a2e5c;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bdg{font-size:9px;padding:2px 7px;border-radius:20px;font-weight:600;flex-shrink:0}
+.b-ok{background:#e8f8f0;color:#1a7a4a;border:.5px solid #a3d9be}
+.b-due{background:#fff3e0;color:#a05c00;border:.5px solid #f5d5a0}
+.umeta{font-size:10px;color:#8a94a6;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* Form */
 .fhdr{background:linear-gradient(135deg,#0a2e5c,#1a5fae);color:#fff;border-radius:10px;padding:11px 13px;margin-bottom:10px}
 .fhdr h2{font-size:13px;font-weight:600;font-family:monospace;margin-bottom:2px}
@@ -989,10 +999,6 @@ function renderUnitsList(filter) {
     return;
   }
   if (selectedZone) {
-    const z = ZONES.find(zz => zz.id === selectedZone);
-    if (z) {
-      html = '<div class="units-panel">';
-      html += `<div class="zone-hdr">${z.name} <span style="font-size:10px;opacity:.7">${z.en}</span><span class="zone-cnt">${z.units.length}   if (selectedZone) {
     const z = ZONES.find(zz => zz.id === selectedZone);
     if (z) {
       const doneCount = z.units.filter(u => records.some(r => r.unitId === u.id)).length;
@@ -1992,6 +1998,7 @@ function go(tab){
   document.querySelectorAll('.tab').forEach((t)=>t.classList.toggle('active',t.getAttribute('data-tab')===tab));
   document.querySelectorAll('.pg').forEach(p=>p.classList.remove('active'));
   document.getElementById('pg-'+tab).classList.add('active');
+  if(tab==='units'){renderZoneIcons();renderUnitsList();}
   if(tab==='records')renderRecs();
   if(tab==='qr'){renderQRZoneTabs();renderQR();}
   if(tab==='form'&&selUnit)buildForm();
