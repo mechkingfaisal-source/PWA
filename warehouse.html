@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HVAC Warehouse CMMS</title>
+<style>
+:root {
+  --radius: 0.875rem;
+  --background: #f8fafc; --foreground: #0f172a;
+  --card: #ffffff; --card-foreground: #0f172a;
+  --primary: #1e293b; --primary-foreground: #f8fafc;
+  --secondary: #f1f5f9; --secondary-foreground: #1e293b;
+  --muted: #f1f5f9; --muted-foreground: #64748b;
+  --accent: #f1f5f9; --accent-foreground: #1e293b;
+  --destructive: #dc2626; --destructive-foreground: #ffffff;
+  --border: #e2e8f0; --input: #e2e8f0; --ring: #6366f1;
+  --success: #22c55e; --warning: #f59e0b; --danger: #ef4444; --info: #3b82f6; --orange: #f97316;
+  --chart-1:#1e293b; --chart-2:#3b82f6; --chart-3:#22c55e; --chart-4:#f59e0b; --chart-5:#f97316;
+  --sidebar:#0f172a; --sidebar-foreground:#e2e8f0; --sidebar-primary:#3b82f6; --sidebar-primary-foreground:#ffffff;
+  --sidebar-accent:#1e293b; --sidebar-accent-foreground:#e2e8f0; --sidebar-border:#1e293b;
+}
+.dark {
+  --background: #0b0f19; --foreground: #e2e8f0;
+  --card: #111827; --card-foreground: #e2e8f0;
+  --primary: #60a5fa; --primary-foreground: #0b0f19;
+  --secondary: #1e293b; --secondary-foreground: #e2e8f0;
+  --muted: #1e293b; --muted-foreground: #94a3b8;
+  --accent: #1e293b; --accent-foreground: #e2e8f0;
+  --border: rgba(255,255,255,0.1); --input: rgba(255,255,255,0.15);
+  --chart-1:#60a5fa; --chart-2:#818cf8; --chart-3:#4ade80; --chart-4:#f59e0b; --chart-5:#fb923c;
+  --sidebar:#0b0f19; --sidebar-foreground:#cbd5e1; --sidebar-primary:#60a5fa; --sidebar-primary-foreground:#ffffff;
+  --sidebar-accent:#1e293b; --sidebar-accent-foreground:#e2e8f0; --sidebar-border:rgba(255,255,255,0.1);
+}
+* { box-sizing: border-box; margin: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--background); color: var(--foreground); line-height: 1.5; }
+.layout { display: flex; min-height: 100vh; }
+.sidebar { width: 260px; background: var(--sidebar); color: var(--sidebar-foreground); display: flex; flex-direction: column; position: fixed; inset: 0 auto 0 0; z-index: 50; transform: translateX(-100%); transition: transform .2s; }
+.sidebar.open { transform: translateX(0); }
+.sidebar-brand { display: flex; align-items: center; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--sidebar-border); }
+.sidebar-brand-icon { width: 40px; height: 40px; border-radius: 12px; background: var(--sidebar-primary); color: var(--sidebar-primary-foreground); display: flex; align-items: center; justify-content: center; }
+.sidebar-nav { flex: 1; padding: 12px; overflow-y: auto; }
+.sidebar-nav a { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px; text-decoration: none; color: var(--sidebar-foreground); font-size: 13.5px; font-weight: 500; margin-bottom: 2px; transition: .15s; }
+.sidebar-nav a:hover { background: var(--sidebar-accent); color: var(--sidebar-accent-foreground); }
+.sidebar-nav a.active { background: var(--sidebar-primary); color: var(--sidebar-primary-foreground); }
+.sidebar-footer { padding: 12px 20px; font-size: 11px; opacity: .5; border-top: 1px solid var(--sidebar-border); }
+.main { flex: 1; margin-left: 0; display: flex; flex-direction: column; min-width: 0; }
+.header { position: sticky; top: 0; z-index: 30; display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-bottom: 1px solid var(--border); background: color-mix(in srgb, var(--card) 80%, transparent); backdrop-filter: blur(10px); }
+.content { flex: 1; padding: 20px; }
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 40; display: none; }
+.overlay.show { display: block; }
+
+@media(min-width:1024px) {
+  .sidebar { transform: translateX(0); position: static; }
+  .main { margin-left: 260px; }
+  .menu-btn, .overlay { display: none !important; }
+}
+
+.card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
+.kpi-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 12px; margin-bottom: 16px; }
+@media(min-width:768px){ .kpi-grid { grid-template-columns: repeat(4,1fr); } }
+.kpi { display: flex; align-items: flex-start; justify-content: space-between; padding: 16px; border-radius: var(--radius); background: var(--card); border: 1px solid var(--border); }
+.kpi-value { font-size: 22px; font-weight: 700; margin-top: 4px; }
+.kpi-label { font-size: 12px; color: var(--muted-foreground); }
+.kpi-hint { font-size: 11px; color: var(--muted-foreground); margin-top: 2px; }
+.kpi-icon { width: 40px; height: 40px; border-radius: 12px; background: var(--secondary); display: flex; align-items: center; justify-content: center; }
+
+.page-header { margin-bottom: 20px; display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; }
+.page-header h2 { font-size: 22px; font-weight: 700; }
+.page-header p { font-size: 13px; color: var(--muted-foreground); margin-top: 2px; }
+
+input, select, textarea, button { font-family: inherit; font-size: 14px; }
+input, select, textarea { padding: 8px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--background); color: var(--foreground); outline: none; }
+input:focus, select:focus, textarea:focus { border-color: var(--ring); box-shadow: 0 0 0 2px color-mix(in srgb, var(--ring) 20%, transparent); }
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 10px; border: 1px solid var(--border); background: var(--background); color: var(--foreground); cursor: pointer; font-weight: 500; }
+.btn:hover { background: var(--accent); }
+.btn-primary { background: var(--primary); color: var(--primary-foreground); border-color: var(--primary); }
+.btn-primary:hover { opacity: .9; }
+.btn-danger { background: var(--danger); color: #fff; border-color: var(--danger); }
+
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+.badge-normal { background: color-mix(in srgb, var(--success) 15%, transparent); color: var(--success); }
+.badge-low  { background: color-mix(in srgb, var(--warning) 20%, transparent); color: #b45309; }
+.badge-critical { background: color-mix(in srgb, var(--orange) 15%, transparent); color: var(--orange); }
+.badge-out { background: color-mix(in srgb, var(--danger) 15%, transparent); color: var(--danger); }
+.dark .badge-low { color: #fbbf24; }
+
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { text-align: left; padding: 10px 14px; font-size: 11px; text-transform: uppercase; color: var(--muted-foreground); background: var(--secondary); white-space: nowrap; }
+td { padding: 10px 14px; border-bottom: 1px solid var(--border); }
+tr:hover { background: color-mix(in srgb, var(--accent) 50%, transparent); }
+
+.tx-card { border-left: 4px solid var(--border); background: var(--card); border-radius: 10px; padding: 12px 14px; margin-bottom: 8px; }
+.tx-in { border-left-color: var(--success); }
+.tx-out { border-left-color: var(--danger); }
+.tx-count { border-left-color: var(--info); }
+
+.page { display: none; }
+.page.active { display: block; }
+
+.user-pill { display: flex; align-items: center; gap: 8px; padding: 4px 12px; border-radius: 999px; background: var(--secondary); font-size: 12px; font-weight: 600; }
+.user-avatar { width: 28px; height: 28px; border-radius: 999px; background: var(--primary); color: var(--primary-foreground); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; }
+
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 100; display: none; align-items: center; justify-content: center; padding: 20px; }
+.modal-overlay.show { display: flex; }
+.modal { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); max-width: 480px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 20px; }
+
+.toast-container { position: fixed; top: 20px; right: 20px; z-index: 200; display: flex; flex-direction: column; gap: 8px; }
+.toast { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; box-shadow: 0 10px 30px rgba(0,0,0,.1); font-size: 13px; animation: toastIn .3s; min-width: 220px; }
+.toast.success { border-left: 3px solid var(--success); }
+.toast.error { border-left: 3px solid var(--danger); }
+@keyframes toastIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+.top-item { display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 12px; border: 1px solid var(--border); cursor: pointer; background: var(--card); transition: .15s; }
+.top-item:hover { background: var(--accent); }
+
+.cat-chip { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; }
+
+.sparkline { width: 100%; height: 28px; }
+
+.detail-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+
+@media print { .no-print { display: none !important; } }
+@keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.25)} }
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-icon">🏭</div>
+      <div>
+        <div style="font-size:11px;opacity:.6;text-transform:uppercase;letter-spacing:.5px">CMMS · KFMC</div>
+        <div style="font-size:14px;font-weight:700">HVAC Warehouse</div>
+      </div>
+      <button class="menu-btn" onclick="toggleSidebar()" style="margin-left:auto;background:none;border:none;color:inherit;font-size:20px">✕</button>
+    </div>
+    <nav class="sidebar-nav" id="nav"></nav>
+    <div class="sidebar-footer">AL MAJAL AL ARABI GROUP</div>
+  </aside>
+  <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+  <div class="main">
+    <header class="header">
+      <button class="menu-btn" onclick="toggleSidebar()" style="background:none;border:none;font-size:22px;color:var(--foreground)">☰</button>
+      <h1 style="font-size:15px;font-weight:600">Mechanical Warehouse Management</h1>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:12px">
+        <button onclick="toggleDark()" style="width:36px;height:36px;border-radius:10px;border:1px solid var(--border);background:var(--background);cursor:pointer;display:flex;align-items:center;justify-content:center">🌙</button>
+        <div class="user-pill"><div class="user-avatar">S</div>Store Keeper</div>
+      </div>
+    </header>
+    <main class="content" id="pages"></main>
+  </div>
+</div>
+<div class="toast-container" id="toasts"></div>
+
+<script>
+const SEED_DATA = {"items":[{"id":1,"code":"GN-001","name":"BREEZING ROD قصدير لحام","category":"General","unit":"pcs","stock":10,"minStock":5,"monthlyAvg":0,"unitPrice":53,"supplier":"Gulf HVAC Supplies","location":{"store":"Main Store","rack":"Rack H","shelf":"Shelf 2","bin":"Bin 2"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,1,1,1,1,0,1,1,1,1,0]},{"id":2,"code":"CS-002","name":"BREEZING POWDER","category":"Chemicals & Sealants","unit":"pcs","stock":4,"minStock":3,"monthlyAvg":0,"unitPrice":34,"supplier":"Saudi Cool Co.","location":{"store":"Main Store","rack":"Rack G","shelf":"Shelf 3","bin":"Bin 3"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[0,1,1,0,1,1,1,1,1,0,0,1]},{"id":3,"code":"IT-003","name":"INSULATION TAPE (Black)","category":"Insulation & Tapes","unit":"pcs","stock":123,"minStock":10,"monthlyAvg":0,"unitPrice":24,"supplier":"Riyadh Spare Parts","location":{"store":"Main Store","rack":"Rack E","shelf":"Shelf 4","bin":"Bin 4"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,0,1,0,1,1,1,1,1,0,1,1]},{"id":4,"code":"IT-004","name":"ALUMINAM TAPE","category":"Insulation & Tapes","unit":"pcs","stock":46,"minStock":10,"monthlyAvg":0,"unitPrice":24,"supplier":"United Refrigeration","location":{"store":"Main Store","rack":"Rack E","shelf":"Shelf 5","bin":"Bin 5"},"lastReceived":"2026-05-18","lastIssued":null,"lastCount":"2026-01-05","history":[1,1,0,1,1,0,1,1,1,0,1,0]},{"id":5,"code":"IT-005","name":"ELECRICAL TAPE","category":"Insulation & Tapes","unit":"pcs","stock":66,"minStock":10,"monthlyAvg":0,"unitPrice":36,"supplier":"Al Majal Trading","location":{"store":"Main Store","rack":"Rack E","shelf":"Shelf 6","bin":"Bin 6"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,0,1,1,1,1,0,0,1,0,0,0]},{"id":6,"code":"GN-006","name":"سلك لحام نحاس","category":"General","unit":"pcs","stock":12,"minStock":5,"monthlyAvg":0,"unitPrice":35,"supplier":"Gulf HVAC Supplies","location":{"store":"Main Store","rack":"Rack H","shelf":"Shelf 1","bin":"Bin 7"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[0,1,0,0,1,1,1,1,1,1,0,0]},{"id":7,"code":"GN-007","name":"سلك لحام نحاس مبروم","category":"General","unit":"pcs","stock":20,"minStock":5,"monthlyAvg":0,"unitPrice":40,"supplier":"Saudi Cool Co.","location":{"store":"Main Store","rack":"Rack H","shelf":"Shelf 2","bin":"Bin 8"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,0,0,1,1,1,1,0,1,1,1,0]},{"id":8,"code":"GN-008","name":"WELDING ROD سلك لحام ازرق","category":"General","unit":"pcs","stock":21,"minStock":5,"monthlyAvg":0,"unitPrice":32,"supplier":"Riyadh Spare Parts","location":{"store":"Main Store","rack":"Rack H","shelf":"Shelf 3","bin":"Bin 9"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,0,1,0,1,1,0,1,1,0,1,1]},{"id":9,"code":"GN-009","name":"ELECTARODE WELDING ROD (packet)","category":"General","unit":"pcs","stock":1,"minStock":2,"monthlyAvg":0,"unitPrice":49,"supplier":"United Refrigeration","location":{"store":"Main Store","rack":"Rack H","shelf":"Shelf 4","bin":"Bin 10"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,1,1,1,1,1,1,1,1,1,1]},{"id":10,"code":"CS-010","name":"SUPER GLUE","category":"Chemicals & Sealants","unit":"pcs","stock":19,"minStock":5,"monthlyAvg":1,"unitPrice":32,"supplier":"Al Majal Trading","location":{"store":"Main Store","rack":"Rack G","shelf":"Shelf 5","bin":"Bin 11"},"lastReceived":null,"lastIssued":"2026-05-29","lastCount":"2026-01-05","history":[1,1,1,1,1,2,1,1,1,1,1,2]},{"id":11,"code":"CS-011","name":"FILL&FIX FOAM","category":"Chemicals & Sealants","unit":"pcs","stock":35,"minStock":5,"monthlyAvg":0,"unitPrice":48,"supplier":"Gulf HVAC Supplies","location":{"store":"Main Store","rack":"Rack G","shelf":"Shelf 6","bin":"Bin 12"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[0,1,1,1,0,1,1,1,0,1,0,1]},{"id":12,"code":"GN-012","name":"FRIDGE DOOR SWITCH مفتاح باب تلأجه","category":"General","unit":"pcs","stock":24,"minStock":5,"monthlyAvg":0,"unitPrice":39,"supplier":"Saudi Cool Co.","location":{"store":"Main Store","rack":"Rack H","shelf":"Shelf 1","bin":"Bin 13"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,1,1,1,0,1,1,0,1,1,1]},{"id":13,"code":"GN-013","name":"A.C SWITCH (NOB) ازرارتكيف","category":"General","unit":"pcs","stock":35,"minStock":5,"monthlyAvg":0,"unitPrice":55,"supplier":"Riyadh Spare Parts","location":{"store":"Main Store","rack":"Rack H","shelf":"Shelf 2","bin":"Bin 14"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,1,1,1,1,1,0,0,1,1,0]},{"id":14,"code":"GN-014","name":"FRIDGE DOOR RUBBER (GASKIT) جوان باب تلأجه","category":"General","unit":"M","stock":16,"minStock":5,"monthlyAvg":0,"unitPrice":60,"supplier":"United Refrigeration","location":{"store":"Main Store","rack":"Rack H","shelf":"Shelf 3","bin":"Bin 15"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[0,1,0,1,1,0,1,0,1,0,1,1]},{"id":15,"code":"CS-015","name":"C.R.C","category":"Chemicals & Sealants","unit":"pcs","stock":28,"minStock":5,"monthlyAvg":0,"unitPrice":32,"supplier":"Al Majal Trading","location":{"store":"Main Store","rack":"Rack G","shelf":"Shelf 4","bin":"Bin 16"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,1,0,0,0,1,1,0,1,1,1]},{"id":16,"code":"CS-016","name":"W.D 40","category":"Chemicals & Sealants","unit":"pcs","stock":19,"minStock":5,"monthlyAvg":2,"unitPrice":34,"supplier":"Gulf HVAC Supplies","location":{"store":"Main Store","rack":"Rack G","shelf":"Shelf 5","bin":"Bin 17"},"lastReceived":null,"lastIssued":"2026-05-29","lastCount":"2026-01-05","history":[3,3,2,2,1,2,3,3,2,2,2,2]},{"id":17,"code":"PI-017","name":"A.C COPPER PIPE (5/8)","category":"Piping","unit":"pcs","stock":5,"minStock":3,"monthlyAvg":0,"unitPrice":80,"supplier":"Saudi Cool Co.","location":{"store":"Main Store","rack":"Rack D","shelf":"Shelf 6","bin":"Bin 18"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,1,0,0,1,1,1,1,1,0,1]},{"id":18,"code":"PI-018","name":"A.C COPPER PIPE (1/4)","category":"Piping","unit":"pcs","stock":5,"minStock":3,"monthlyAvg":0,"unitPrice":127,"supplier":"Riyadh Spare Parts","location":{"store":"Main Store","rack":"Rack D","shelf":"Shelf 1","bin":"Bin 19"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,1,1,1,1,1,1,1,1,1,1]},{"id":19,"code":"PI-019","name":"A.C COPPER PIPE (1/2)","category":"Piping","unit":"pcs","stock":5,"minStock":3,"monthlyAvg":0,"unitPrice":129,"supplier":"United Refrigeration","location":{"store":"Main Store","rack":"Rack D","shelf":"Shelf 2","bin":"Bin 20"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[0,1,1,1,1,1,1,1,1,1,0,1]},{"id":20,"code":"PI-020","name":"A.C COPPER PIPE (3/8)","category":"Piping","unit":"pcs","stock":5,"minStock":3,"monthlyAvg":0,"unitPrice":114,"supplier":"Al Majal Trading","location":{"store":"Main Store","rack":"Rack D","shelf":"Shelf 3","bin":"Bin 21"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[0,0,1,1,0,1,0,1,0,1,0,1]},{"id":21,"code":"IT-021","name":"عزل 5/8","category":"Insulation & Tapes","unit":"pcs","stock":22,"minStock":5,"monthlyAvg":0,"unitPrice":24,"supplier":"Gulf HVAC Supplies","location":{"store":"Main Store","rack":"Rack E","shelf":"Shelf 4","bin":"Bin 22"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,0,0,0,0,1,1,0,1,1,1,0]},{"id":22,"code":"IT-022","name":"عزل 1/4","category":"Insulation & Tapes","unit":"pcs","stock":21,"minStock":5,"monthlyAvg":0,"unitPrice":37,"supplier":"Saudi Cool Co.","location":{"store":"Main Store","rack":"Rack E","shelf":"Shelf 5","bin":"Bin 23"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,1,1,1,1,1,1,1,1,1,0]},{"id":23,"code":"IT-023","name":"عزل 3/4","category":"Insulation & Tapes","unit":"pcs","stock":5,"minStock":5,"monthlyAvg":0,"unitPrice":20,"supplier":"Riyadh Spare Parts","location":{"store":"Main Store","rack":"Rack E","shelf":"Shelf 6","bin":"Bin 24"},"lastReceived":"2026-05-18","lastIssued":null,"lastCount":"2026-01-05","history":[1,0,1,0,0,0,0,1,0,0,0,1]},{"id":24,"code":"IT-024","name":"عزل 1/2","category":"Insulation & Tapes","unit":"pcs","stock":5,"minStock":5,"monthlyAvg":0,"unitPrice":32,"supplier":"United Refrigeration","location":{"store":"Main Store","rack":"Rack E","shelf":"Shelf 1","bin":"Bin 1"},"lastReceived":"2026-05-18","lastIssued":null,"lastCount":"2026-01-05","history":[1,1,0,1,0,1,1,0,0,1,1,0]},{"id":25,"code":"PI-025","name":"A.C DRAIN PIPE لي صرف مكيف","category":"Piping","unit":"pcs","stock":38,"minStock":5,"monthlyAvg":0,"unitPrice":133,"supplier":"Al Majal Trading","location":{"store":"Main Store","rack":"Rack D","shelf":"Shelf 2","bin":"Bin 2"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,1,1,1,0,0,0,1,1,1,1]},{"id":26,"code":"GN-026","name":"WINDOW A.C COVER","category":"General","unit":"pcs","stock":13,"minStock":3,"monthlyAvg":0,"unitPrice":31,"supplier":"Gulf HVAC Supplies","location":{"store":"Main Store","rack":"Rack H","shelf":"Shelf 3","bin":"Bin 3"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,1,0,0,0,1,1,1,1,1,0]},{"id":27,"code":"GN-027","name":"EXHAUSE DEFUSER دفيوزر مرواحه","category":"General","unit":"pcs","stock":8,"minStock":3,"monthlyAvg":0,"unitPrice":41,"supplier":"Saudi Cool Co.","location":{"store":"Main Store","rack":"Rack H","shelf":"Shelf 4","bin":"Bin 4"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,0,0,1,1,1,1,0,1,1,1,1]},{"id":28,"code":"GN-028","name":"DEFUSER 60/60 دفيوزر","category":"General","unit":"pcs","stock":1,"minStock":2,"monthlyAvg":0,"unitPrice":59,"supplier":"Riyadh Spare Parts","location":{"store":"Main Store","rack":"Rack H","shelf":"Shelf 5","bin":"Bin 5"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[0,1,1,1,1,1,1,1,1,1,0,1]},{"id":29,"code":"GN-029","name":"FLEXIBLE DUCT CONNECTER وصله مرنه","category":"General","unit":"pcs","stock":1,"minStock":2,"monthlyAvg":0,"unitPrice":29,"supplier":"United Refrigeration","location":{"store":"Main Store","rack":"Rack H","shelf":"Shelf 6","bin":"Bin 6"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,0,0,0,1,1,1,0,1,0,1,1]},{"id":30,"code":"IT-030","name":"لفة عزل داكت 2\"","category":"Insulation & Tapes","unit":"pcs","stock":1,"minStock":2,"monthlyAvg":0,"unitPrice":36,"supplier":"Al Majal Trading","location":{"store":"Main Store","rack":"Rack E","shelf":"Shelf 1","bin":"Bin 7"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[0,0,1,1,1,1,1,1,0,1,1,1]},{"id":31,"code":"IT-031","name":"لفة عزل داكت 1\"","category":"Insulation & Tapes","unit":"pcs","stock":1,"minStock":2,"monthlyAvg":0,"unitPrice":35,"supplier":"Gulf HVAC Supplies","location":{"store":"Main Store","rack":"Rack E","shelf":"Shelf 2","bin":"Bin 8"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[0,1,0,1,0,1,0,0,0,0,0,1]},{"id":32,"code":"IT-032","name":"لفة عازل صوت للأبواب","category":"Insulation & Tapes","unit":"pcs","stock":28,"minStock":5,"monthlyAvg":0,"unitPrice":29,"supplier":"Saudi Cool Co.","location":{"store":"Main Store","rack":"Rack E","shelf":"Shelf 3","bin":"Bin 9"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,0,1,1,0,0,0,1,0,1,1]},{"id":33,"code":"GN-033","name":"بكرة لأصق دبل فيس","category":"General","unit":"pcs","stock":21,"minStock":5,"monthlyAvg":0,"unitPrice":35,"supplier":"Riyadh Spare Parts","location":{"store":"Main Store","rack":"Rack H","shelf":"Shelf 4","bin":"Bin 10"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,0,1,0,1,1,1,1,0,1,1,1]},{"id":34,"code":"IT-034","name":"لفة عازل لأصق","category":"Insulation & Tapes","unit":"M","stock":16,"minStock":5,"monthlyAvg":0,"unitPrice":35,"supplier":"United Refrigeration","location":{"store":"Main Store","rack":"Rack E","shelf":"Shelf 5","bin":"Bin 11"},"lastReceived":"2026-05-18","lastIssued":null,"lastCount":"2026-01-05","history":[0,1,1,1,0,1,0,0,1,0,1,0]},{"id":35,"code":"FV-035","name":"CHARGING VALVE بلف شحن","category":"Fittings & Valves","unit":"pcs","stock":40,"minStock":5,"monthlyAvg":0,"unitPrice":50,"supplier":"Al Majal Trading","location":{"store":"Main Store","rack":"Rack D","shelf":"Shelf 6","bin":"Bin 12"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,0,1,0,1,1,0,0,1,1,1,1]},{"id":36,"code":"GN-036","name":"علبة أورينج كبيرة","category":"General","unit":"pcs","stock":2,"minStock":3,"monthlyAvg":0,"unitPrice":53,"supplier":"Gulf HVAC Supplies","location":{"store":"Main Store","rack":"Rack H","shelf":"Shelf 1","bin":"Bin 13"},"lastReceived":"2026-05-18","lastIssued":null,"lastCount":"2026-01-05","history":[1,0,0,1,1,1,1,1,1,0,1,0]},{"id":37,"code":"GN-037","name":"ANTI VIBRATION","category":"General","unit":"pcs","stock":29,"minStock":5,"monthlyAvg":0,"unitPrice":52,"supplier":"Saudi Cool Co.","location":{"store":"Main Store","rack":"Rack H","shelf":"Shelf 2","bin":"Bin 14"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[0,1,0,1,0,1,1,1,1,1,1,0]},{"id":38,"code":"RG-038","name":"A.C REFRIGENT GAS (R-22)","category":"Refrigerant Gas","unit":"Cyl","stock":24,"minStock":5,"monthlyAvg":1,"unitPrice":276,"supplier":"Riyadh Spare Parts","location":{"store":"Main Store","rack":"Rack B","shelf":"Shelf 3","bin":"Bin 15"},"lastReceived":null,"lastIssued":"2026-05-29","lastCount":"2026-01-05","history":[1,1,1,1,1,1,1,1,1,1,1,2]},{"id":39,"code":"RG-039","name":"A.C REFRIGENT GAS (R-134)","category":"Refrigerant Gas","unit":"Cyl","stock":13,"minStock":5,"monthlyAvg":2,"unitPrice":555,"supplier":"United Refrigeration","location":{"store":"Main Store","rack":"Rack B","shelf":"Shelf 4","bin":"Bin 16"},"lastReceived":null,"lastIssued":"2026-05-29","lastCount":"2026-01-05","history":[3,1,2,3,2,3,2,3,2,2,2,1]},{"id":40,"code":"RG-040","name":"A.C REFRIGENT GAS (R-141b)","category":"Refrigerant Gas","unit":"Cyl","stock":1,"minStock":2,"monthlyAvg":0,"unitPrice":442,"supplier":"Al Majal Trading","location":{"store":"Main Store","rack":"Rack B","shelf":"Shelf 5","bin":"Bin 17"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,1,1,1,0,0,0,1,0,1,0]},{"id":41,"code":"RG-041","name":"A.C REFRIGENT GAS (R-404a)","category":"Refrigerant Gas","unit":"Cyl","stock":10,"minStock":3,"monthlyAvg":0,"unitPrice":460,"supplier":"Gulf HVAC Supplies","location":{"store":"Main Store","rack":"Rack B","shelf":"Shelf 6","bin":"Bin 18"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,0,0,1,1,0,1,1,1,1,0,1]},{"id":42,"code":"RG-042","name":"A.C REFRIGENT GAS (R-407c)","category":"Refrigerant Gas","unit":"Cyl","stock":15,"minStock":3,"monthlyAvg":0,"unitPrice":410,"supplier":"Saudi Cool Co.","location":{"store":"Main Store","rack":"Rack B","shelf":"Shelf 1","bin":"Bin 19"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,0,1,1,0,1,0,1,1,1,1,0]},{"id":43,"code":"RG-043","name":"A.C REFRIGENT GAS (R-410a)","category":"Refrigerant Gas","unit":"Cyl","stock":0,"minStock":3,"monthlyAvg":0,"unitPrice":475,"supplier":"Riyadh Spare Parts","location":{"store":"Main Store","rack":"Rack B","shelf":"Shelf 2","bin":"Bin 20"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,0,1,1,1,0,1,0,1,1,0,0]},{"id":44,"code":"RG-044","name":"A.C REFRIGENT GAS (R-600a)","category":"Refrigerant Gas","unit":"Cyl","stock":12,"minStock":3,"monthlyAvg":1,"unitPrice":353,"supplier":"United Refrigeration","location":{"store":"Main Store","rack":"Rack B","shelf":"Shelf 3","bin":"Bin 21"},"lastReceived":null,"lastIssued":"2026-05-29","lastCount":"2026-01-05","history":[1,1,1,1,1,2,1,1,1,1,2,1]},{"id":45,"code":"RG-045","name":"A.C REFRIGENT GAS (R-11)","category":"Refrigerant Gas","unit":"Cyl","stock":8,"minStock":3,"monthlyAvg":0,"unitPrice":463,"supplier":"Al Majal Trading","location":{"store":"Main Store","rack":"Rack B","shelf":"Shelf 4","bin":"Bin 22"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[0,0,1,1,1,1,0,1,0,1,1,1]},{"id":46,"code":"RB-046","name":"RUBBER BELT (A-20)","category":"Rubber Belts","unit":"pcs","stock":32,"minStock":5,"monthlyAvg":0,"unitPrice":51,"supplier":"Gulf HVAC Supplies","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 5","bin":"Bin 23"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,0,1,1,1,1,0,0,1,1,1,1]},{"id":47,"code":"RB-047","name":"RUBBER BELT (A-21)","category":"Rubber Belts","unit":"pcs","stock":28,"minStock":5,"monthlyAvg":0,"unitPrice":63,"supplier":"Saudi Cool Co.","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 6","bin":"Bin 24"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,1,1,0,1,1,1,0,0,0,1]},{"id":48,"code":"RB-048","name":"RUBBER BELT (A-22)","category":"Rubber Belts","unit":"pcs","stock":29,"minStock":5,"monthlyAvg":0,"unitPrice":37,"supplier":"Riyadh Spare Parts","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 1","bin":"Bin 1"},"lastReceived":"2026-05-18","lastIssued":null,"lastCount":"2026-01-05","history":[1,1,1,0,1,1,0,1,1,1,1,1]},{"id":49,"code":"RB-049","name":"RUBBER BELT (A-23)","category":"Rubber Belts","unit":"pcs","stock":23,"minStock":5,"monthlyAvg":0,"unitPrice":38,"supplier":"United Refrigeration","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 2","bin":"Bin 2"},"lastReceived":"2026-05-18","lastIssued":null,"lastCount":"2026-01-05","history":[1,1,1,0,1,1,1,0,0,1,1,0]},{"id":50,"code":"RB-050","name":"RUBBER BELT (A-24)","category":"Rubber Belts","unit":"pcs","stock":29,"minStock":5,"monthlyAvg":0,"unitPrice":52,"supplier":"Al Majal Trading","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 3","bin":"Bin 3"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,1,1,1,1,1,1,1,1,1,1]},{"id":51,"code":"RB-051","name":"RUBBER BELT (A-25)","category":"Rubber Belts","unit":"pcs","stock":12,"minStock":5,"monthlyAvg":0,"unitPrice":37,"supplier":"Gulf HVAC Supplies","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 4","bin":"Bin 4"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,0,1,0,1,0,1,1,0,1,1,0]},{"id":52,"code":"RB-052","name":"RUBBER BELT (A-26)","category":"Rubber Belts","unit":"pcs","stock":12,"minStock":5,"monthlyAvg":0,"unitPrice":32,"supplier":"Saudi Cool Co.","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 5","bin":"Bin 5"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[0,0,1,0,0,1,0,1,1,0,0,0]},{"id":53,"code":"RB-053","name":"RUBBER BELT (A-27)","category":"Rubber Belts","unit":"pcs","stock":20,"minStock":5,"monthlyAvg":0,"unitPrice":56,"supplier":"Riyadh Spare Parts","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 6","bin":"Bin 6"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,1,1,0,0,1,1,0,1,0,1]},{"id":54,"code":"RB-054","name":"RUBBER BELT (A-28)","category":"Rubber Belts","unit":"pcs","stock":20,"minStock":5,"monthlyAvg":0,"unitPrice":49,"supplier":"United Refrigeration","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 1","bin":"Bin 7"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,1,1,1,0,1,0,0,1,1,0]},{"id":55,"code":"RB-055","name":"RUBBER BELT (A-29)","category":"Rubber Belts","unit":"pcs","stock":18,"minStock":5,"monthlyAvg":0,"unitPrice":56,"supplier":"Al Majal Trading","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 2","bin":"Bin 8"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[0,0,1,1,1,0,0,1,1,1,1,1]},{"id":56,"code":"RB-056","name":"RUBBER BELT (A-30)","category":"Rubber Belts","unit":"pcs","stock":14,"minStock":5,"monthlyAvg":0,"unitPrice":61,"supplier":"Gulf HVAC Supplies","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 3","bin":"Bin 9"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[0,0,1,1,1,0,0,1,1,1,0,1]},{"id":57,"code":"RB-057","name":"RUBBER BELT (A-31)","category":"Rubber Belts","unit":"pcs","stock":20,"minStock":5,"monthlyAvg":0,"unitPrice":42,"supplier":"Saudi Cool Co.","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 4","bin":"Bin 10"},"lastReceived":"2026-05-18","lastIssued":null,"lastCount":"2026-01-05","history":[0,1,1,0,1,0,0,0,1,0,0,1]},{"id":58,"code":"RB-058","name":"RUBBER BELT (A-32)","category":"Rubber Belts","unit":"pcs","stock":16,"minStock":5,"monthlyAvg":2,"unitPrice":55,"supplier":"Riyadh Spare Parts","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 5","bin":"Bin 11"},"lastReceived":"2026-05-18","lastIssued":"2026-05-29","lastCount":"2026-01-05","history":[2,3,3,3,3,2,2,3,3,3,2,2]},{"id":59,"code":"RB-059","name":"RUBBER BELT (A-33)","category":"Rubber Belts","unit":"pcs","stock":13,"minStock":5,"monthlyAvg":2,"unitPrice":55,"supplier":"United Refrigeration","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 6","bin":"Bin 12"},"lastReceived":null,"lastIssued":"2026-05-29","lastCount":"2026-01-05","history":[1,1,1,3,1,2,3,3,3,2,1,2]},{"id":60,"code":"RB-060","name":"RUBBER BELT (A-34)","category":"Rubber Belts","unit":"pcs","stock":21,"minStock":5,"monthlyAvg":2,"unitPrice":67,"supplier":"Al Majal Trading","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 1","bin":"Bin 13"},"lastReceived":"2026-05-18","lastIssued":"2026-05-29","lastCount":"2026-01-05","history":[3,3,3,3,3,1,3,3,3,2,3,3]},{"id":61,"code":"RB-061","name":"RUBBER BELT (A-35)","category":"Rubber Belts","unit":"pcs","stock":13,"minStock":5,"monthlyAvg":1,"unitPrice":51,"supplier":"Gulf HVAC Supplies","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 2","bin":"Bin 14"},"lastReceived":null,"lastIssued":"2026-05-29","lastCount":"2026-01-05","history":[1,1,2,1,1,1,1,1,1,1,1,1]},{"id":62,"code":"RB-062","name":"RUBBER BELT (A-38)","category":"Rubber Belts","unit":"pcs","stock":15,"minStock":5,"monthlyAvg":0,"unitPrice":65,"supplier":"Saudi Cool Co.","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 3","bin":"Bin 15"},"lastReceived":"2026-05-18","lastIssued":null,"lastCount":"2026-01-05","history":[1,1,1,1,0,1,0,1,1,1,1,0]},{"id":63,"code":"RB-063","name":"RUBBER BELT (A-39)","category":"Rubber Belts","unit":"pcs","stock":15,"minStock":5,"monthlyAvg":0,"unitPrice":62,"supplier":"Riyadh Spare Parts","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 4","bin":"Bin 16"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[0,1,1,1,1,1,0,1,0,1,1,0]},{"id":64,"code":"RB-064","name":"RUBBER BELT (A-40)","category":"Rubber Belts","unit":"pcs","stock":11,"minStock":5,"monthlyAvg":1,"unitPrice":51,"supplier":"United Refrigeration","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 5","bin":"Bin 17"},"lastReceived":null,"lastIssued":"2026-05-29","lastCount":"2026-01-05","history":[1,1,1,1,1,2,1,1,1,1,1,1]},{"id":65,"code":"RB-065","name":"RUBBER BELT (A-41)","category":"Rubber Belts","unit":"pcs","stock":13,"minStock":5,"monthlyAvg":0,"unitPrice":35,"supplier":"Al Majal Trading","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 6","bin":"Bin 18"},"lastReceived":"2026-05-18","lastIssued":null,"lastCount":"2026-01-05","history":[1,0,1,0,0,1,1,1,1,1,1,1]},{"id":66,"code":"RB-066","name":"RUBBER BELT (A-43)","category":"Rubber Belts","unit":"pcs","stock":14,"minStock":5,"monthlyAvg":2,"unitPrice":34,"supplier":"Gulf HVAC Supplies","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 1","bin":"Bin 19"},"lastReceived":null,"lastIssued":"2026-05-29","lastCount":"2026-01-05","history":[2,1,3,1,2,1,2,3,3,2,2,3]},{"id":67,"code":"RB-067","name":"RUBBER BELT (A-44)","category":"Rubber Belts","unit":"pcs","stock":16,"minStock":5,"monthlyAvg":0,"unitPrice":33,"supplier":"Saudi Cool Co.","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 2","bin":"Bin 20"},"lastReceived":"2026-05-18","lastIssued":null,"lastCount":"2026-01-05","history":[0,1,0,0,0,0,1,1,1,0,1,1]},{"id":68,"code":"RB-068","name":"RUBBER BELT (A-45)","category":"Rubber Belts","unit":"pcs","stock":23,"minStock":5,"monthlyAvg":1,"unitPrice":35,"supplier":"Riyadh Spare Parts","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 3","bin":"Bin 21"},"lastReceived":null,"lastIssued":"2026-05-29","lastCount":"2026-01-05","history":[1,1,1,1,1,1,2,1,1,1,1,1]},{"id":69,"code":"RB-069","name":"RUBBER BELT (A-46)","category":"Rubber Belts","unit":"pcs","stock":41,"minStock":5,"monthlyAvg":2,"unitPrice":57,"supplier":"United Refrigeration","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 4","bin":"Bin 22"},"lastReceived":null,"lastIssued":"2026-05-29","lastCount":"2026-01-05","history":[1,2,2,3,2,1,2,1,2,3,3,3]},{"id":70,"code":"RB-070","name":"RUBBER BELT (A-47)","category":"Rubber Belts","unit":"pcs","stock":14,"minStock":5,"monthlyAvg":2,"unitPrice":63,"supplier":"Al Majal Trading","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 5","bin":"Bin 23"},"lastReceived":"2026-05-18","lastIssued":"2026-05-29","lastCount":"2026-01-05","history":[3,1,1,3,3,3,3,1,1,2,1,2]},{"id":71,"code":"RB-071","name":"RUBBER BELT (A-48)","category":"Rubber Belts","unit":"pcs","stock":25,"minStock":5,"monthlyAvg":2,"unitPrice":51,"supplier":"Gulf HVAC Supplies","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 6","bin":"Bin 24"},"lastReceived":null,"lastIssued":"2026-05-29","lastCount":"2026-01-05","history":[2,2,3,2,2,1,3,1,1,3,2,3]},{"id":72,"code":"RB-072","name":"RUBBER BELT (A-49)","category":"Rubber Belts","unit":"pcs","stock":13,"minStock":5,"monthlyAvg":0,"unitPrice":38,"supplier":"Saudi Cool Co.","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 1","bin":"Bin 1"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[0,1,1,0,0,1,0,1,0,1,1,0]},{"id":73,"code":"RB-073","name":"RUBBER BELT (A-50)","category":"Rubber Belts","unit":"pcs","stock":11,"minStock":5,"monthlyAvg":0,"unitPrice":49,"supplier":"Riyadh Spare Parts","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 2","bin":"Bin 2"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,0,1,1,0,1,0,1,1,0,1,1]},{"id":74,"code":"RB-074","name":"RUBBER BELT (A-51)","category":"Rubber Belts","unit":"pcs","stock":33,"minStock":5,"monthlyAvg":0,"unitPrice":32,"supplier":"United Refrigeration","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 3","bin":"Bin 3"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,1,0,1,0,1,0,0,1,0,1]},{"id":75,"code":"RB-075","name":"RUBBER BELT (A-52)","category":"Rubber Belts","unit":"pcs","stock":10,"minStock":5,"monthlyAvg":0,"unitPrice":42,"supplier":"Al Majal Trading","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 4","bin":"Bin 4"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[0,1,1,0,1,1,1,0,0,0,0,1]},{"id":76,"code":"RB-076","name":"RUBBER BELT (A-53)","category":"Rubber Belts","unit":"pcs","stock":14,"minStock":5,"monthlyAvg":2,"unitPrice":41,"supplier":"Gulf HVAC Supplies","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 5","bin":"Bin 5"},"lastReceived":"2026-05-18","lastIssued":"2026-05-29","lastCount":"2026-01-05","history":[2,3,2,2,2,2,3,2,3,3,3,1]},{"id":77,"code":"RB-077","name":"RUBBER BELT (A-54)","category":"Rubber Belts","unit":"pcs","stock":13,"minStock":5,"monthlyAvg":0,"unitPrice":37,"supplier":"Saudi Cool Co.","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 6","bin":"Bin 6"},"lastReceived":"2026-05-18","lastIssued":null,"lastCount":"2026-01-05","history":[1,1,0,0,1,1,0,1,1,1,0,0]},{"id":78,"code":"RB-078","name":"RUBBER BELT (A-57)","category":"Rubber Belts","unit":"pcs","stock":17,"minStock":5,"monthlyAvg":0,"unitPrice":37,"supplier":"Riyadh Spare Parts","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 1","bin":"Bin 7"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,0,1,0,1,1,1,1,1,0,1,1]},{"id":79,"code":"RB-079","name":"RUBBER BELT (A-59)","category":"Rubber Belts","unit":"pcs","stock":47,"minStock":5,"monthlyAvg":0,"unitPrice":59,"supplier":"United Refrigeration","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 2","bin":"Bin 8"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,0,1,1,1,0,1,1,1,1,1]},{"id":80,"code":"RB-080","name":"RUBBER BELT (A-60)","category":"Rubber Belts","unit":"pcs","stock":17,"minStock":5,"monthlyAvg":0,"unitPrice":63,"supplier":"Al Majal Trading","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 3","bin":"Bin 9"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,0,1,1,1,1,1,1,1,1,1]},{"id":81,"code":"RB-081","name":"RUBBER BELT (A-63)","category":"Rubber Belts","unit":"pcs","stock":33,"minStock":5,"monthlyAvg":0,"unitPrice":32,"supplier":"Gulf HVAC Supplies","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 4","bin":"Bin 10"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[0,1,0,0,1,0,0,0,1,1,0,1]},{"id":82,"code":"RB-082","name":"RUBBER BELT (A-65)","category":"Rubber Belts","unit":"pcs","stock":23,"minStock":5,"monthlyAvg":0,"unitPrice":62,"supplier":"Saudi Cool Co.","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 5","bin":"Bin 11"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,1,1,1,0,1,0,1,1,1,1]},{"id":83,"code":"RB-083","name":"RUBBER BELT (A-67)","category":"Rubber Belts","unit":"pcs","stock":11,"minStock":5,"monthlyAvg":0,"unitPrice":64,"supplier":"Riyadh Spare Parts","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 6","bin":"Bin 12"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,0,1,0,1,0,1,1,1,1,1]},{"id":84,"code":"RB-084","name":"RUBBER BELT (A-68)","category":"Rubber Belts","unit":"pcs","stock":14,"minStock":5,"monthlyAvg":0,"unitPrice":54,"supplier":"United Refrigeration","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 1","bin":"Bin 13"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[0,0,0,1,0,1,1,1,1,0,0,0]},{"id":85,"code":"RB-085","name":"RUBBER BELT (A-69)","category":"Rubber Belts","unit":"pcs","stock":4,"minStock":3,"monthlyAvg":0,"unitPrice":41,"supplier":"Al Majal Trading","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 2","bin":"Bin 14"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,1,0,1,0,0,1,1,1,0,1]},{"id":86,"code":"RB-086","name":"RUBBER BELT (A-70)","category":"Rubber Belts","unit":"pcs","stock":11,"minStock":5,"monthlyAvg":0,"unitPrice":35,"supplier":"Gulf HVAC Supplies","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 3","bin":"Bin 15"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,0,1,0,1,1,0,1,1,0,0,1]},{"id":87,"code":"RB-087","name":"RUBBER BELT (A-71)","category":"Rubber Belts","unit":"pcs","stock":11,"minStock":5,"monthlyAvg":0,"unitPrice":36,"supplier":"Saudi Cool Co.","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 4","bin":"Bin 16"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,1,0,1,1,1,1,0,0,1,1]},{"id":88,"code":"RB-088","name":"RUBBER BELT (A-72)","category":"Rubber Belts","unit":"pcs","stock":18,"minStock":5,"monthlyAvg":0,"unitPrice":63,"supplier":"Riyadh Spare Parts","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 5","bin":"Bin 17"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,0,1,1,0,0,0,1,0,0,1,1]},{"id":89,"code":"RB-089","name":"RUBBER BELT (A-73)","category":"Rubber Belts","unit":"pcs","stock":39,"minStock":5,"monthlyAvg":0,"unitPrice":47,"supplier":"United Refrigeration","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 6","bin":"Bin 18"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,0,0,1,1,1,1,0,1,0,1,1]},{"id":90,"code":"RB-090","name":"RUBBER BELT (A-74)","category":"Rubber Belts","unit":"pcs","stock":14,"minStock":5,"monthlyAvg":0,"unitPrice":58,"supplier":"Al Majal Trading","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 1","bin":"Bin 19"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,1,1,1,0,1,1,1,1,1,1]},{"id":91,"code":"RB-091","name":"RUBBER BELT (A-79)","category":"Rubber Belts","unit":"pcs","stock":21,"minStock":5,"monthlyAvg":0,"unitPrice":34,"supplier":"Gulf HVAC Supplies","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 2","bin":"Bin 20"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[0,1,1,0,1,0,0,0,1,1,0,0]},{"id":92,"code":"RB-092","name":"RUBBER BELT (A-80)","category":"Rubber Belts","unit":"pcs","stock":8,"minStock":5,"monthlyAvg":0,"unitPrice":35,"supplier":"Saudi Cool Co.","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 3","bin":"Bin 21"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,1,0,1,1,1,0,1,1,1,1]},{"id":93,"code":"RB-093","name":"RUBBER BELT (A-89)","category":"Rubber Belts","unit":"pcs","stock":11,"minStock":5,"monthlyAvg":0,"unitPrice":61,"supplier":"Riyadh Spare Parts","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 4","bin":"Bin 22"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,1,1,0,1,0,1,1,0,0,1]},{"id":94,"code":"RB-094","name":"RUBBER BELT (A-93)","category":"Rubber Belts","unit":"pcs","stock":16,"minStock":5,"monthlyAvg":0,"unitPrice":65,"supplier":"United Refrigeration","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 5","bin":"Bin 23"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,1,1,1,0,1,0,0,1,1,0]},{"id":95,"code":"RB-095","name":"RUBBER BELT (SPA-732)","category":"Rubber Belts","unit":"pcs","stock":12,"minStock":5,"monthlyAvg":0,"unitPrice":37,"supplier":"Al Majal Trading","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 6","bin":"Bin 24"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,1,0,1,1,0,1,1,0,1,1]},{"id":96,"code":"RB-096","name":"RUBBER BELT (SPA-757)","category":"Rubber Belts","unit":"pcs","stock":18,"minStock":5,"monthlyAvg":0,"unitPrice":49,"supplier":"Gulf HVAC Supplies","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 1","bin":"Bin 1"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,0,1,1,0,0,1,1,1,0,0]},{"id":97,"code":"RB-097","name":"RUBBER BELT (SPA-800)","category":"Rubber Belts","unit":"pcs","stock":16,"minStock":5,"monthlyAvg":0,"unitPrice":64,"supplier":"Saudi Cool Co.","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 2","bin":"Bin 2"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[0,1,1,1,0,0,1,1,1,1,1,0]},{"id":98,"code":"RB-098","name":"RUBBER BELT (SPA-825)","category":"Rubber Belts","unit":"pcs","stock":31,"minStock":5,"monthlyAvg":2,"unitPrice":51,"supplier":"Riyadh Spare Parts","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 3","bin":"Bin 3"},"lastReceived":null,"lastIssued":"2026-05-29","lastCount":"2026-01-05","history":[1,2,2,2,3,1,3,1,3,1,3,3]},{"id":99,"code":"RB-099","name":"RUBBER BELT (SPA-832)","category":"Rubber Belts","unit":"pcs","stock":17,"minStock":5,"monthlyAvg":0,"unitPrice":60,"supplier":"United Refrigeration","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 4","bin":"Bin 4"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,0,1,1,1,1,1,0,1,1,1,1]},{"id":100,"code":"RB-100","name":"RUBBER BELT (SPA-882)","category":"Rubber Belts","unit":"pcs","stock":15,"minStock":5,"monthlyAvg":1,"unitPrice":51,"supplier":"Al Majal Trading","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 5","bin":"Bin 5"},"lastReceived":null,"lastIssued":"2026-05-29","lastCount":"2026-01-05","history":[1,2,1,1,1,1,1,2,2,1,1,1]},{"id":101,"code":"RB-101","name":"RUBBER BELT (SPA-900)","category":"Rubber Belts","unit":"pcs","stock":11,"minStock":5,"monthlyAvg":0,"unitPrice":32,"supplier":"Gulf HVAC Supplies","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 6","bin":"Bin 6"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,0,0,1,0,1,1,1,1,1,1]},{"id":102,"code":"RB-102","name":"RUBBER BELT (SPA-932)","category":"Rubber Belts","unit":"pcs","stock":22,"minStock":5,"monthlyAvg":0,"unitPrice":52,"supplier":"Saudi Cool Co.","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 1","bin":"Bin 7"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[0,0,0,1,1,1,0,1,1,1,1,0]},{"id":103,"code":"RB-103","name":"RUBBER BELT (SPA-1032)","category":"Rubber Belts","unit":"pcs","stock":14,"minStock":5,"monthlyAvg":0,"unitPrice":36,"supplier":"Riyadh Spare Parts","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 2","bin":"Bin 8"},"lastReceived":"2026-05-18","lastIssued":null,"lastCount":"2026-01-05","history":[1,0,1,0,1,1,1,1,1,1,1,1]},{"id":104,"code":"RB-104","name":"RUBBER BELT (SPA-1060)","category":"Rubber Belts","unit":"pcs","stock":15,"minStock":5,"monthlyAvg":0,"unitPrice":52,"supplier":"United Refrigeration","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 3","bin":"Bin 9"},"lastReceived":"2026-05-18","lastIssued":null,"lastCount":"2026-01-05","history":[0,0,0,1,1,0,0,1,0,1,0,0]},{"id":105,"code":"RB-105","name":"RUBBER BELT (SPA-1082)","category":"Rubber Belts","unit":"pcs","stock":12,"minStock":5,"monthlyAvg":1,"unitPrice":34,"supplier":"Al Majal Trading","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 4","bin":"Bin 10"},"lastReceived":"2026-05-18","lastIssued":"2026-05-29","lastCount":"2026-01-05","history":[2,1,1,1,1,1,1,1,1,1,1,1]},{"id":106,"code":"RB-106","name":"RUBBER BELT (SPA-1107)","category":"Rubber Belts","unit":"pcs","stock":20,"minStock":5,"monthlyAvg":0,"unitPrice":52,"supplier":"Gulf HVAC Supplies","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 5","bin":"Bin 11"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,1,1,1,0,1,1,1,1,1,1]},{"id":107,"code":"RB-107","name":"RUBBER BELT (SPA-1132)","category":"Rubber Belts","unit":"pcs","stock":18,"minStock":5,"monthlyAvg":0,"unitPrice":53,"supplier":"Saudi Cool Co.","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 6","bin":"Bin 12"},"lastReceived":"2026-05-18","lastIssued":null,"lastCount":"2026-01-05","history":[1,1,0,1,1,0,1,0,1,1,1,0]},{"id":108,"code":"RB-108","name":"RUBBER BELT (SPA-1157)","category":"Rubber Belts","unit":"pcs","stock":7,"minStock":5,"monthlyAvg":0,"unitPrice":53,"supplier":"Riyadh Spare Parts","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 1","bin":"Bin 13"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,0,0,1,1,1,1,1,0,1,1,1]},{"id":109,"code":"RB-109","name":"RUBBER BELT (SPA-1180)","category":"Rubber Belts","unit":"pcs","stock":18,"minStock":5,"monthlyAvg":4,"unitPrice":57,"supplier":"United Refrigeration","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 2","bin":"Bin 14"},"lastReceived":"2026-05-18","lastIssued":"2026-05-29","lastCount":"2026-01-05","history":[5,6,5,5,5,5,6,3,6,6,4,4]},{"id":110,"code":"RB-110","name":"RUBBER BELT (SPA-1232)","category":"Rubber Belts","unit":"pcs","stock":15,"minStock":5,"monthlyAvg":0,"unitPrice":32,"supplier":"Al Majal Trading","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 3","bin":"Bin 15"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[0,0,0,0,1,0,1,1,1,1,1,1]},{"id":111,"code":"RB-111","name":"RUBBER BELT (SPA-1250)","category":"Rubber Belts","unit":"pcs","stock":9,"minStock":5,"monthlyAvg":0,"unitPrice":53,"supplier":"Gulf HVAC Supplies","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 4","bin":"Bin 16"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,0,1,1,0,1,1,0,0,1,1]},{"id":112,"code":"RB-112","name":"RUBBER BELT (SPA-1320)","category":"Rubber Belts","unit":"pcs","stock":26,"minStock":5,"monthlyAvg":0,"unitPrice":55,"supplier":"Saudi Cool Co.","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 5","bin":"Bin 17"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[0,1,1,1,0,1,1,1,0,0,1,1]},{"id":113,"code":"RB-113","name":"RUBBER BELT (SPA-1357)","category":"Rubber Belts","unit":"pcs","stock":25,"minStock":5,"monthlyAvg":0,"unitPrice":53,"supplier":"Riyadh Spare Parts","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 6","bin":"Bin 18"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[0,0,1,1,1,1,1,1,1,1,0,1]},{"id":114,"code":"RB-114","name":"RUBBER BELT (SPA-1432)","category":"Rubber Belts","unit":"pcs","stock":22,"minStock":5,"monthlyAvg":0,"unitPrice":62,"supplier":"United Refrigeration","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 1","bin":"Bin 19"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,1,1,0,1,1,0,1,0,0,1]},{"id":115,"code":"RB-115","name":"RUBBER BELT (SPA-1482)","category":"Rubber Belts","unit":"pcs","stock":32,"minStock":5,"monthlyAvg":0,"unitPrice":54,"supplier":"Al Majal Trading","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 2","bin":"Bin 20"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[0,1,1,1,1,1,1,0,0,1,0,0]},{"id":116,"code":"RB-116","name":"RUBBER BELT (SPA-1532)","category":"Rubber Belts","unit":"pcs","stock":55,"minStock":5,"monthlyAvg":0,"unitPrice":64,"supplier":"Gulf HVAC Supplies","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 3","bin":"Bin 21"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,0,1,1,0,0,1,1,1,1,0,0]},{"id":117,"code":"RB-117","name":"RUBBER BELT (SPA-1557)","category":"Rubber Belts","unit":"pcs","stock":37,"minStock":5,"monthlyAvg":0,"unitPrice":50,"supplier":"Saudi Cool Co.","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 4","bin":"Bin 22"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,0,1,1,0,1,0,0,0,1,1,1]},{"id":118,"code":"RB-118","name":"RUBBER BELT (SPA-1682)","category":"Rubber Belts","unit":"pcs","stock":10,"minStock":5,"monthlyAvg":0,"unitPrice":33,"supplier":"Riyadh Spare Parts","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 5","bin":"Bin 23"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[0,0,1,0,1,1,0,1,1,0,1,0]},{"id":119,"code":"RB-119","name":"RUBBER BELT (SPA-1707)","category":"Rubber Belts","unit":"pcs","stock":25,"minStock":5,"monthlyAvg":0,"unitPrice":51,"supplier":"United Refrigeration","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 6","bin":"Bin 24"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,0,1,1,1,1,1,1,1,1,0]},{"id":120,"code":"RB-120","name":"RUBBER BELT (SPA-1732)","category":"Rubber Belts","unit":"pcs","stock":44,"minStock":5,"monthlyAvg":0,"unitPrice":52,"supplier":"Al Majal Trading","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 1","bin":"Bin 1"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,0,1,0,0,1,1,1,1,0,1]},{"id":121,"code":"RB-121","name":"RUBBER BELT (SPA-1750)","category":"Rubber Belts","unit":"pcs","stock":13,"minStock":5,"monthlyAvg":0,"unitPrice":44,"supplier":"Gulf HVAC Supplies","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 2","bin":"Bin 2"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,1,1,0,0,0,1,0,1,1,1]},{"id":122,"code":"RB-122","name":"RUBBER BELT (SPA-1757)","category":"Rubber Belts","unit":"pcs","stock":39,"minStock":5,"monthlyAvg":0,"unitPrice":48,"supplier":"Saudi Cool Co.","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 3","bin":"Bin 3"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,1,1,1,1,1,0,1,1,1,1]},{"id":123,"code":"RB-123","name":"RUBBER BELT (SPA-1782)","category":"Rubber Belts","unit":"pcs","stock":27,"minStock":5,"monthlyAvg":0,"unitPrice":59,"supplier":"Riyadh Spare Parts","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 4","bin":"Bin 4"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,1,1,1,1,1,1,1,1,1,1]},{"id":124,"code":"RB-124","name":"RUBBER BELT (SPA-1882)","category":"Rubber Belts","unit":"pcs","stock":11,"minStock":5,"monthlyAvg":0,"unitPrice":60,"supplier":"United Refrigeration","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 5","bin":"Bin 5"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,0,0,1,1,1,1,1,0,0,0,1]},{"id":125,"code":"RB-125","name":"RUBBER BELT (SPA-1982)","category":"Rubber Belts","unit":"pcs","stock":17,"minStock":5,"monthlyAvg":0,"unitPrice":59,"supplier":"Al Majal Trading","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 6","bin":"Bin 6"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[0,1,1,1,1,1,1,1,1,1,1,1]},{"id":126,"code":"RB-126","name":"RUBBER BELT (SPA-2432)","category":"Rubber Belts","unit":"pcs","stock":24,"minStock":5,"monthlyAvg":0,"unitPrice":65,"supplier":"Gulf HVAC Supplies","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 1","bin":"Bin 7"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,1,1,1,1,0,0,1,1,0,0]},{"id":127,"code":"RB-127","name":"RUBBER BELT (SPA-2450)","category":"Rubber Belts","unit":"pcs","stock":11,"minStock":5,"monthlyAvg":0,"unitPrice":32,"supplier":"Saudi Cool Co.","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 2","bin":"Bin 8"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,0,0,1,0,1,0,0,1,1,1]},{"id":128,"code":"EL-128","name":"THERMOSTATE","category":"Electrical","unit":"pcs","stock":0,"minStock":2,"monthlyAvg":0,"unitPrice":46,"supplier":"Riyadh Spare Parts","location":{"store":"Main Store","rack":"Rack C","shelf":"Shelf 3","bin":"Bin 9"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,0,0,1,1,1,1,1,0,1,1]},{"id":129,"code":"EL-129","name":"CAPACITOR (35+5uf)","category":"Electrical","unit":"pcs","stock":0,"minStock":2,"monthlyAvg":0,"unitPrice":50,"supplier":"United Refrigeration","location":{"store":"Main Store","rack":"Rack C","shelf":"Shelf 4","bin":"Bin 10"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,0,0,1,0,0,1,1,1,1,0]},{"id":130,"code":"EL-130","name":"CAPACITOR (40+5uf)","category":"Electrical","unit":"pcs","stock":0,"minStock":2,"monthlyAvg":0,"unitPrice":88,"supplier":"Al Majal Trading","location":{"store":"Main Store","rack":"Rack C","shelf":"Shelf 5","bin":"Bin 11"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[0,1,0,1,1,1,0,1,0,1,1,1]},{"id":131,"code":"EL-131","name":"CAPACITOR (45+5uf)","category":"Electrical","unit":"pcs","stock":0,"minStock":2,"monthlyAvg":0,"unitPrice":62,"supplier":"Gulf HVAC Supplies","location":{"store":"Main Store","rack":"Rack C","shelf":"Shelf 6","bin":"Bin 12"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,0,1,1,0,1,0,1,0,1,1,1]},{"id":132,"code":"EL-132","name":"CAPACITOR (50+5uf)","category":"Electrical","unit":"pcs","stock":0,"minStock":2,"monthlyAvg":0,"unitPrice":78,"supplier":"Saudi Cool Co.","location":{"store":"Main Store","rack":"Rack C","shelf":"Shelf 1","bin":"Bin 13"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[0,0,1,1,1,1,1,0,0,1,1,1]},{"id":133,"code":"EL-133","name":"CAPACITOR (55+5uf)","category":"Electrical","unit":"pcs","stock":0,"minStock":2,"monthlyAvg":0,"unitPrice":80,"supplier":"Riyadh Spare Parts","location":{"store":"Main Store","rack":"Rack C","shelf":"Shelf 2","bin":"Bin 14"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,0,1,0,0,1,1,0,1,1,1]},{"id":134,"code":"EL-134","name":"CAPACITOR (60+5uf)","category":"Electrical","unit":"pcs","stock":1,"minStock":2,"monthlyAvg":0,"unitPrice":65,"supplier":"United Refrigeration","location":{"store":"Main Store","rack":"Rack C","shelf":"Shelf 3","bin":"Bin 15"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,1,1,1,1,1,1,1,0,1,1]},{"id":135,"code":"EL-135","name":"CAPACITOR (70+5uf)","category":"Electrical","unit":"pcs","stock":0,"minStock":2,"monthlyAvg":0,"unitPrice":52,"supplier":"Al Majal Trading","location":{"store":"Main Store","rack":"Rack C","shelf":"Shelf 4","bin":"Bin 16"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,0,0,0,0,0,0,0,1,0,1]},{"id":136,"code":"CO-136","name":"COMPRESOR (1.5ton)","category":"Compressors","unit":"pcs","stock":1,"minStock":1,"monthlyAvg":0,"unitPrice":1292,"supplier":"Gulf HVAC Supplies","location":{"store":"Main Store","rack":"Rack B","shelf":"Shelf 5","bin":"Bin 17"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[0,1,1,0,1,0,0,0,1,0,1,0]},{"id":137,"code":"EL-137","name":"P.T.C RELAY (1.5uf)","category":"Electrical","unit":"pcs","stock":5,"minStock":3,"monthlyAvg":0,"unitPrice":46,"supplier":"Saudi Cool Co.","location":{"store":"Main Store","rack":"Rack C","shelf":"Shelf 6","bin":"Bin 18"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,0,1,0,1,1,1,1,1,1,1,0]},{"id":138,"code":"EL-138","name":"P.T.C RELAY (2.5uf)","category":"Electrical","unit":"pcs","stock":5,"minStock":3,"monthlyAvg":0,"unitPrice":45,"supplier":"Riyadh Spare Parts","location":{"store":"Main Store","rack":"Rack C","shelf":"Shelf 1","bin":"Bin 19"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,1,0,0,1,1,1,0,0,1,1]},{"id":139,"code":"EL-139","name":"P.T.C RELAY (3uf)","category":"Electrical","unit":"pcs","stock":3,"minStock":3,"monthlyAvg":0,"unitPrice":53,"supplier":"United Refrigeration","location":{"store":"Main Store","rack":"Rack C","shelf":"Shelf 2","bin":"Bin 20"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[0,0,0,0,1,0,1,1,1,1,1,0]},{"id":140,"code":"EL-140","name":"P.T.C RELAY (5uf)","category":"Electrical","unit":"pcs","stock":2,"minStock":3,"monthlyAvg":0,"unitPrice":77,"supplier":"Al Majal Trading","location":{"store":"Main Store","rack":"Rack C","shelf":"Shelf 3","bin":"Bin 21"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[0,1,0,1,0,1,0,1,0,0,1,0]},{"id":141,"code":"EL-141","name":"P.T.C RELAY (6uf)","category":"Electrical","unit":"pcs","stock":4,"minStock":3,"monthlyAvg":0,"unitPrice":83,"supplier":"Gulf HVAC Supplies","location":{"store":"Main Store","rack":"Rack C","shelf":"Shelf 4","bin":"Bin 22"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[0,0,1,1,1,1,0,1,1,0,1,0]},{"id":142,"code":"EL-142","name":"P.T.C RELAY (8uf)","category":"Electrical","unit":"pcs","stock":3,"minStock":3,"monthlyAvg":0,"unitPrice":61,"supplier":"Saudi Cool Co.","location":{"store":"Main Store","rack":"Rack C","shelf":"Shelf 5","bin":"Bin 23"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,1,1,1,0,1,1,1,1,0,1]},{"id":143,"code":"FV-143","name":"DEAD NUT 3/8","category":"Fittings & Valves","unit":"pcs","stock":15,"minStock":5,"monthlyAvg":0,"unitPrice":50,"supplier":"Riyadh Spare Parts","location":{"store":"Main Store","rack":"Rack D","shelf":"Shelf 6","bin":"Bin 24"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,0,0,0,0,1,0,1,1,1,0,1]},{"id":144,"code":"FV-144","name":"DEAD NUT 5/8","category":"Fittings & Valves","unit":"pcs","stock":13,"minStock":5,"monthlyAvg":0,"unitPrice":66,"supplier":"United Refrigeration","location":{"store":"Main Store","rack":"Rack D","shelf":"Shelf 1","bin":"Bin 1"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[0,1,1,1,1,1,1,1,0,1,1,1]},{"id":145,"code":"FV-145","name":"DEAD NUT 1/4","category":"Fittings & Valves","unit":"pcs","stock":14,"minStock":5,"monthlyAvg":0,"unitPrice":80,"supplier":"Al Majal Trading","location":{"store":"Main Store","rack":"Rack D","shelf":"Shelf 2","bin":"Bin 2"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,1,1,0,0,1,1,1,1,1,0]},{"id":146,"code":"FV-146","name":"DEAD NUT 1/2","category":"Fittings & Valves","unit":"pcs","stock":14,"minStock":5,"monthlyAvg":0,"unitPrice":42,"supplier":"Gulf HVAC Supplies","location":{"store":"Main Store","rack":"Rack D","shelf":"Shelf 3","bin":"Bin 3"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,1,0,0,1,0,1,1,0,1,0]},{"id":147,"code":"MO-147","name":"MOTOR (0.75hp)","category":"Motors","unit":"pcs","stock":1,"minStock":1,"monthlyAvg":0,"unitPrice":716,"supplier":"Saudi Cool Co.","location":{"store":"Main Store","rack":"Rack C","shelf":"Shelf 4","bin":"Bin 4"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[0,1,0,1,1,1,1,1,1,1,0,0]},{"id":148,"code":"MO-148","name":"MOTOR (1hp)","category":"Motors","unit":"pcs","stock":1,"minStock":1,"monthlyAvg":0,"unitPrice":724,"supplier":"Riyadh Spare Parts","location":{"store":"Main Store","rack":"Rack C","shelf":"Shelf 5","bin":"Bin 5"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[0,0,0,1,1,1,1,1,1,1,1,0]},{"id":149,"code":"MO-149","name":"MOTOR (1.5hp)","category":"Motors","unit":"pcs","stock":1,"minStock":1,"monthlyAvg":0,"unitPrice":639,"supplier":"United Refrigeration","location":{"store":"Main Store","rack":"Rack C","shelf":"Shelf 6","bin":"Bin 6"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,1,1,1,0,1,1,1,1,0,1]},{"id":150,"code":"MO-150","name":"MOTOR (2hp)","category":"Motors","unit":"pcs","stock":1,"minStock":1,"monthlyAvg":0,"unitPrice":413,"supplier":"Al Majal Trading","location":{"store":"Main Store","rack":"Rack C","shelf":"Shelf 1","bin":"Bin 7"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,0,0,0,1,1,1,0,1,0,1,0]},{"id":151,"code":"MO-151","name":"MOTOR (3hp)","category":"Motors","unit":"pcs","stock":2,"minStock":1,"monthlyAvg":0,"unitPrice":515,"supplier":"Gulf HVAC Supplies","location":{"store":"Main Store","rack":"Rack C","shelf":"Shelf 2","bin":"Bin 8"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,0,1,1,1,0,1,1,0,1,1]},{"id":152,"code":"MO-152","name":"MOTOR (5hp)","category":"Motors","unit":"pcs","stock":1,"minStock":1,"monthlyAvg":0,"unitPrice":508,"supplier":"Saudi Cool Co.","location":{"store":"Main Store","rack":"Rack C","shelf":"Shelf 3","bin":"Bin 9"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,1,1,1,0,1,1,0,0,1,1]},{"id":153,"code":"GN-153","name":"WISE","category":"General","unit":"pcs","stock":1,"minStock":1,"monthlyAvg":0,"unitPrice":46,"supplier":"Riyadh Spare Parts","location":{"store":"Main Store","rack":"Rack H","shelf":"Shelf 4","bin":"Bin 10"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[0,1,0,1,0,1,1,1,1,0,1,1]},{"id":154,"code":"RB-154","name":"RUBBER BELT (B-23)","category":"Rubber Belts","unit":"pcs","stock":15,"minStock":5,"monthlyAvg":0,"unitPrice":67,"supplier":"United Refrigeration","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 5","bin":"Bin 11"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[0,0,1,1,1,0,1,0,0,0,0,1]},{"id":155,"code":"RB-155","name":"RUBBER BELT (B-28)","category":"Rubber Belts","unit":"pcs","stock":20,"minStock":5,"monthlyAvg":0,"unitPrice":53,"supplier":"Al Majal Trading","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 6","bin":"Bin 12"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[0,1,1,1,1,0,1,0,1,1,1,0]},{"id":156,"code":"RB-156","name":"RUBBER BELT (B-33)","category":"Rubber Belts","unit":"pcs","stock":15,"minStock":5,"monthlyAvg":0,"unitPrice":38,"supplier":"Gulf HVAC Supplies","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 1","bin":"Bin 13"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,1,0,1,1,0,0,1,1,0,1]},{"id":157,"code":"RB-157","name":"RUBBER BELT (B-34)","category":"Rubber Belts","unit":"pcs","stock":5,"minStock":3,"monthlyAvg":0,"unitPrice":51,"supplier":"Saudi Cool Co.","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 2","bin":"Bin 14"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[0,1,1,1,0,1,0,0,1,1,1,1]},{"id":158,"code":"RB-158","name":"RUBBER BELT (B-38)","category":"Rubber Belts","unit":"pcs","stock":10,"minStock":5,"monthlyAvg":0,"unitPrice":49,"supplier":"Riyadh Spare Parts","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 3","bin":"Bin 15"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[0,1,1,1,1,1,1,1,0,1,0,1]},{"id":159,"code":"RB-159","name":"RUBBER BELT (B-39)","category":"Rubber Belts","unit":"pcs","stock":10,"minStock":5,"monthlyAvg":0,"unitPrice":53,"supplier":"United Refrigeration","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 4","bin":"Bin 16"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[0,1,1,1,0,1,0,1,0,0,1,1]},{"id":160,"code":"RB-160","name":"RUBBER BELT (B-41)","category":"Rubber Belts","unit":"pcs","stock":7,"minStock":5,"monthlyAvg":0,"unitPrice":47,"supplier":"Al Majal Trading","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 5","bin":"Bin 17"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,0,0,1,1,0,1,1,0,1,1,0]},{"id":161,"code":"RB-161","name":"RUBBER BELT (B-42)","category":"Rubber Belts","unit":"pcs","stock":14,"minStock":5,"monthlyAvg":0,"unitPrice":64,"supplier":"Gulf HVAC Supplies","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 6","bin":"Bin 18"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,0,1,1,1,1,1,0,1,1,1,0]},{"id":162,"code":"RB-162","name":"RUBBER BELT (B-43)","category":"Rubber Belts","unit":"pcs","stock":9,"minStock":5,"monthlyAvg":0,"unitPrice":42,"supplier":"Saudi Cool Co.","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 1","bin":"Bin 19"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,0,0,0,0,0,1,0,1,0,1]},{"id":163,"code":"RB-163","name":"RUBBER BELT (B-47)","category":"Rubber Belts","unit":"pcs","stock":15,"minStock":5,"monthlyAvg":0,"unitPrice":63,"supplier":"Riyadh Spare Parts","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 2","bin":"Bin 20"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,1,1,1,1,1,0,1,0,0,0]},{"id":164,"code":"RB-164","name":"RUBBER BELT (B-48)","category":"Rubber Belts","unit":"pcs","stock":12,"minStock":5,"monthlyAvg":0,"unitPrice":38,"supplier":"United Refrigeration","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 3","bin":"Bin 21"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,0,1,0,1,1,1,1,1,0,1,1]},{"id":165,"code":"RB-165","name":"RUBBER BELT (B-58)","category":"Rubber Belts","unit":"pcs","stock":18,"minStock":5,"monthlyAvg":0,"unitPrice":55,"supplier":"Al Majal Trading","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 4","bin":"Bin 22"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,0,1,1,1,0,1,1,1,1,1]},{"id":166,"code":"RB-166","name":"RUBBER BELT (B-59)","category":"Rubber Belts","unit":"pcs","stock":23,"minStock":5,"monthlyAvg":0,"unitPrice":64,"supplier":"Gulf HVAC Supplies","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 5","bin":"Bin 23"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,0,1,1,0,0,0,1,1,1,1,1]},{"id":167,"code":"RB-167","name":"RUBBER BELT (B-60)","category":"Rubber Belts","unit":"pcs","stock":15,"minStock":5,"monthlyAvg":0,"unitPrice":48,"supplier":"Saudi Cool Co.","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 6","bin":"Bin 24"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[0,1,1,1,1,1,1,0,1,1,0,1]},{"id":168,"code":"RB-168","name":"RUBBER BELT (B-67)","category":"Rubber Belts","unit":"pcs","stock":30,"minStock":5,"monthlyAvg":0,"unitPrice":47,"supplier":"Riyadh Spare Parts","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 1","bin":"Bin 1"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,0,1,1,0,0,1,0,1,1,1]},{"id":169,"code":"RB-169","name":"RUBBER BELT (B-71)","category":"Rubber Belts","unit":"pcs","stock":33,"minStock":5,"monthlyAvg":0,"unitPrice":45,"supplier":"United Refrigeration","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 2","bin":"Bin 2"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,1,1,1,1,1,1,1,0,0,0]},{"id":170,"code":"RB-170","name":"RUBBER BELT (B-73)","category":"Rubber Belts","unit":"pcs","stock":53,"minStock":5,"monthlyAvg":0,"unitPrice":34,"supplier":"Al Majal Trading","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 3","bin":"Bin 3"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,1,0,1,1,1,0,1,1,0,1]},{"id":171,"code":"RB-171","name":"RUBBER BELT (B-74)","category":"Rubber Belts","unit":"pcs","stock":12,"minStock":5,"monthlyAvg":0,"unitPrice":35,"supplier":"Gulf HVAC Supplies","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 4","bin":"Bin 4"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,0,1,0,1,0,1,1,1,1,1,1]},{"id":172,"code":"RB-172","name":"RUBBER BELT (B-96)","category":"Rubber Belts","unit":"pcs","stock":10,"minStock":5,"monthlyAvg":0,"unitPrice":38,"supplier":"Saudi Cool Co.","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 5","bin":"Bin 5"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[0,1,1,0,0,1,1,1,0,1,1,0]},{"id":173,"code":"RB-173","name":"RUBBER BELT (B-106)","category":"Rubber Belts","unit":"pcs","stock":6,"minStock":3,"monthlyAvg":0,"unitPrice":47,"supplier":"Riyadh Spare Parts","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 6","bin":"Bin 6"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,0,1,1,1,0,0,0,1,0,0,1]},{"id":174,"code":"RB-174","name":"RUBBER BELT (B-710)","category":"Rubber Belts","unit":"pcs","stock":4,"minStock":3,"monthlyAvg":0,"unitPrice":62,"supplier":"United Refrigeration","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 1","bin":"Bin 7"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,1,1,1,1,0,0,1,0,1,1]},{"id":175,"code":"RB-175","name":"RUBBER BELT (B-2350)","category":"Rubber Belts","unit":"pcs","stock":20,"minStock":5,"monthlyAvg":0,"unitPrice":53,"supplier":"Al Majal Trading","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 2","bin":"Bin 8"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,0,1,1,1,1,1,1,1,0,0]},{"id":176,"code":"RB-176","name":"RUBBER BELT (B-2675)","category":"Rubber Belts","unit":"pcs","stock":10,"minStock":5,"monthlyAvg":0,"unitPrice":63,"supplier":"Gulf HVAC Supplies","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 3","bin":"Bin 9"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[0,0,1,1,1,1,1,1,1,1,0,1]},{"id":177,"code":"RB-177","name":"RUBBER BELT (B-2710)","category":"Rubber Belts","unit":"pcs","stock":4,"minStock":3,"monthlyAvg":0,"unitPrice":57,"supplier":"Saudi Cool Co.","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 4","bin":"Bin 10"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[0,1,0,1,1,1,0,1,1,1,0,1]},{"id":178,"code":"RB-178","name":"RUBBER BELT PACKAGE (BX-30)","category":"Rubber Belts","unit":"pcs","stock":9,"minStock":3,"monthlyAvg":0,"unitPrice":65,"supplier":"Riyadh Spare Parts","location":{"store":"Main Store","rack":"Rack A","shelf":"Shelf 5","bin":"Bin 11"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,1,1,0,0,1,1,1,1,1,1]},{"id":179,"code":"PI-179","name":"CAPALARY TUBE (4)","category":"Piping","unit":"pcs","stock":7,"minStock":3,"monthlyAvg":0,"unitPrice":134,"supplier":"United Refrigeration","location":{"store":"Main Store","rack":"Rack D","shelf":"Shelf 6","bin":"Bin 12"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,1,1,0,0,1,1,0,0,1,1]},{"id":180,"code":"PI-180","name":"CAPALARY TUBE (5)","category":"Piping","unit":"pcs","stock":5,"minStock":3,"monthlyAvg":0,"unitPrice":83,"supplier":"Al Majal Trading","location":{"store":"Main Store","rack":"Rack D","shelf":"Shelf 1","bin":"Bin 13"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,1,0,1,0,1,1,1,1,1,1]},{"id":181,"code":"PI-181","name":"CAPALARY TUBE (6)","category":"Piping","unit":"pcs","stock":7,"minStock":3,"monthlyAvg":0,"unitPrice":105,"supplier":"Gulf HVAC Supplies","location":{"store":"Main Store","rack":"Rack D","shelf":"Shelf 2","bin":"Bin 14"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,1,1,1,1,1,0,0,1,0,0]},{"id":182,"code":"PI-182","name":"CAPALARY TUBE (7)","category":"Piping","unit":"pcs","stock":3,"minStock":3,"monthlyAvg":0,"unitPrice":129,"supplier":"Saudi Cool Co.","location":{"store":"Main Store","rack":"Rack D","shelf":"Shelf 3","bin":"Bin 15"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[0,1,1,1,0,1,0,0,1,0,1,1]},{"id":183,"code":"PI-183","name":"CAPALARY TUBE (8)","category":"Piping","unit":"pcs","stock":6,"minStock":3,"monthlyAvg":0,"unitPrice":88,"supplier":"Riyadh Spare Parts","location":{"store":"Main Store","rack":"Rack D","shelf":"Shelf 4","bin":"Bin 16"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[0,1,1,1,1,0,0,1,1,1,1,1]},{"id":184,"code":"PI-184","name":"CAPALARY TUBE (9)","category":"Piping","unit":"pcs","stock":3,"minStock":3,"monthlyAvg":0,"unitPrice":77,"supplier":"United Refrigeration","location":{"store":"Main Store","rack":"Rack D","shelf":"Shelf 5","bin":"Bin 17"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[0,1,1,0,1,0,0,1,1,0,1,0]},{"id":185,"code":"PI-185","name":"CAPALARY TUBE (10)","category":"Piping","unit":"pcs","stock":2,"minStock":3,"monthlyAvg":0,"unitPrice":67,"supplier":"Al Majal Trading","location":{"store":"Main Store","rack":"Rack D","shelf":"Shelf 6","bin":"Bin 18"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[0,1,0,0,1,0,0,1,1,1,1,1]},{"id":186,"code":"FL-186","name":"DRAYER FILTER (A.C)","category":"Filters","unit":"pcs","stock":4,"minStock":3,"monthlyAvg":0,"unitPrice":85,"supplier":"Gulf HVAC Supplies","location":{"store":"Main Store","rack":"Rack F","shelf":"Shelf 1","bin":"Bin 19"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[1,1,1,1,1,1,0,1,0,0,1,1]},{"id":187,"code":"FL-187","name":"DRAYER FILTER (Fridge)","category":"Filters","unit":"pcs","stock":10,"minStock":3,"monthlyAvg":0,"unitPrice":97,"supplier":"Saudi Cool Co.","location":{"store":"Main Store","rack":"Rack F","shelf":"Shelf 2","bin":"Bin 20"},"lastReceived":null,"lastIssued":null,"lastCount":"2026-01-05","history":[0,1,1,1,1,1,1,1,1,1,1,0]}]};
+const LS_KEY = 'kfmc-warehouse-v1';
+
+function $(id){ return document.getElementById(id); }
+function fmtSAR(n){ return new Intl.NumberFormat('en-US',{style:'currency',currency:'SAR',maximumFractionDigits:0}).format(n); }
+function fmtDate(d){ if(!d) return '—'; return new Date(d).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}); }
+function stockStatus(i){ if(i.stock<=0) return 'out'; if(i.stock<=Math.max(1,Math.ceil(i.minStock*.5))) return 'critical'; if(i.stock<=i.minStock) return 'low'; return 'normal'; }
+function forecast(i){ if(!i.monthlyAvg || i.monthlyAvg<=0) return {m:null,fc:'unknown'}; const m=i.stock/i.monthlyAvg; let fc='safe'; if(m<1) fc='immediate'; else if(m<3) fc='reorder'; return {m,fc}; }
+function uid(){ return Math.random().toString(36).slice(2,10); }
+function now(){ return new Date().toISOString().slice(0,10); }
+
+let state = (()=>{ try{ const r=localStorage.getItem(LS_KEY); if(r){ const p=JSON.parse(r); if(p&&p.items&&p.items.length) return p; } }catch(e){} return {items:SEED_DATA.items.slice(),transactions:[],purchaseRequests:[]}; })();
+function save(){ localStorage.setItem(LS_KEY,JSON.stringify(state)); }
+
+const PAGES = ['dashboard','inventory','min-quantity','receiving','issue','purchase-requests','alerts','transactions','reports','stock-count','settings'];
+const LABELS = {dashboard:'Dashboard',inventory:'Inventory','min-quantity':'Min Qty Manager',receiving:'Receiving',issue:'Issue Material','purchase-requests':'Purchase Requests',alerts:'Alerts',transactions:'Transactions',reports:'Reports','stock-count':'Stock Count',settings:'Settings'};
+const ICONS = {dashboard:'📊',inventory:'📦','min-quantity':'🔔',receiving:'📥',issue:'📤','purchase-requests':'🛒',alerts:'🚨',transactions:'📋',reports:'📈','stock-count':'📋',settings:'⚙️'};
+
+let currentPage = 'dashboard';
+
+function renderNav(){
+  const alertCount = state.items.filter(i=>{ const s=stockStatus(i); return s==='low'||s==='critical'||s==='out'; }).length;
+  const minQtyAlarms = state.items.filter(i=>i.stock <= i.minStock).length;
+  const openPR = state.purchaseRequests.filter(p=>p.status==='Open').length;
+  $('nav').innerHTML = PAGES.map(p=>{
+    const count = p==='alerts'?alertCount : p==='purchase-requests'?openPR : p==='min-quantity'?minQtyAlarms : 0;
+    const active = p===currentPage?'active':'';
+    return `<a href="#" class="${active}" onclick="go('${p}');return false;"><span>${ICONS[p]}</span><span style="flex:1">${LABELS[p]}</span>${count>0?`<span style="background:var(--danger);color:#fff;border-radius:999px;padding:2px 8px;font-size:10px;font-weight:700">${count}</span>`:''}</a>`;
+  }).join('');
+}
+
+function go(page){
+  currentPage = page;
+  PAGES.forEach(p=>{ const el=$(p); if(el) el.classList.toggle('active',p===page); });
+  renderNav();
+  window.scrollTo(0,0);
+  if(page==='dashboard') renderDashboard();
+  if(page==='inventory') renderInventory();
+  if(page==='min-quantity') renderMinQty();
+  if(page==='alerts') renderAlerts();
+  if(page==='receiving') renderReceiving();
+  if(page==='issue') renderIssue();
+  if(page==='transactions') renderTransactions();
+  if(page==='purchase-requests') renderPRs();
+  if(page==='reports') renderReports();
+  if(page==='stock-count') renderStockCount();
+}
+
+function toast(msg,type='success'){
+  const t = document.createElement('div');
+  t.className = 'toast '+type; t.textContent = msg;
+  $('toasts').appendChild(t);
+  setTimeout(()=>t.remove(),3000);
+}
+
+function toggleSidebar(){
+  $('sidebar').classList.toggle('open');
+  $('overlay').classList.toggle('show');
+}
+
+function toggleDark(){
+  document.documentElement.classList.toggle('dark');
+  localStorage.setItem('kfmc-theme', document.documentElement.classList.contains('dark')?'dark':'light');
+}
+if(localStorage.getItem('kfmc-theme')==='dark') document.documentElement.classList.add('dark');
+
+// Build page containers
+$('pages').innerHTML = PAGES.map(p=>`<div id="${p}" class="page"></div>`).join('');
+
+// ===== Dashboard =====
+function renderDashboard(){
+  const items = state.items;
+  const value = items.reduce((s,i)=>s+i.stock*i.unitPrice,0);
+  const inStock = items.filter(i=>i.stock>0).length;
+  const low = items.filter(i=>stockStatus(i)==='low').length;
+  const critical = items.filter(i=>{ const s=stockStatus(i); return s==='critical'||s==='out'; }).length;
+  const monthly = items.reduce((s,i)=>s+i.monthlyAvg*i.unitPrice,0);
+  const fast = items.filter(i=>i.monthlyAvg>0).length;
+  const openPR = state.purchaseRequests.filter(p=>p.status==='Open').length;
+  const labels = ['Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar','Apr','May'];
+  const monthlyData = labels.map((m,idx)=>({month:m,qty:items.reduce((s,i)=>s+(i.history[idx]||0),0)}));
+  const spark = monthlyData.map(d=>d.qty);
+
+  const byCat = {};
+  items.forEach(i=>{ byCat[i.category]=(byCat[i.category]||0)+i.stock; });
+  const catData = Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
+
+  const top = [...items].sort((a,b)=>b.monthlyAvg-a.monthlyAvg).slice(0,6);
+
+  const colors = ['var(--chart-1)','var(--chart-2)','var(--chart-3)','var(--chart-4)','var(--chart-5)','var(--info)'];
+
+  $('dashboard').innerHTML = `
+    <div class="page-header"><div><h2>Dashboard</h2><p>Real-time overview of warehouse stock health and consumption.</p></div></div>
+    <div class="kpi-grid">
+      <div class="kpi"><div><div class="kpi-label">Total Items</div><div class="kpi-value">${items.length}</div></div><div class="kpi-icon" style="color:var(--chart-1)">📦</div></div>
+      <div class="kpi"><div><div class="kpi-label">Inventory Value</div><div class="kpi-value">${fmtSAR(value)}</div></div><div class="kpi-icon" style="color:var(--chart-3)">💰</div></div>
+      <div class="kpi"><div><div class="kpi-label">Monthly Consumption</div><div class="kpi-value">${fmtSAR(monthly)}</div></div><div class="kpi-icon" style="color:var(--info)">📉</div></div>
+      <div class="kpi"><div><div class="kpi-label">Critical Items</div><div class="kpi-value">${critical}</div><div class="kpi-hint">Out / critically low</div></div><div class="kpi-icon" style="color:var(--danger)">⚠️</div></div>
+      <div class="kpi"><div><div class="kpi-label">In Stock</div><div class="kpi-value">${inStock}</div></div><div class="kpi-icon" style="color:var(--success)">✅</div></div>
+      <div class="kpi"><div><div class="kpi-label">Low Stock</div><div class="kpi-value">${low}</div></div><div class="kpi-icon" style="color:var(--orange)">⚠️</div></div>
+      <div class="kpi"><div><div class="kpi-label">Pending Requests</div><div class="kpi-value">${openPR}</div></div><div class="kpi-icon" style="color:var(--chart-2)">🛒</div></div>
+      <div class="kpi"><div><div class="kpi-label">Stock Accuracy</div><div class="kpi-value">98.4%</div><div class="kpi-hint">Last count</div></div><div class="kpi-icon" style="color:var(--success)">🎯</div></div>
+    </div>
+    <div style="display:grid;gap:16px;margin-top:16px;grid-template-columns:1fr">
+      <div class="card"><h3 style="margin-bottom:12px;font-size:15px;font-weight:600">Monthly Consumption (units)</h3><canvas id="barChart" height="260"></canvas></div>
+    </div>
+    <div style="display:grid;gap:16px;margin-top:16px;grid-template-columns:1fr">
+      <div class="card"><h3 style="margin-bottom:12px;font-size:15px;font-weight:600">Inventory by Category</h3><canvas id="pieChart" height="220"></canvas>
+        <div style="margin-top:12px">
+          ${catData.slice(0,5).map((c,i)=>`<div style="display:flex;align-items:center;gap:8px;font-size:12px;margin-bottom:4px"><span style="width:10px;height:10px;border-radius:999px;background:${colors[i%colors.length]}"></span><span style="flex:1;color:var(--muted-foreground)">${c[0]}</span><span style="font-weight:600">${c[1]}</span></div>`).join('')}
+        </div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <h3 style="margin-bottom:12px;font-size:15px;font-weight:600">🔥 Top Consumed Materials</h3>
+      <div style="display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))">
+        ${top.map(i=>`<div class="top-item" onclick="openDetail(${i.id})"><div style="width:36px;height:36px;border-radius:10px;background:var(--secondary);display:flex;align-items:center;justify-content:center;font-size:16px">📦</div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${i.name}</div><div style="font-size:11px;color:var(--muted-foreground)">${i.monthlyAvg} ${i.unit}/mo · stock ${i.stock}</div></div><span class="badge badge-${stockStatus(i)}">${i.stock<=0?'Out of Stock':i.stock<=Math.max(1,Math.ceil(i.minStock*.5))?'Critical':i.stock<=i.minStock?'Low':'Normal'}</span></div>`).join('')}
+      </div>
+    </div>
+  `;
+
+  requestAnimationFrame(()=>{
+    drawBarChart('barChart',monthlyData);
+    drawPieChart('pieChart',catData.slice(0,6));
+  });
+}
+
+function drawBarChart(id,data){
+  const c=document.getElementById(id); if(!c) return;
+  const ctx=c.getContext('2d');
+  const rect=c.parentElement.getBoundingClientRect();
+  c.width=rect.width; c.height=260;
+  const w=c.width, h=c.height, pad=40;
+  const max=Math.max(1,...data.map(d=>d.qty));
+  const barW=(w-pad*2)/data.length*.6;
+  const gap=(w-pad*2)/data.length;
+  ctx.clearRect(0,0,w,h);
+  ctx.fillStyle=getComputedStyle(document.body).getPropertyValue('--muted-foreground').trim();
+  ctx.font='11px sans-serif';
+  ctx.textAlign='center';
+  data.forEach((d,i)=>{
+    const x=pad+i*gap+(gap-barW)/2;
+    const bh=(d.qty/max)*(h-pad*2);
+    const y=h-pad-bh;
+    ctx.fillStyle='var(--chart-1)';
+    ctx.fillRect(x,y,barW,bh);
+    ctx.fillStyle=getComputedStyle(document.body).getPropertyValue('--muted-foreground').trim();
+    ctx.fillText(d.month,x+barW/2,h-8);
+  });
+}
+function drawPieChart(id,data){
+  const c=document.getElementById(id); if(!c) return;
+  const ctx=c.getContext('2d');
+  const rect=c.parentElement.getBoundingClientRect();
+  c.width=rect.width; c.height=220;
+  const w=c.width, h=c.height, r=Math.min(w,h)*.35;
+  const cx=w/2, cy=h/2;
+  const colors=['#1e293b','#3b82f6','#22c55e','#f59e0b','#f97316','#6366f1'];
+  const total=data.reduce((s,d)=>s+d[1],0)||1;
+  let a=-Math.PI/2;
+  data.forEach((d,i)=>{
+    const slice=(d[1]/total)*Math.PI*2;
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,r,a,a+slice); ctx.closePath();
+    ctx.fillStyle=colors[i%colors.length]; ctx.fill();
+    a+=slice;
+  });
+}
+
+// ===== Inventory =====
+let invQ='', invCat='all', invStock='all';
+function renderInventory(){
+  const filtered = state.items.filter(i=>{
+    if(invQ && !(i.name+' '+i.code).toLowerCase().includes(invQ.toLowerCase())) return false;
+    if(invCat!=='all' && i.category!==invCat) return false;
+    const s=stockStatus(i);
+    if(invStock==='low' && s!=='low') return false;
+    if(invStock==='critical' && !(s==='critical'||s==='out')) return false;
+    if(invStock==='ok' && s!=='normal') return false;
+    return true;
+  });
+
+  const cats = [...new Set(state.items.map(i=>i.category))];
+
+  $('inventory').innerHTML = `
+    <div class="page-header"><div><h2>Inventory</h2><p>${filtered.length} of ${state.items.length} materials</p></div><div class="no-print" style="display:flex;gap:8px"><button class="btn" onclick="window.print()">🖨️ Print</button><button class="btn btn-primary" onclick="showAdd()">➕ Add Material</button></div></div>
+    <div class="card no-print" style="margin-bottom:16px;padding:12px">
+      <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+        <input type="text" placeholder="Search material or code..." style="flex:1;min-width:200px" value="${invQ}" oninput="invQ=this.value;renderInventory();">
+        <select style="width:180px" onchange="invCat=this.value;renderInventory();">${[['all','All Categories'],...cats.map(c=>[c,c])].map(o=>`<option value="${o[0]}" ${o[0]===invCat?'selected':''}>${o[1]}</option>`).join('')}</select>
+        <select style="width:150px" onchange="invStock=this.value;renderInventory();">${[['all','All Stock'],['ok','Normal'],['low','Low'],['critical','Critical / Out']].map(o=>`<option value="${o[0]}" ${o[0]===invStock?'selected':''}>${o[1]}</option>`).join('')}</select>
+      </div>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Code</th><th>Material</th><th>Location</th><th style="text-align:center">Stock</th><th style="text-align:center">Min ✏️</th><th>Status</th><th>Forecast</th></tr></thead>
+          <tbody>${filtered.map(i=>{
+            const f=forecast(i); const loc=`${i.location.store} · ${i.location.rack} · ${i.location.shelf} · ${i.location.bin}`;
+            const s=stockStatus(i);
+            const lbl = s==='out'?'Out of Stock':s==='critical'?'Critical':s==='low'?'Low':'Normal';
+            const fcl = f.fc==='safe'?'var(--success)':f.fc==='reorder'?'var(--warning)':f.fc==='immediate'?'var(--danger)':'var(--muted-foreground)';
+            const flbl = f.fc==='safe'?'Safe':f.fc==='reorder'?'Reorder Soon':f.fc==='immediate'?'Immediate Purchase':'No usage data';
+            return `<tr>
+              <td style="font-family:monospace;font-size:11px;color:var(--muted-foreground)" onclick="openDetail(${i.id})" style="cursor:pointer">${i.code}</td>
+              <td onclick="openDetail(${i.id})" style="cursor:pointer"><div style="display:flex;align-items:center;gap:10px"><div style="width:36px;height:36px;border-radius:10px;background:var(--secondary);display:flex;align-items:center;justify-content:center;font-size:16px">📦</div><div style="min-width:0"><div style="font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${i.name}</div><span class="cat-chip" style="background:color-mix(in srgb,var(--chart-3) 15%,transparent);color:var(--chart-3)">${i.category}</span></div></div></td>
+              <td style="font-size:11px;color:var(--muted-foreground)" onclick="openDetail(${i.id})">${loc}</td>
+              <td style="text-align:center;font-weight:700" onclick="openDetail(${i.id})">${i.stock}</td>
+              <td style="text-align:center" onclick="event.stopPropagation()">
+                <div style="display:flex;align-items:center;justify-content:center;gap:4px">
+                  <input type="number" value="${i.minStock}" min="0"
+                    style="width:54px;text-align:center;padding:3px 4px;font-size:13px;font-weight:600;border-radius:6px;border:1px solid var(--border);background:var(--background);color:var(--foreground)"
+                    onkeydown="if(event.key==='Enter'){invSaveMin(${i.id},this)}"
+                    onblur="invSaveMin(${i.id},this)"
+                    title="Type new min and press Enter">
+                </div>
+              </td>
+              <td onclick="openDetail(${i.id})"><span class="badge badge-${s}">${lbl}</span></td>
+              <td style="font-size:12px;font-weight:600;color:${fcl}" onclick="openDetail(${i.id})">${f.m!==null?f.m.toFixed(1)+' mo':'—'}<span style="display:block;font-size:10px;font-weight:400;color:var(--muted-foreground)">${flbl}</span></td>
+            </tr>`;
+          }).join('')}${filtered.length===0?`<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--muted-foreground)">No materials found.</td></tr>`:''}</tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+function invSaveMin(id, input){
+  const val = parseInt(input.value);
+  if(isNaN(val)||val<0){ input.value=state.items.find(i=>i.id===id)?.minStock||0; return; }
+  const item = state.items.find(i=>i.id===id); if(!item||item.minStock===val) return;
+  item.minStock = val;
+  save(); renderNav();
+  input.style.borderColor='var(--success)';
+  input.style.background='color-mix(in srgb,var(--success) 15%,transparent)';
+  setTimeout(()=>{ input.style.borderColor=''; input.style.background=''; },1200);
+  if(item.stock<=val) toast(`⚠️ ${item.name}: stock (${item.stock}) ≤ new min (${val})`,'error');
+}
+
+// ===== Alerts =====
+function renderAlerts(){
+  const alerts = state.items.filter(i=>stockStatus(i)!=='normal').sort((a,b)=>a.stock-b.stock);
+  $('alerts').innerHTML = `
+    <div class="page-header"><div><h2>Stock Alerts</h2><p>${alerts.length} materials need attention</p></div></div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      ${alerts.length===0?`<div class="card"><p style="font-size:13px;color:var(--muted-foreground)">All stock levels are healthy. 🎉</p></div>`:''}
+      ${alerts.map(i=>`
+        <div class="card" style="display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:12px">
+          <div style="width:36px;height:36px;border-radius:10px;background:var(--secondary);display:flex;align-items:center;justify-content:center;font-size:16px">📦</div>
+          <div style="flex:1;min-width:0" onclick="openDetail(${i.id})" style="cursor:pointer">
+            <div style="font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${i.name}</div>
+            <div style="font-size:11px;color:var(--muted-foreground)">${i.code} · Stock ${i.stock} / Min ${i.minStock} ${i.unit}</div>
+          </div>
+          <span class="badge badge-${stockStatus(i)}">${i.stock<=0?'Out of Stock':i.stock<=Math.max(1,Math.ceil(i.minStock*.5))?'Critical':'Low'}</span>
+          <button class="btn btn-primary" style="font-size:12px;padding:6px 12px" onclick="createPRFromAlert(${i.id})">Create PR</button>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+function createPRFromAlert(id){
+  const item=state.items.find(i=>i.id===id); if(!item) return;
+  const qty=Math.max(item.minStock*2-item.stock,item.minStock);
+  const prId='PR-'+new Date().getFullYear()+'-'+String(state.purchaseRequests.length+1).padStart(3,'0');
+  state.purchaseRequests.unshift({id:prId,itemId:item.id,itemName:item.name,qty,unit:item.unit,status:'Open',requestedBy:'Store Keeper',note:'From alerts',ts:Date.now()});
+  save(); renderNav(); toast('PR created for '+qty+' '+item.unit+' of '+item.name); if(currentPage==='alerts') renderAlerts();
+}
+
+// ===== Receiving =====
+function renderReceiving(){
+  $('receiving').innerHTML = `
+    <div class="page-header"><div><h2>Receiving</h2><p>Record incoming stock deliveries.</p></div></div>
+    <div style="display:grid;gap:16px;grid-template-columns:1fr">
+      <div class="card">
+        <h3 style="margin-bottom:12px;font-size:15px;font-weight:600">📥 Receive Stock</h3>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <label style="font-size:12px;font-weight:500">Material</label>
+          <select id="rcvItem" style="width:100%"><option value="">Select material...</option>${state.items.map(i=>`<option value="${i.id}">${i.code} · ${i.name}</option>`).join('')}</select>
+          <label style="font-size:12px;font-weight:500">Quantity Received</label>
+          <input type="number" id="rcvQty" value="1" min="1">
+          <label style="font-size:12px;font-weight:500">Supplier / Source</label>
+          <input type="text" id="rcvSupp" placeholder="Supplier name...">
+          <label style="font-size:12px;font-weight:500">Notes</label>
+          <textarea id="rcvNote" rows="2" placeholder="Optional..."></textarea>
+          <button class="btn btn-primary" style="margin-top:4px" onclick="doReceive()">Receive Stock</button>
+        </div>
+      </div>
+      <div class="card">
+        <h3 style="margin-bottom:12px;font-size:15px;font-weight:600">Recent Receipts</h3>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          ${state.transactions.filter(t=>t.type==='in').slice(0,8).map(t=>`
+            <div class="tx-card tx-in"><div style="font-size:13px;font-weight:600">+${t.qty} ${t.unit} · ${t.itemName}</div><div style="font-size:11px;color:var(--muted-foreground)">${t.note} · ${new Date(t.ts).toLocaleString()}</div></div>
+          `).join('') || '<p style="font-size:13px;color:var(--muted-foreground)">No receipts yet.</p>'}
+        </div>
+      </div>
+    </div>
+  `;
+}
+function doReceive(){
+  const id=Number($('rcvItem').value); const qty=Number($('rcvQty').value); const supp=$('rcvSupp').value||'—'; const note=$('rcvNote').value||'';
+  if(!id){ toast('Select a material','error'); return; }
+  if(!qty||qty<=0){ toast('Enter a valid quantity','error'); return; }
+  const item=state.items.find(i=>i.id===id); if(!item) return;
+  item.stock+=qty; item.supplier=supp; item.lastReceived=now();
+  state.transactions.unshift({id:uid(),type:'in',itemId:id,itemName:item.name,qty,unit:item.unit,user:'Store Keeper',note:note?`From ${supp} — ${note}`:`From ${supp}`,ts:Date.now()});
+  save(); toast(`Received ${qty} units`); renderNav(); renderReceiving();
+}
+
+// ===== Issue =====
+function renderIssue(){
+  $('issue').innerHTML = `
+    <div class="page-header"><div><h2>Issue Material</h2><p>Dispense stock to technicians and work orders.</p></div></div>
+    <div style="display:grid;gap:16px;grid-template-columns:1fr">
+      <div class="card">
+        <h3 style="margin-bottom:12px;font-size:15px;font-weight:600">📤 Issue to Technician</h3>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <label style="font-size:12px;font-weight:500">Material</label>
+          <select id="issItem" style="width:100%"><option value="">Select material...</option>${state.items.map(i=>`<option value="${i.id}">${i.code} · ${i.name} (${i.stock})</option>`).join('')}</select>
+          <label style="font-size:12px;font-weight:500">Quantity</label>
+          <input type="number" id="issQty" value="1" min="1">
+          <label style="font-size:12px;font-weight:500">Technician Name</label>
+          <input type="text" id="issTech" placeholder="Technician name...">
+          <label style="font-size:12px;font-weight:500">Work Order / Equipment</label>
+          <input type="text" id="issWO" placeholder="e.g. WO-2026-001 / AHU-105">
+          <label style="font-size:12px;font-weight:500">Notes</label>
+          <textarea id="issNote" rows="2" placeholder="Optional..."></textarea>
+          <button class="btn btn-primary" style="margin-top:4px" onclick="doIssue()">Issue Material</button>
+        </div>
+      </div>
+      <div class="card">
+        <h3 style="margin-bottom:12px;font-size:15px;font-weight:600">Recent Issues</h3>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          ${state.transactions.filter(t=>t.type==='out').slice(0,8).map(t=>`
+            <div class="tx-card tx-out"><div style="font-size:13px;font-weight:600">-${t.qty} ${t.unit} · ${t.itemName}</div><div style="font-size:11px;color:var(--muted-foreground)">${t.user}${t.workOrder?' · '+t.workOrder:''} · ${new Date(t.ts).toLocaleString()}</div></div>
+          `).join('') || '<p style="font-size:13px;color:var(--muted-foreground)">No issues yet.</p>'}
+        </div>
+      </div>
+    </div>
+  `;
+}
+function doIssue(){
+  const id=Number($('issItem').value); const qty=Number($('issQty').value); const tech=$('issTech').value.trim(); const wo=$('issWO').value.trim(); const note=$('issNote').value.trim();
+  if(!id){ toast('Select a material','error'); return; }
+  if(!qty||qty<=0){ toast('Enter a valid quantity','error'); return; }
+  if(!tech){ toast('Technician name required','error'); return; }
+  const item=state.items.find(i=>i.id===id); if(!item||item.stock<qty){ toast('Not enough stock available','error'); return; }
+  item.stock-=qty; item.lastIssued=now();
+  state.transactions.unshift({id:uid(),type:'out',itemId:id,itemName:item.name,qty,unit:item.unit,user:tech,workOrder:wo,note,ts:Date.now()});
+  save(); toast(`Issued ${qty} units to ${tech}`); renderNav(); renderIssue();
+}
+
+// ===== Transactions =====
+let txQ='', txType='all';
+function renderTransactions(){
+  const meta = {in:{label:'Receipt',sign:'+'},out:{label:'Issue',sign:'-'},count:{label:'Count',sign:''},adjust:{label:'Adjust',sign:''}};
+  const filtered = state.transactions.filter(t=>{
+    if(txType!=='all' && t.type!==txType) return false;
+    if(txQ && !(t.itemName+' '+t.user+' '+(t.workOrder||'')).toLowerCase().includes(txQ.toLowerCase())) return false;
+    return true;
+  });
+  $('transactions').innerHTML = `
+    <div class="page-header"><div><h2>Transactions</h2><p>${filtered.length} movements</p></div></div>
+    <div class="card no-print" style="margin-bottom:16px;padding:12px;display:flex;flex-wrap:wrap;gap:8px">
+      <input type="text" placeholder="Search..." style="flex:1;min-width:200px" value="${txQ}" oninput="txQ=this.value;renderTransactions();">
+      <select style="width:150px" onchange="txType=this.value;renderTransactions();"><option value="all">All Types</option><option value="in">Receipts</option><option value="out">Issues</option><option value="count">Counts</option></select>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      ${filtered.length===0?'<div class="card"><p style="font-size:13px;color:var(--muted-foreground)">No transactions recorded yet.</p></div>':''}
+      ${filtered.map(t=>{
+        const m=meta[t.type];
+        return `<div class="tx-card tx-${t.type}"><div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px;font-weight:600">${t.itemName}</span><span style="font-size:13px;font-weight:700">${m.sign}${Math.abs(t.qty)} ${t.unit}</span></div><div style="font-size:11px;color:var(--muted-foreground)">${m.label} · ${t.user}${t.workOrder?' · '+t.workOrder:''}${t.note?' · '+t.note:''} · ${new Date(t.ts).toLocaleString()}</div></div>`;
+      }).join('')}
+    </div>
+  `;
+}
+
+// ===== Purchase Requests =====
+const prColors = {Open:'badge-low',Approved:'badge-normal',Ordered:'badge-normal',Received:'badge-normal',Cancelled:'badge-out'};
+function renderPRs(){
+  $('purchase-requests').innerHTML = `
+    <div class="page-header"><div><h2>Purchase Requests</h2><p>${state.purchaseRequests.length} requests</p></div></div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>PR No.</th><th>Material</th><th style="text-align:center">Qty</th><th>Requested By</th><th>Status</th></tr></thead>
+          <tbody>${state.purchaseRequests.map(p=>`
+            <tr><td style="font-family:monospace;font-size:11px">${p.id}</td><td style="font-weight:500">${p.itemName}</td><td style="text-align:center">${p.qty} ${p.unit}</td><td style="color:var(--muted-foreground)">${p.requestedBy}</td><td><span class="badge ${prColors[p.status]}">${p.status}</span></td></tr>
+          `).join('')}${state.purchaseRequests.length===0?`<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--muted-foreground)">No purchase requests yet.</td></tr>`:''}</tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+// ===== Reports =====
+function renderReports(){
+  const byCatValue={}; state.items.forEach(i=>{ byCatValue[i.category]=(byCatValue[i.category]||0)+i.stock*i.unitPrice; });
+  const catData=Object.entries(byCatValue).map(([n,v])=>({name:n,value:Math.round(v)})).sort((a,b)=>b.value-a.value);
+  const top=[...state.items].sort((a,b)=>b.monthlyAvg-a.monthlyAvg).slice(0,10);
+  const totalVal=state.items.reduce((s,i)=>s+i.stock*i.unitPrice,0);
+  $('reports').innerHTML = `
+    <div class="page-header"><div><h2>Reports</h2><p>Inventory analytics and consumption insights.</p></div></div>
+    <div class="kpi-grid" style="margin-bottom:16px">
+      <div class="card" style="padding:16px"><div style="font-size:12px;color:var(--muted-foreground)">Total Value</div><div style="font-size:20px;font-weight:700;margin-top:4px">${fmtSAR(totalVal)}</div></div>
+      <div class="card" style="padding:16px"><div style="font-size:12px;color:var(--muted-foreground)">SKUs</div><div style="font-size:20px;font-weight:700;margin-top:4px">${state.items.length}</div></div>
+      <div class="card" style="padding:16px"><div style="font-size:12px;color:var(--muted-foreground)">Categories</div><div style="font-size:20px;font-weight:700;margin-top:4px">${catData.length}</div></div>
+      <div class="card" style="padding:16px"><div style="font-size:12px;color:var(--muted-foreground)">Active SKUs</div><div style="font-size:20px;font-weight:700;margin-top:4px">${state.items.filter(i=>i.monthlyAvg>0).length}</div></div>
+    </div>
+    <div class="card" style="margin-bottom:16px"><h3 style="margin-bottom:12px;font-size:15px;font-weight:600">Inventory Value by Category (SAR)</h3><canvas id="reportBar" height="300"></canvas></div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <h3 style="padding:16px 16px 0;font-size:15px;font-weight:600">Top Consumed Materials</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Material</th><th style="text-align:center">Monthly Avg</th><th style="text-align:center">Stock</th><th style="text-align:right">Annual Value</th></tr></thead>
+          <tbody>${top.map(i=>`<tr><td style="font-weight:500">${i.name}</td><td style="text-align:center">${i.monthlyAvg} ${i.unit}</td><td style="text-align:center">${i.stock}</td><td style="text-align:right">${fmtSAR(i.monthlyAvg*12*i.unitPrice)}</td></tr>`).join('')}</tbody>
+        </table>
+      </div>
+    </div>
+  `;
+  requestAnimationFrame(()=>{
+    const c=document.getElementById('reportBar'); if(!c) return;
+    const ctx=c.getContext('2d'); const rect=c.parentElement.getBoundingClientRect();
+    c.width=rect.width; c.height=300; const w=c.width, h=c.height, pad=40;
+    const max=Math.max(1,...catData.map(d=>d.value));
+    const barH=(h-pad*2)/catData.length*.5;
+    const gap=(h-pad*2)/catData.length;
+    ctx.clearRect(0,0,w,h);
+    ctx.fillStyle=getComputedStyle(document.body).getPropertyValue('--muted-foreground').trim();
+    ctx.font='11px sans-serif'; ctx.textAlign='right'; ctx.textBaseline='middle';
+    const colors=['#1e293b','#3b82f6','#22c55e','#f59e0b','#f97316','#6366f1'];
+    catData.forEach((d,i)=>{
+      const y=pad+i*gap+(gap-barH)/2;
+      const bw=(d.value/max)*(w-pad*2-100);
+      ctx.fillStyle=colors[i%colors.length];
+      ctx.fillRect(pad+100,y,bw,barH);
+      ctx.fillStyle=getComputedStyle(document.body).getPropertyValue('--foreground').trim();
+      ctx.textAlign='right';
+      ctx.fillText(d.name,pad+95,y+barH/2);
+      ctx.textAlign='left';
+      ctx.fillText(fmtSAR(d.value),pad+100+bw+6,y+barH/2);
+    });
+  });
+}
+
+// ===== Stock Count =====
+let scQ='', scCounts={};
+function renderStockCount(){
+  const filtered=state.items.filter(i=>(i.name+' '+i.code).toLowerCase().includes(scQ.toLowerCase())).slice(0,60);
+  $('stock-count').innerHTML = `
+    <div class="page-header"><div><h2>Annual Stock Count</h2><p>Reconcile physical counts against system stock.</p></div></div>
+    <div class="card no-print" style="margin-bottom:16px;padding:12px"><input type="text" placeholder="Search material..." value="${scQ}" oninput="scQ=this.value;renderStockCount();"></div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Material</th><th style="text-align:center">System</th><th style="text-align:center">Physical</th><th style="text-align:center">Variance</th><th></th></tr></thead>
+          <tbody>${filtered.map(i=>{
+            const v=scCounts[i.id]; const variance=v!==undefined&&v!==''?Number(v)-i.stock:null;
+            const vcl=variance===null?'var(--muted-foreground)':variance===0?'var(--success)':variance>0?'var(--info)':'var(--danger)';
+            return `<tr><td><div style="font-weight:500">${i.name}</div><div style="font-family:monospace;font-size:11px;color:var(--muted-foreground)">${i.code}</div></td><td style="text-align:center;font-weight:700">${i.stock}</td>
+            <td style="text-align:center"><input type="number" class="no-print" style="width:80px;text-align:center" value="${v!==undefined?v:''}" onchange="scCounts[${i.id}]=this.value;renderStockCount();" oninput="scCounts[${i.id}]=this.value;renderStockCount();"></td>
+            <td style="text-align:center;font-weight:600;color:${vcl}">${variance===null?'—':variance>0?'+'+variance:variance}</td>
+            <td style="text-align:right"><button class="btn no-print" style="font-size:12px;padding:6px 12px" onclick="saveCount(${i.id})">Save</button></td></tr>`;
+          }).join('')}</tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+function saveCount(id){
+  const v=scCounts[id]; if(v===undefined||v===''){ toast('Enter physical count','error'); return; }
+  const item=state.items.find(i=>i.id===id); if(!item) return;
+  const actual=Number(v); const variance=actual-item.stock;
+  item.stock=actual; item.lastCount=now();
+  state.transactions.unshift({id:uid(),type:'count',itemId:id,itemName:item.name,qty:variance,unit:item.unit,user:'Store Keeper',note:`Physical: ${actual}, System: ${item.stock}, Variance: ${variance}`,ts:Date.now()});
+  delete scCounts[id]; save(); toast('Count recorded'); renderNav(); renderStockCount();
+}
+
+// ===== Settings =====
+function renderSettings(){
+  $('settings').innerHTML = `
+    <div class="page-header"><div><h2>Settings</h2><p>Appearance and data management.</p></div></div>
+    <div style="display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))">
+      <div class="card"><h3 style="font-size:15px;font-weight:600;margin-bottom:8px">Appearance</h3><p style="font-size:13px;color:var(--muted-foreground);margin-bottom:12px">Switch between light and dark mode.</p><button class="btn" onclick="toggleDark()">🌙 Toggle Dark Mode</button></div>
+      <div class="card"><h3 style="font-size:15px;font-weight:600;margin-bottom:8px">Data</h3><p style="font-size:13px;color:var(--muted-foreground);margin-bottom:12px">All data is stored locally in your browser. Reset to restore the original seed inventory.</p><button class="btn btn-danger" onclick="resetData()">🔄 Reset Data</button></div>
+    </div>
+  `;
+}
+function resetData(){ if(!confirm('Reset all data to defaults?')) return; state={items:SEED_DATA.items.slice(),transactions:[],purchaseRequests:[]}; save(); toast('Warehouse data reset to defaults'); go('dashboard'); }
+
+function saveDetailMin(id){
+  const input = document.getElementById('detailMin_'+id);
+  if(!input) return;
+  const val = parseInt(input.value);
+  if(isNaN(val)||val<0){ toast('Enter a valid min quantity (≥ 0)','error'); return; }
+  const item = state.items.find(i=>i.id===id); if(!item) return;
+  item.minStock = val;
+  save(); renderNav();
+  input.style.borderColor='var(--success)';
+  setTimeout(()=>{input.style.borderColor='';},1500);
+  if(item.stock <= val) toast(`⚠️ ALARM: ${item.name} stock (${item.stock}) is at or below new min (${val})!`,'error');
+  else toast(`Min qty saved: ${item.name} → ${val} ${item.unit}`);
+  // Refresh the modal to show updated alarm state
+  document.querySelector('.modal-overlay')?.remove();
+  openDetail(id);
+}
+
+// ===== Detail Modal =====
+function openDetail(id){
+  const item=state.items.find(i=>i.id===id); if(!item) return;
+  const f=forecast(item);
+  const loc=`${item.location.store} · ${item.location.rack} · ${item.location.shelf} · ${item.location.bin}`;
+  const fcColor = f.fc==='safe'?'var(--success)':f.fc==='reorder'?'var(--warning)':f.fc==='immediate'?'var(--danger)':'var(--muted-foreground)';
+  const fcLabel = f.fc==='safe'?'Safe':f.fc==='reorder'?'Reorder Soon':f.fc==='immediate'?'Immediate Purchase':'No usage data';
+  const overlay=document.createElement('div'); overlay.className='modal-overlay show';
+  overlay.innerHTML = `
+    <div class="modal" onclick="event.stopPropagation()">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <h3 style="font-size:16px;font-weight:700">Material Details</h3>
+        <button onclick="this.closest('.modal-overlay').remove()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted-foreground)">✕</button>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:16px">
+        <div style="width:64px;height:64px;border-radius:12px;background:var(--secondary);display:flex;align-items:center;justify-content:center;font-size:28px">📦</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-family:monospace;font-size:11px;color:var(--muted-foreground)">${item.code}</div>
+          <div style="font-size:16px;font-weight:700">${item.name}</div>
+          <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px">
+            <span class="cat-chip" style="background:color-mix(in srgb,var(--chart-3) 15%,transparent);color:var(--chart-3)">${item.category}</span>
+            <span class="badge badge-${stockStatus(item)}">${item.stock<=0?'Out of Stock':item.stock<=Math.max(1,Math.ceil(item.minStock*.5))?'Critical':item.stock<=item.minStock?'Low':'Normal'}</span>
+          </div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+        <div class="card" style="padding:12px;text-align:center;border:2px solid ${item.stock<=0?'var(--danger)':item.stock<=item.minStock?'var(--warning)':'var(--border)'}">
+          <div style="font-size:22px;font-weight:700;color:${item.stock<=0?'var(--danger)':item.stock<=item.minStock?'var(--warning)':'inherit'}">${item.stock}</div>
+          <div style="font-size:11px;color:var(--muted-foreground)">In Stock (${item.unit})</div>
+          ${item.stock<=item.minStock?`<div style="font-size:10px;font-weight:700;color:${item.stock<=0?'var(--danger)':'var(--warning)'};margin-top:3px">${item.stock<=0?'❌ OUT OF STOCK':'⚠️ BELOW MIN'}</div>`:''}
+        </div>
+        <div class="card" style="padding:12px;text-align:center;border:2px solid var(--ring)">
+          <div style="font-size:11px;color:var(--muted-foreground);margin-bottom:4px">Min Level (${item.unit})</div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:6px">
+            <input type="number" id="detailMin_${item.id}" value="${item.minStock}" min="0"
+              style="width:70px;text-align:center;font-size:20px;font-weight:700;padding:2px 4px;border-radius:8px;border:1.5px solid var(--border);background:var(--background);color:var(--foreground)">
+          </div>
+          <button onclick="saveDetailMin(${item.id})" style="margin-top:8px;background:var(--ring);color:#fff;border:none;border-radius:8px;padding:4px 14px;font-size:12px;font-weight:600;cursor:pointer">💾 Save Min</button>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:16px">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px">📉 Consumption (12 mo)</div>
+        <canvas id="spark${item.id}" height="40"></canvas>
+        <div style="margin-top:8px;font-size:13px;font-weight:600;color:${fcColor}">${f.m!==null?f.m.toFixed(1)+' months remaining · '+fcLabel:fcLabel}</div>
+      </div>
+      <div style="margin-bottom:16px">
+        <div class="detail-row"><span style="color:var(--muted-foreground)">Supplier</span><span style="font-weight:600">${item.supplier}</span></div>
+        <div class="detail-row"><span style="color:var(--muted-foreground)">Last Purchase Price</span><span style="font-weight:600">${fmtSAR(item.unitPrice)}</span></div>
+        <div class="detail-row"><span style="color:var(--muted-foreground)">Stock Value</span><span style="font-weight:600">${fmtSAR(item.unitPrice*item.stock)}</span></div>
+        <div class="detail-row"><span style="color:var(--muted-foreground)">Location</span><span style="font-weight:600">${loc}</span></div>
+        <div class="detail-row"><span style="color:var(--muted-foreground)">Monthly Avg Usage</span><span style="font-weight:600">${item.monthlyAvg} ${item.unit}</span></div>
+        <div class="detail-row"><span style="color:var(--muted-foreground)">Last Received</span><span style="font-weight:600">${fmtDate(item.lastReceived)}</span></div>
+        <div class="detail-row"><span style="color:var(--muted-foreground)">Last Issued</span><span style="font-weight:600">${fmtDate(item.lastIssued)}</span></div>
+        <div class="detail-row"><span style="color:var(--muted-foreground)">Last Count</span><span style="font-weight:600">${fmtDate(item.lastCount)}</span></div>
+      </div>
+      <button class="btn btn-primary" style="width:100%" onclick="createPRFromDetail(${item.id},this)">🛒 Create Purchase Request</button>
+    </div>
+  `;
+  overlay.onclick = ()=>overlay.remove();
+  document.body.appendChild(overlay);
+  requestAnimationFrame(()=>{
+    const c=document.getElementById('spark'+item.id); if(!c) return;
+    const ctx=c.getContext('2d'); c.width=c.parentElement.clientWidth; c.height=40;
+    const w=c.width, h=c.height; const data=item.history;
+    const max=Math.max(1,...data); const min=Math.min(...data); const range=max-min||1;
+    ctx.clearRect(0,0,w,h);
+    ctx.beginPath(); ctx.moveTo(0,h-((data[0]-min)/range)*(h-4)-2);
+    const step=data.length>1?w/(data.length-1):w;
+    data.forEach((v,i)=>{ const x=i*step; const y=h-((v-min)/range)*(h-4)-2; ctx.lineTo(x,y); });
+    ctx.strokeStyle=getComputedStyle(document.body).getPropertyValue('--chart-1').trim()||'#1e293b';
+    ctx.lineWidth=2; ctx.stroke();
+  });
+}
+function createPRFromDetail(id,btn){
+  const item=state.items.find(i=>i.id===id); if(!item) return;
+  const qty=Math.max(item.minStock*2-item.stock,item.minStock);
+  const prId='PR-'+new Date().getFullYear()+'-'+String(state.purchaseRequests.length+1).padStart(3,'0');
+  state.purchaseRequests.unshift({id:prId,itemId:item.id,itemName:item.name,qty,unit:item.unit,status:'Open',requestedBy:'Store Keeper',note:'Auto from material details',ts:Date.now()});
+  save(); renderNav(); toast(`Purchase request created for ${qty} ${item.unit}`); btn.closest('.modal-overlay').remove();
+}
+
+// ===== Add Material =====
+function showAdd(){
+  const cats=[...new Set(state.items.map(i=>i.category))];
+  const overlay=document.createElement('div'); overlay.className='modal-overlay show';
+  overlay.innerHTML=`
+    <div class="modal" onclick="event.stopPropagation()">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><h3 style="font-size:16px;font-weight:700">Add New Material</h3><button onclick="this.closest('.modal-overlay').remove()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted-foreground)">✕</button></div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <label style="font-size:12px;font-weight:500">Material Name</label>
+        <input type="text" id="addName" placeholder="e.g. RUBBER BELT (A-99)">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div><label style="font-size:12px;font-weight:500">Category</label><select id="addCat">${cats.map(c=>`<option>${c}</option>`).join('')}<option>General</option></select></div>
+          <div><label style="font-size:12px;font-weight:500">Unit</label><input type="text" id="addUnit" value="pcs"></div>
+          <div><label style="font-size:12px;font-weight:500">Opening Stock</label><input type="number" id="addStock" value="0"></div>
+          <div><label style="font-size:12px;font-weight:500">Min Stock</label><input type="number" id="addMin" value="5"></div>
+          <div style="grid-column:span 2"><label style="font-size:12px;font-weight:500">Unit Price (SAR)</label><input type="number" id="addPrice" value="40"></div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:4px">
+          <button class="btn" style="flex:1" onclick="this.closest('.modal-overlay').remove()">Cancel</button>
+          <button class="btn btn-primary" style="flex:1" onclick="doAdd()">Add Material</button>
+        </div>
+      </div>
+    </div>
+  `;
+  overlay.onclick=()=>overlay.remove(); document.body.appendChild(overlay);
+}
+function doAdd(){
+  const name=$('addName').value.trim(); if(!name){ toast('Material name is required','error'); return; }
+  const id=Math.max(0,...state.items.map(i=>i.id))+1;
+  state.items.push({id,code:'NEW-'+id,name,category:$('addCat').value,unit:$('addUnit').value||'pcs',stock:Number($('addStock').value)||0,minStock:Number($('addMin').value)||0,monthlyAvg:0,unitPrice:Number($('addPrice').value)||0,supplier:'—',location:{store:'Main Store',rack:'Rack H',shelf:'Shelf 1',bin:'Bin 1'},lastReceived:null,lastIssued:null,lastCount:null,history:Array(12).fill(0)});
+  save(); toast('Material added'); document.querySelector('.modal-overlay')?.remove(); renderNav(); renderInventory();
+}
+
+// ===== Min Quantity Manager =====
+let mqQ = '', mqCat = 'all', mqBulkVal = '';
+function renderMinQty(){
+  const cats = [...new Set(state.items.map(i=>i.category))];
+  const filtered = state.items.filter(i=>{
+    if(mqQ && !(i.name+' '+i.code).toLowerCase().includes(mqQ.toLowerCase())) return false;
+    if(mqCat !== 'all' && i.category !== mqCat) return false;
+    return true;
+  });
+
+  // Alarm items: stock at or below minStock
+  const alarmItems = state.items.filter(i=>i.stock <= i.minStock).sort((a,b)=>a.stock - b.stock);
+
+  $('min-quantity').innerHTML = `
+    <div class="page-header">
+      <div><h2>🔔 Min Quantity Manager</h2><p>Set minimum stock thresholds. Items at or below min trigger an alarm.</p></div>
+    </div>
+
+    <!-- ALARM BANNER -->
+    ${alarmItems.length > 0 ? `
+    <div style="background:color-mix(in srgb,var(--danger) 10%,transparent);border:1.5px solid var(--danger);border-radius:var(--radius);padding:16px;margin-bottom:20px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <span style="font-size:22px;animation:pulse 1s infinite">🚨</span>
+        <div>
+          <div style="font-weight:700;font-size:15px;color:var(--danger)">${alarmItems.length} Item${alarmItems.length>1?'s':''} Reached Minimum Quantity!</div>
+          <div style="font-size:12px;color:var(--muted-foreground)">Immediate action required — stock at or below set minimum</div>
+        </div>
+      </div>
+      <div style="display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))">
+        ${alarmItems.map(i=>`
+          <div style="background:var(--card);border:1px solid var(--danger);border-radius:10px;padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:pointer" onclick="openDetail(${i.id})">
+            <span style="font-size:20px">${i.stock<=0?'❌':'⚠️'}</span>
+            <div style="flex:1;min-width:0">
+              <div style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${i.name}</div>
+              <div style="font-size:11px;color:var(--muted-foreground)">${i.code} &nbsp;|&nbsp; Stock: <b style="color:${i.stock<=0?'var(--danger)':'var(--warning)'}">${i.stock}</b> / Min: <b>${i.minStock}</b> ${i.unit}</div>
+            </div>
+            <button class="btn btn-primary" style="font-size:11px;padding:4px 10px;white-space:nowrap" onclick="event.stopPropagation();mqCreatePR(${i.id})">Create PR</button>
+          </div>
+        `).join('')}
+      </div>
+    </div>` : `
+    <div style="background:color-mix(in srgb,var(--success) 10%,transparent);border:1.5px solid var(--success);border-radius:var(--radius);padding:14px;margin-bottom:20px;display:flex;align-items:center;gap:10px">
+      <span style="font-size:20px">✅</span>
+      <div style="font-weight:600;color:var(--success)">All items are above their minimum quantities. Stock levels are healthy.</div>
+    </div>`}
+
+    <!-- BULK SET -->
+    <div class="card" style="margin-bottom:16px;padding:14px">
+      <div style="font-size:14px;font-weight:600;margin-bottom:10px">⚡ Bulk Set Min Quantity — by Category</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+        <select id="mqBulkCat" style="width:200px">
+          ${cats.map(c=>`<option value="${c}">${c}</option>`).join('')}
+        </select>
+        <input type="number" id="mqBulkQty" placeholder="New min qty" style="width:130px" min="0">
+        <button class="btn btn-primary" onclick="mqBulkSet()">Apply to Category</button>
+        <span style="font-size:12px;color:var(--muted-foreground)">Sets min qty for ALL items in selected category</span>
+      </div>
+    </div>
+
+    <!-- SEARCH & FILTER -->
+    <div class="card no-print" style="margin-bottom:16px;padding:12px">
+      <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+        <input type="text" placeholder="Search material or code..." style="flex:1;min-width:200px" value="${mqQ}" oninput="mqQ=this.value;renderMinQty();">
+        <select style="width:200px" onchange="mqCat=this.value;renderMinQty();">
+          ${[['all','All Categories'],...cats.map(c=>[c,c])].map(o=>`<option value="${o[0]}" ${o[0]===mqCat?'selected':''}>${o[1]}</option>`).join('')}
+        </select>
+        <span style="font-size:12px;color:var(--muted-foreground)">${filtered.length} items</span>
+      </div>
+    </div>
+
+    <!-- TABLE -->
+    <div class="card" style="padding:0;overflow:hidden">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Code</th>
+              <th>Material</th>
+              <th>Category</th>
+              <th style="text-align:center">Current Stock</th>
+              <th style="text-align:center">Min Qty</th>
+              <th style="text-align:center">Alarm Status</th>
+              <th style="text-align:center">Set New Min</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${filtered.map(i=>{
+              const alarm = i.stock <= i.minStock;
+              const critical = i.stock <= 0;
+              const alarmColor = critical ? 'var(--danger)' : alarm ? 'var(--warning)' : 'var(--success)';
+              const alarmIcon = critical ? '❌ Out of Stock' : alarm ? '⚠️ ALARM' : '✅ OK';
+              const rowBg = critical ? 'background:color-mix(in srgb,var(--danger) 6%,transparent)' : alarm ? 'background:color-mix(in srgb,var(--warning) 8%,transparent)' : '';
+              return `<tr style="${rowBg}">
+                <td style="font-family:monospace;font-size:11px;color:var(--muted-foreground)">${i.code}</td>
+                <td style="font-weight:500;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${i.name}</td>
+                <td style="font-size:12px;color:var(--muted-foreground)">${i.category}</td>
+                <td style="text-align:center;font-weight:700;color:${alarmColor}">${i.stock} ${i.unit}</td>
+                <td style="text-align:center;font-weight:600">${i.minStock} ${i.unit}</td>
+                <td style="text-align:center;font-weight:700;font-size:12px;color:${alarmColor}">${alarmIcon}</td>
+                <td style="text-align:center">
+                  <div style="display:flex;align-items:center;justify-content:center;gap:6px">
+                    <input type="number" id="mq_${i.id}" value="${i.minStock}" min="0" style="width:72px;text-align:center;padding:4px 6px;font-size:13px" onkeydown="if(event.key==='Enter')mqSave(${i.id})">
+                    <button class="btn btn-primary" style="padding:5px 10px;font-size:12px" onclick="mqSave(${i.id})">Save</button>
+                  </div>
+                </td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+function mqSave(id){
+  const input = document.getElementById('mq_'+id);
+  if(!input) return;
+  const val = parseInt(input.value);
+  if(isNaN(val) || val < 0){ toast('Enter a valid min quantity (≥ 0)','error'); return; }
+  const item = state.items.find(i=>i.id===id); if(!item) return;
+  const old = item.minStock;
+  item.minStock = val;
+  save(); renderNav();
+  // Flash feedback
+  input.style.borderColor = 'var(--success)';
+  setTimeout(()=>{ input.style.borderColor=''; },1500);
+  const wasAlarm = item.stock <= old;
+  const nowAlarm = item.stock <= val;
+  if(!wasAlarm && nowAlarm) toast(`⚠️ ALARM: ${item.name} is now at or below min (${val})!`, 'error');
+  else toast(`Min qty updated: ${item.name} → ${val} ${item.unit}`);
+  // Re-render to update alarm banner
+  setTimeout(()=>renderMinQty(), 300);
+}
+
+function mqBulkSet(){
+  const cat = document.getElementById('mqBulkCat').value;
+  const val = parseInt(document.getElementById('mqBulkQty').value);
+  if(isNaN(val) || val < 0){ toast('Enter a valid quantity','error'); return; }
+  const affected = state.items.filter(i=>i.category===cat);
+  affected.forEach(i=>i.minStock=val);
+  save(); renderNav(); renderMinQty();
+  toast(`Min qty set to ${val} for ${affected.length} items in "${cat}"`);
+}
+
+function mqCreatePR(id){
+  const item = state.items.find(i=>i.id===id); if(!item) return;
+  const qty = Math.max(item.minStock * 2 - item.stock, item.minStock, 1);
+  const prId = 'PR-'+new Date().getFullYear()+'-'+String(state.purchaseRequests.length+1).padStart(3,'0');
+  state.purchaseRequests.unshift({id:prId,itemId:item.id,itemName:item.name,qty,unit:item.unit,status:'Open',requestedBy:'Store Keeper',note:'Auto from Min Qty alarm',ts:Date.now()});
+  save(); renderNav(); toast(`Purchase request created: ${qty} ${item.unit} of ${item.name}`);
+  if(currentPage==='min-quantity') renderMinQty();
+}
+
+// ===== Init =====
+renderNav();
+go('dashboard');
+window.addEventListener('hashchange',()=>{});
+</script>
+</body>
+</html>
