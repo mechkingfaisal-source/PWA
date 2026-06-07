@@ -716,15 +716,8 @@ function closeInventory(){
   document.getElementById('dashboard').style.display='flex';
 }
 function openSystem(link){
-  _systemOrigin = document.getElementById('inventoryPage').style.display==='flex' ? 'inventory' : 'dashboard';
-  document.getElementById('dashboard').style.display='none';
-  document.getElementById('inventoryPage').style.display='none';
-  document.getElementById('system').style.display='flex';
-  var frame=document.getElementById('frame');
-  frame.src=link;
-  frame.onload=function(){
-    var raw=sessionStorage.getItem('cmms_user')||localStorage.getItem('cmms_user');
-    if(raw){try{frame.contentWindow.postMessage({type:'CMMS_USER',data:raw},'*');}catch(e){}}
+    window.location.href = link;
+},'*');}catch(e){}}
   };
   window.scrollTo(0,0);
 }
