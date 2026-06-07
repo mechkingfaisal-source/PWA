@@ -38,27 +38,26 @@ body{font-family:Arial,sans-serif;background:#f0f4f8;min-height:100vh}
 .add-row-btn{background:var(--blue);color:#fff;border:none;border-radius:8px;padding:7px 16px;cursor:pointer;font-size:13px;font-weight:700;margin-top:4px}
 
 /* Custom searchable dropdown */
-.mat-dd-wrap{position:relative;min-width:200px}
-.mat-dd-trigger{width:100%;border:1.5px solid var(--border);border-radius:6px;padding:6px 28px 6px 8px;font-size:12px;font-family:Arial;outline:none;cursor:pointer;background:#fff;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#333}
-.mat-dd-trigger.placeholder{color:#aaa}
-.mat-dd-trigger:focus,.mat-dd-trigger.open{border-color:var(--blue)}
-.mat-dd-trigger::after{content:'▾';position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:11px;color:#888;pointer-events:none}
-.mat-dd-panel{display:none;position:fixed;background:#fff;border:1.5px solid var(--blue);border-radius:10px;box-shadow:0 8px 24px #0003;z-index:99999;width:320px;flex-direction:column;overflow:hidden}
-.mat-dd-panel.open{display:flex}
-.mat-dd-search-wrap{padding:8px 10px;border-bottom:1px solid #e8eef5;flex-shrink:0}
-.mat-dd-search-inp{width:100%;border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;font-size:13px;font-family:Arial;outline:none}
-.mat-dd-search-inp:focus{border-color:var(--blue)}
-.mat-dd-list{overflow-y:auto;max-height:220px;padding:4px 0}
-.mat-dd-opt{padding:8px 12px;cursor:pointer;font-size:12px;display:flex;justify-content:space-between;align-items:center;gap:8px;border-bottom:1px solid #f0f4f8}
-.mat-dd-opt:hover,.mat-dd-opt.focused{background:#e8f0ff}
-.mat-dd-opt:last-child{border-bottom:none}
-.opt-name{flex:1;font-weight:600;color:#222;word-break:break-word;line-height:1.3}
-.opt-cat{font-size:10px;color:#888;margin-top:1px}
-.opt-stock{font-size:11px;font-weight:700;padding:2px 7px;border-radius:8px;white-space:nowrap;flex-shrink:0}
-.opt-stock.ok{background:#e8f5e9;color:#2e7d32}
-.opt-stock.low{background:#fff3e0;color:#e65100}
-.opt-stock.zero{background:#ffebee;color:#c62828}
-.mat-dd-empty{padding:20px;text-align:center;color:#aaa;font-size:12px}
+.mat-dd-wrap{position:relative}
+.mat-dd-trigger{width:100%;border:1.5px solid var(--border);border-radius:6px;padding:6px 24px 6px 8px;font-size:12px;font-family:Arial;outline:none;cursor:pointer;background:#fff;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#888;position:relative;display:block}
+.mat-dd-trigger.selected{color:#222;font-weight:700}
+.mat-dd-trigger:focus{border-color:var(--blue)}
+.dd-global-panel{display:none;position:fixed;background:#fff;border:2px solid var(--blue);border-radius:10px;box-shadow:0 8px 28px #0003;z-index:999999;flex-direction:column;overflow:hidden;min-width:280px}
+.dd-global-panel.open{display:flex}
+.dd-search-wrap{padding:8px 10px;border-bottom:1px solid #e8eef5;flex-shrink:0}
+.dd-search-inp{width:100%;border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;font-size:13px;font-family:Arial;outline:none}
+.dd-search-inp:focus{border-color:var(--blue)}
+.dd-list{overflow-y:auto;max-height:240px;padding:4px 0}
+.dd-opt{padding:9px 12px;cursor:pointer;font-size:12px;display:flex;justify-content:space-between;align-items:center;gap:8px;border-bottom:1px solid #f0f4f8}
+.dd-opt:hover{background:#e8f0ff}
+.dd-opt:last-child{border-bottom:none}
+.dd-opt-name{flex:1;font-weight:600;color:#1a1a1a;line-height:1.3}
+.dd-opt-cat{font-size:10px;color:#888;margin-top:1px}
+.dd-opt-stock{font-size:11px;font-weight:700;padding:2px 8px;border-radius:8px;white-space:nowrap;flex-shrink:0}
+.dd-stock-ok{background:#e8f5e9;color:#2e7d32}
+.dd-stock-low{background:#fff3e0;color:#e65100}
+.dd-stock-zero{background:#ffebee;color:#c62828}
+.dd-empty{padding:20px;text-align:center;color:#aaa;font-size:12px}
 
 /* signature */
 .sig-wrap{border:2px dashed var(--border);border-radius:10px;background:#fafcff;text-align:center;position:relative}
@@ -327,173 +326,255 @@ function init(){
 
 // ═══════════════ ITEMS TABLE ═══════════════
 
-// ── Active dropdown state ──
-var _ddActive = null; // { panelEl, triggerEl, rowIdx }
+// Single global dropdown panel - appended to body, never inside table
+var _ddPanel = null;
+var _ddActiveRow = null;  // the TR element currently open
 
-function closeAllDropdowns(except) {
-  document.querySelectorAll('.mat-dd-panel.open').forEach(function(p) {
-    if (p !== except) {
-      p.classList.remove('open');
-      var t = p._triggerEl;
-      if (t) t.classList.remove('open');
+function _buildGlobalPanel() {
+  if (_ddPanel) return;
+  _ddPanel = document.createElement('div');
+  _ddPanel.className = 'dd-global-panel';
+  _ddPanel.id = 'ddGlobalPanel';
+  _ddPanel.innerHTML =
+    '<div class="dd-search-wrap">' +
+      '<input type="text" class="dd-search-inp" id="ddSearchInp" placeholder="🔍 ابحث — Search..." autocomplete="off">' +
+    '</div>' +
+    '<div class="dd-list" id="ddList"></div>';
+  document.body.appendChild(_ddPanel);
+
+  document.getElementById('ddSearchInp').addEventListener('input', function() {
+    _populateList(this.value);
+  });
+
+  // Close on outside click
+  document.addEventListener('click', function(e) {
+    if (_ddPanel.classList.contains('open') &&
+        !e.target.closest('.dd-global-panel') &&
+        !e.target.closest('.mat-dd-trigger')) {
+      _closePanel();
     }
   });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') _closePanel();
+  });
 }
 
-document.addEventListener('click', function(e) {
-  if (!e.target.closest('.mat-dd-wrap')) closeAllDropdowns(null);
-});
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') closeAllDropdowns(null);
-});
-
-function addRow() {
-  var tbody = document.getElementById('itemsBody');
-  var rowIdx = tbody.children.length;
-  var idx = rowIdx + 1;
-  var tr = document.createElement('tr');
-  tr.dataset.rowIdx = rowIdx;
-  tr.setAttribute('data-row-idx', rowIdx);
-  tr.innerHTML =
-    '<td style="text-align:center;font-weight:700;vertical-align:middle">' + idx + '</td>' +
-    '<td>' +
-      '<div class="mat-dd-wrap">' +
-        '<button type="button" class="mat-dd-trigger placeholder" data-row="' + rowIdx + '" onclick="toggleDropdown(this, ' + rowIdx + ')">🔍 اختر المادة — Select material</button>' +
-        '<div class="mat-dd-panel" data-row="' + rowIdx + '">' +
-          '<div class="mat-dd-search-wrap">' +
-            '<input type="text" class="mat-dd-search-inp" placeholder="🔍 ابحث عن المادة — Search..." oninput="filterDropdown(this, ' + rowIdx + ')" autocomplete="off">' +
-          '</div>' +
-          '<div class="mat-dd-list" id="ddList_' + rowIdx + '"></div>' +
-        '</div>' +
-        '<input type="hidden" class="mat-mat-id" value="">' +
-        '<input type="hidden" class="mat-mat-name" value="">' +
-      '</div>' +
-    '</td>' +
-    '<td><input type="number" class="mat-qty" min="1" value="1" style="width:70px"></td>' +
-    '<td><input type="text" class="mat-unit" readonly style="background:#f0f4f8;color:#555"></td>' +
-    '<td><input type="text" class="mat-stock" readonly style="background:#f0f4f8;font-weight:700"></td>' +
-    '<td class="no-print"><button class="del-row" onclick="this.closest(\'tr\').remove();reindex()">🗑</button></td>';
-  tbody.appendChild(tr);
-
-  // wire up panel reference
-  var panel = tr.querySelector('.mat-dd-panel');
-  var trigger = tr.querySelector('.mat-dd-trigger');
-  panel._triggerEl = trigger;
-
-  // populate list
-  populateList(rowIdx);
+function _closePanel() {
+  if (!_ddPanel) return;
+  _ddPanel.classList.remove('open');
+  _ddActiveRow = null;
 }
 
-function toggleDropdown(triggerBtn, rowIdx) {
-  var panel = document.querySelector('.mat-dd-panel[data-row="' + rowIdx + '"]');
-  if (!panel) return;
-  var isOpen = panel.classList.contains('open');
-  closeAllDropdowns(null);
-  if (!isOpen) {
-    // Position panel below trigger
-    var rect = triggerBtn.getBoundingClientRect();
-    panel.style.top = (rect.bottom + window.scrollY + 4) + 'px';
-    panel.style.left = rect.left + 'px';
-    panel.style.width = Math.max(rect.width, 300) + 'px';
-    panel.classList.add('open');
-    triggerBtn.classList.add('open');
-    // focus search
-    var inp = panel.querySelector('.mat-dd-search-inp');
-    if (inp) { inp.value = ''; filterDropdown(inp, rowIdx); setTimeout(function(){inp.focus();}, 50); }
-  }
-}
-
-function populateList(rowIdx, filter) {
-  var list = document.getElementById('ddList_' + rowIdx);
+function _populateList(q) {
+  var list = document.getElementById('ddList');
   if (!list) return;
-  var q = (filter || '').toLowerCase().trim();
+  var query = (q || '').toLowerCase().trim();
   var results = warehouseItems.filter(function(it) {
-    if (!q) return true;
-    return (it.name || '').toLowerCase().includes(q);
+    return !query || (it.name || '').toLowerCase().indexOf(query) !== -1;
   });
   if (!results.length) {
-    list.innerHTML = '<div class="mat-dd-empty">لا توجد نتائج — No results</div>';
+    list.innerHTML = '<div class="dd-empty">لا توجد نتائج — No results found</div>';
     return;
   }
-  list.innerHTML = results.map(function(it) {
+  list.innerHTML = '';
+  results.forEach(function(it) {
     var nett = parseFloat(it.nett) || 0;
-    var stockCls = nett <= 0 ? 'zero' : nett <= 3 ? 'low' : 'ok';
-    var stockLabel = nett <= 0 ? '❌ 0' : nett + ' ' + (it.unit || '');
-    return '<div class="mat-dd-opt" data-id="' + it.id + '" data-name="' + (it.name||'').replace(/"/g,'&quot;') + '" data-unit="' + (it.unit||'') + '" data-stock="' + nett + '" onclick="selectMaterial(this,' + rowIdx + ')">' +
-      '<div><div class="opt-name">' + (it.name||'') + '</div>' +
-      '<div class="opt-cat">' + (it.category||'') + '</div></div>' +
-      '<span class="opt-stock ' + stockCls + '">' + stockLabel + '</span>' +
-      '</div>';
-  }).join('');
+    var stockCls = nett <= 0 ? 'dd-stock-zero' : nett <= 3 ? 'dd-stock-low' : 'dd-stock-ok';
+    var stockTxt = nett <= 0 ? '❌ نفد' : nett + ' ' + (it.unit || '');
+    var div = document.createElement('div');
+    div.className = 'dd-opt';
+    div.innerHTML =
+      '<div>' +
+        '<div class="dd-opt-name">' + _esc(it.name || '') + '</div>' +
+        '<div class="dd-opt-cat">' + _esc(it.category || '') + '</div>' +
+      '</div>' +
+      '<span class="dd-opt-stock ' + stockCls + '">' + stockTxt + '</span>';
+    div.addEventListener('click', function() {
+      _selectItem(it);
+    });
+    list.appendChild(div);
+  });
 }
 
-function filterDropdown(inp, rowIdx) {
-  populateList(rowIdx, inp.value);
+function _esc(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
-function selectMaterial(optEl, rowIdx) {
-  var matId = optEl.dataset.id;
-  var matName = optEl.dataset.name;
-  var unit = optEl.dataset.unit;
-  var stock = parseFloat(optEl.dataset.stock) || 0;
+function _selectItem(it) {
+  if (!_ddActiveRow) { _closePanel(); return; }
+  var nett = parseFloat(it.nett) || 0;
 
-  var tr = document.querySelector('#itemsBody tr[data-row-idx="' + rowIdx + '"]');
-  if (!tr) {
-    // fallback: find by panel row
-    var panel = document.querySelector('.mat-dd-panel[data-row="' + rowIdx + '"]');
-    if (panel) tr = panel.closest('tr');
-  }
-  if (!tr) return;
-
-  // Update trigger label
-  var trigger = tr.querySelector('.mat-dd-trigger');
+  // Update trigger button label
+  var trigger = _ddActiveRow.querySelector('.mat-dd-trigger');
   if (trigger) {
-    trigger.textContent = matName;
+    trigger.textContent = it.name || '';
+    trigger.classList.add('selected');
     trigger.classList.remove('placeholder');
   }
 
-  // Store hidden values
-  var hiddenId = tr.querySelector('.mat-mat-id');
-  var hiddenName = tr.querySelector('.mat-mat-name');
-  if (hiddenId) hiddenId.value = matId;
-  if (hiddenName) hiddenName.value = matName;
+  // Store values in hidden inputs
+  var hidId   = _ddActiveRow.querySelector('.mat-mat-id');
+  var hidName = _ddActiveRow.querySelector('.mat-mat-name');
+  if (hidId)   hidId.value   = it.id;
+  if (hidName) hidName.value = it.name || '';
 
   // Unit
-  var unitEl = tr.querySelector('.mat-unit');
-  if (unitEl) unitEl.value = unit;
+  var unitEl = _ddActiveRow.querySelector('.mat-unit');
+  if (unitEl) unitEl.value = it.unit || '';
 
-  // Stock
-  var stockEl = tr.querySelector('.mat-stock');
+  // Stock with color
+  var stockEl = _ddActiveRow.querySelector('.mat-stock');
   if (stockEl) {
-    stockEl.value = stock;
-    stockEl.style.color = stock <= 0 ? '#c62828' : stock <= 3 ? '#e65100' : '#2e7d32';
+    stockEl.value = nett;
+    stockEl.style.color = nett <= 0 ? '#c62828' : nett <= 3 ? '#e65100' : '#2e7d32';
   }
 
-  // Close panel
-  closeAllDropdowns(null);
+  _closePanel();
+}
+
+function openMatDropdown(triggerBtn) {
+  _buildGlobalPanel();
+
+  // Find parent TR
+  _ddActiveRow = triggerBtn.closest('tr');
+
+  // Position panel under trigger button
+  var rect = triggerBtn.getBoundingClientRect();
+  var panelW = Math.max(rect.width + 40, 300);
+  var leftPos = rect.left;
+
+  // Prevent going off right edge
+  if (leftPos + panelW > window.innerWidth - 8) {
+    leftPos = window.innerWidth - panelW - 8;
+  }
+
+  _ddPanel.style.top    = (rect.bottom + window.scrollY + 4) + 'px';
+  _ddPanel.style.left   = leftPos + 'px';
+  _ddPanel.style.width  = panelW + 'px';
+  _ddPanel.classList.add('open');
+
+  // Reset search and populate
+  var inp = document.getElementById('ddSearchInp');
+  if (inp) inp.value = '';
+  _populateList('');
+  if (inp) setTimeout(function(){ inp.focus(); }, 30);
+}
+
+function addRow() {
+  _buildGlobalPanel();
+  var tbody = document.getElementById('itemsBody');
+  var rowIdx = tbody.children.length;
+  var num = rowIdx + 1;
+
+  var tr = document.createElement('tr');
+  tr.setAttribute('data-row-idx', rowIdx);
+
+  var td0 = document.createElement('td');
+  td0.style.cssText = 'text-align:center;font-weight:700;vertical-align:middle;width:36px';
+  td0.textContent = num;
+
+  var td1 = document.createElement('td');
+  td1.style.cssText = 'min-width:220px';
+  var wrap = document.createElement('div');
+  wrap.className = 'mat-dd-wrap';
+
+  var trigger = document.createElement('button');
+  trigger.type = 'button';
+  trigger.className = 'mat-dd-trigger placeholder';
+  trigger.textContent = '🔍 اختر المادة — Select material ▾';
+  trigger.addEventListener('click', function(e) {
+    e.stopPropagation();
+    openMatDropdown(trigger);
+  });
+
+  var hidId   = document.createElement('input');
+  hidId.type  = 'hidden';
+  hidId.className = 'mat-mat-id';
+
+  var hidName  = document.createElement('input');
+  hidName.type = 'hidden';
+  hidName.className = 'mat-mat-name';
+
+  wrap.appendChild(trigger);
+  wrap.appendChild(hidId);
+  wrap.appendChild(hidName);
+  td1.appendChild(wrap);
+
+  var td2 = document.createElement('td');
+  td2.style.width = '80px';
+  var qtyInp = document.createElement('input');
+  qtyInp.type = 'number';
+  qtyInp.className = 'mat-qty';
+  qtyInp.min = '1';
+  qtyInp.value = '1';
+  qtyInp.style.cssText = 'width:70px';
+  td2.appendChild(qtyInp);
+
+  var td3 = document.createElement('td');
+  td3.style.width = '70px';
+  var unitInp = document.createElement('input');
+  unitInp.type = 'text';
+  unitInp.className = 'mat-unit';
+  unitInp.readOnly = true;
+  unitInp.style.cssText = 'background:#f0f4f8;color:#555';
+  td3.appendChild(unitInp);
+
+  var td4 = document.createElement('td');
+  td4.style.width = '80px';
+  var stockInp = document.createElement('input');
+  stockInp.type = 'text';
+  stockInp.className = 'mat-stock';
+  stockInp.readOnly = true;
+  stockInp.style.cssText = 'background:#f0f4f8;font-weight:700;text-align:center';
+  td4.appendChild(stockInp);
+
+  var td5 = document.createElement('td');
+  td5.className = 'no-print';
+  td5.style.width = '40px';
+  var delBtn = document.createElement('button');
+  delBtn.className = 'del-row';
+  delBtn.textContent = '🗑';
+  delBtn.addEventListener('click', function() {
+    tr.remove();
+    reindex();
+  });
+  td5.appendChild(delBtn);
+
+  tr.appendChild(td0);
+  tr.appendChild(td1);
+  tr.appendChild(td2);
+  tr.appendChild(td3);
+  tr.appendChild(td4);
+  tr.appendChild(td5);
+
+  tbody.appendChild(tr);
 }
 
 function reindex() {
   var rows = document.getElementById('itemsBody').querySelectorAll('tr');
-  rows.forEach(function(r, i) { r.cells[0].textContent = i + 1; });
+  rows.forEach(function(r, i) {
+    r.cells[0].textContent = i + 1;
+    r.setAttribute('data-row-idx', i);
+  });
 }
 
 function getItems() {
   var rows = document.getElementById('itemsBody').querySelectorAll('tr');
   var items = [];
   rows.forEach(function(r) {
-    var hiddenName = r.querySelector('.mat-mat-name');
-    var hiddenId = r.querySelector('.mat-mat-id');
-    var qty = r.querySelector('.mat-qty');
-    var unit = r.querySelector('.mat-unit');
-    var stock = r.querySelector('.mat-stock');
-    if (hiddenName && hiddenName.value) {
+    var hidName  = r.querySelector('.mat-mat-name');
+    var hidId    = r.querySelector('.mat-mat-id');
+    var qty      = r.querySelector('.mat-qty');
+    var unit     = r.querySelector('.mat-unit');
+    var stock    = r.querySelector('.mat-stock');
+    var name = hidName ? hidName.value.trim() : '';
+    if (name) {
       items.push({
-        matId: parseInt(hiddenId ? hiddenId.value : 0) || 0,
-        matName: hiddenName.value,
-        qty: parseFloat(qty ? qty.value : 1) || 1,
-        unit: unit ? unit.value : '',
-        inStock: parseFloat(stock ? stock.value : 0) || 0
+        matId   : parseInt(hidId ? hidId.value : 0) || 0,
+        matName : name,
+        qty     : parseFloat(qty ? qty.value : 1) || 1,
+        unit    : unit ? unit.value : '',
+        inStock : parseFloat(stock ? stock.value : 0) || 0
       });
     }
   });
