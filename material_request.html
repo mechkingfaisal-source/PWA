@@ -32,10 +32,33 @@ body{font-family:Arial,sans-serif;background:#f0f4f8;min-height:100vh}
 /* items table */
 .items-table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:10px}
 .items-table th{background:var(--blue);color:#fff;padding:8px 10px;text-align:left}
-.items-table td{padding:7px 8px;border-bottom:1px solid #e8eef5;vertical-align:middle}
+.items-table td{padding:7px 8px;border-bottom:1px solid #e8eef5;vertical-align:top}
 .items-table input,.items-table select{border:1.5px solid var(--border);border-radius:6px;padding:5px 7px;font-size:12px;width:100%;font-family:Arial;outline:none}
 .del-row{background:none;border:none;cursor:pointer;font-size:16px;color:var(--red);padding:0 6px}
 .add-row-btn{background:var(--blue);color:#fff;border:none;border-radius:8px;padding:7px 16px;cursor:pointer;font-size:13px;font-weight:700;margin-top:4px}
+
+/* Custom searchable dropdown */
+.mat-dd-wrap{position:relative;min-width:200px}
+.mat-dd-trigger{width:100%;border:1.5px solid var(--border);border-radius:6px;padding:6px 28px 6px 8px;font-size:12px;font-family:Arial;outline:none;cursor:pointer;background:#fff;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#333}
+.mat-dd-trigger.placeholder{color:#aaa}
+.mat-dd-trigger:focus,.mat-dd-trigger.open{border-color:var(--blue)}
+.mat-dd-trigger::after{content:'▾';position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:11px;color:#888;pointer-events:none}
+.mat-dd-panel{display:none;position:fixed;background:#fff;border:1.5px solid var(--blue);border-radius:10px;box-shadow:0 8px 24px #0003;z-index:99999;width:320px;flex-direction:column;overflow:hidden}
+.mat-dd-panel.open{display:flex}
+.mat-dd-search-wrap{padding:8px 10px;border-bottom:1px solid #e8eef5;flex-shrink:0}
+.mat-dd-search-inp{width:100%;border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;font-size:13px;font-family:Arial;outline:none}
+.mat-dd-search-inp:focus{border-color:var(--blue)}
+.mat-dd-list{overflow-y:auto;max-height:220px;padding:4px 0}
+.mat-dd-opt{padding:8px 12px;cursor:pointer;font-size:12px;display:flex;justify-content:space-between;align-items:center;gap:8px;border-bottom:1px solid #f0f4f8}
+.mat-dd-opt:hover,.mat-dd-opt.focused{background:#e8f0ff}
+.mat-dd-opt:last-child{border-bottom:none}
+.opt-name{flex:1;font-weight:600;color:#222;word-break:break-word;line-height:1.3}
+.opt-cat{font-size:10px;color:#888;margin-top:1px}
+.opt-stock{font-size:11px;font-weight:700;padding:2px 7px;border-radius:8px;white-space:nowrap;flex-shrink:0}
+.opt-stock.ok{background:#e8f5e9;color:#2e7d32}
+.opt-stock.low{background:#fff3e0;color:#e65100}
+.opt-stock.zero{background:#ffebee;color:#c62828}
+.mat-dd-empty{padding:20px;text-align:center;color:#aaa;font-size:12px}
 
 /* signature */
 .sig-wrap{border:2px dashed var(--border);border-radius:10px;background:#fafcff;text-align:center;position:relative}
@@ -177,11 +200,11 @@ body{font-family:Arial,sans-serif;background:#f0f4f8;min-height:100vh}
         <table class="items-table" id="itemsTable">
           <thead>
             <tr>
-              <th>#</th>
-              <th style="min-width:220px">Material Name اسم المادة</th>
-              <th style="min-width:80px">Qty الكمية</th>
-              <th style="min-width:70px">Unit الوحدة</th>
-              <th style="min-width:80px">In Stock</th>
+              <th style="width:36px">#</th>
+              <th>Material Name اسم المادة</th>
+              <th style="width:80px">Qty الكمية</th>
+              <th style="width:70px">Unit الوحدة</th>
+              <th style="width:90px">In Stock</th>
               <th class="no-print" style="width:40px"></th>
             </tr>
           </thead>
@@ -278,79 +301,199 @@ function init(){
   loadWarehouseItems();
   loggedUser = getUser();
   currentReqNo = genReqNo();
-  var now = new Date();
-  var dateStr = now.toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric'})
-               +' '+now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
-  document.getElementById('reqNo').value = currentReqNo;
-  document.getElementById('reqNumber').textContent = currentReqNo;
-  document.getElementById('reqDate').value = dateStr;
+  var nowD = new Date();
+  // Auto date formatted nicely
+  var days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var dateStr = days[nowD.getDay()] + ', '
+               + nowD.getDate() + ' ' + months[nowD.getMonth()] + ' ' + nowD.getFullYear()
+               + '  —  ' + nowD.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  // Auto request number
+  var reqNoEl = document.getElementById('reqNo');
+  var reqNumEl = document.getElementById('reqNumber');
+  var reqDateEl = document.getElementById('reqDate');
+  if(reqNoEl) reqNoEl.value = currentReqNo;
+  if(reqNumEl){ reqNumEl.textContent = currentReqNo; reqNumEl.title = 'Auto-generated request number'; }
+  if(reqDateEl) reqDateEl.value = dateStr;
+  // Auto tech name from login session
   if(loggedUser){
-    document.getElementById('techName').value = loggedUser.name||'';
-    document.getElementById('userBadge').textContent = '👷 '+loggedUser.name;
+    var tnEl = document.getElementById('techName');
+    var ubEl = document.getElementById('userBadge');
+    if(tnEl){ tnEl.value = loggedUser.name || '—'; }
+    if(ubEl){ ubEl.textContent = '👷 '+(loggedUser.name||''); }
   }
   if(!document.getElementById('itemsBody').children.length) addRow();
 }
 
 // ═══════════════ ITEMS TABLE ═══════════════
-var _dlBuilt = false;
-function buildDatalist(){
-  var dl = document.getElementById('matList');
-  if(!dl){
-    dl = document.createElement('datalist');
-    dl.id = 'matList';
-    document.body.appendChild(dl);
-  }
-  dl.innerHTML = warehouseItems.map(function(it){
-    return '<option value="'+it.name+'">'+(it.unit||'')+' • Stock: '+(it.nett||0)+'</option>';
-  }).join('');
-  _dlBuilt = true;
+
+// ── Active dropdown state ──
+var _ddActive = null; // { panelEl, triggerEl, rowIdx }
+
+function closeAllDropdowns(except) {
+  document.querySelectorAll('.mat-dd-panel.open').forEach(function(p) {
+    if (p !== except) {
+      p.classList.remove('open');
+      var t = p._triggerEl;
+      if (t) t.classList.remove('open');
+    }
+  });
 }
-function addRow(){
-  if(!_dlBuilt) buildDatalist();
+
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.mat-dd-wrap')) closeAllDropdowns(null);
+});
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeAllDropdowns(null);
+});
+
+function addRow() {
   var tbody = document.getElementById('itemsBody');
-  var idx = tbody.children.length+1;
+  var rowIdx = tbody.children.length;
+  var idx = rowIdx + 1;
   var tr = document.createElement('tr');
+  tr.dataset.rowIdx = rowIdx;
+  tr.setAttribute('data-row-idx', rowIdx);
   tr.innerHTML =
-    '<td style="text-align:center;font-weight:700">'+idx+'</td>'+
-    '<td><input type="text" class="mat-select" list="matList" placeholder="🔍 Search material..." oninput="onMatInput(this)" autocomplete="off"></td>'+
-    '<td><input type="number" class="mat-qty" min="1" value="1" style="width:70px"></td>'+
-    '<td><input type="text" class="mat-unit" readonly style="width:60px;background:#f0f4f8"></td>'+
-    '<td><input type="text" class="mat-stock" readonly style="width:70px;background:#f0f4f8"></td>'+
+    '<td style="text-align:center;font-weight:700;vertical-align:middle">' + idx + '</td>' +
+    '<td>' +
+      '<div class="mat-dd-wrap">' +
+        '<button type="button" class="mat-dd-trigger placeholder" data-row="' + rowIdx + '" onclick="toggleDropdown(this, ' + rowIdx + ')">🔍 اختر المادة — Select material</button>' +
+        '<div class="mat-dd-panel" data-row="' + rowIdx + '">' +
+          '<div class="mat-dd-search-wrap">' +
+            '<input type="text" class="mat-dd-search-inp" placeholder="🔍 ابحث عن المادة — Search..." oninput="filterDropdown(this, ' + rowIdx + ')" autocomplete="off">' +
+          '</div>' +
+          '<div class="mat-dd-list" id="ddList_' + rowIdx + '"></div>' +
+        '</div>' +
+        '<input type="hidden" class="mat-mat-id" value="">' +
+        '<input type="hidden" class="mat-mat-name" value="">' +
+      '</div>' +
+    '</td>' +
+    '<td><input type="number" class="mat-qty" min="1" value="1" style="width:70px"></td>' +
+    '<td><input type="text" class="mat-unit" readonly style="background:#f0f4f8;color:#555"></td>' +
+    '<td><input type="text" class="mat-stock" readonly style="background:#f0f4f8;font-weight:700"></td>' +
     '<td class="no-print"><button class="del-row" onclick="this.closest(\'tr\').remove();reindex()">🗑</button></td>';
   tbody.appendChild(tr);
+
+  // wire up panel reference
+  var panel = tr.querySelector('.mat-dd-panel');
+  var trigger = tr.querySelector('.mat-dd-trigger');
+  panel._triggerEl = trigger;
+
+  // populate list
+  populateList(rowIdx);
 }
-function onMatInput(inp){
-  var val = (inp.value||'').trim().toLowerCase();
-  var it = warehouseItems.find(function(x){return (x.name||'').toLowerCase()===val;});
-  var tr = inp.closest('tr');
+
+function toggleDropdown(triggerBtn, rowIdx) {
+  var panel = document.querySelector('.mat-dd-panel[data-row="' + rowIdx + '"]');
+  if (!panel) return;
+  var isOpen = panel.classList.contains('open');
+  closeAllDropdowns(null);
+  if (!isOpen) {
+    // Position panel below trigger
+    var rect = triggerBtn.getBoundingClientRect();
+    panel.style.top = (rect.bottom + window.scrollY + 4) + 'px';
+    panel.style.left = rect.left + 'px';
+    panel.style.width = Math.max(rect.width, 300) + 'px';
+    panel.classList.add('open');
+    triggerBtn.classList.add('open');
+    // focus search
+    var inp = panel.querySelector('.mat-dd-search-inp');
+    if (inp) { inp.value = ''; filterDropdown(inp, rowIdx); setTimeout(function(){inp.focus();}, 50); }
+  }
+}
+
+function populateList(rowIdx, filter) {
+  var list = document.getElementById('ddList_' + rowIdx);
+  if (!list) return;
+  var q = (filter || '').toLowerCase().trim();
+  var results = warehouseItems.filter(function(it) {
+    if (!q) return true;
+    return (it.name || '').toLowerCase().includes(q);
+  });
+  if (!results.length) {
+    list.innerHTML = '<div class="mat-dd-empty">لا توجد نتائج — No results</div>';
+    return;
+  }
+  list.innerHTML = results.map(function(it) {
+    var nett = parseFloat(it.nett) || 0;
+    var stockCls = nett <= 0 ? 'zero' : nett <= 3 ? 'low' : 'ok';
+    var stockLabel = nett <= 0 ? '❌ 0' : nett + ' ' + (it.unit || '');
+    return '<div class="mat-dd-opt" data-id="' + it.id + '" data-name="' + (it.name||'').replace(/"/g,'&quot;') + '" data-unit="' + (it.unit||'') + '" data-stock="' + nett + '" onclick="selectMaterial(this,' + rowIdx + ')">' +
+      '<div><div class="opt-name">' + (it.name||'') + '</div>' +
+      '<div class="opt-cat">' + (it.category||'') + '</div></div>' +
+      '<span class="opt-stock ' + stockCls + '">' + stockLabel + '</span>' +
+      '</div>';
+  }).join('');
+}
+
+function filterDropdown(inp, rowIdx) {
+  populateList(rowIdx, inp.value);
+}
+
+function selectMaterial(optEl, rowIdx) {
+  var matId = optEl.dataset.id;
+  var matName = optEl.dataset.name;
+  var unit = optEl.dataset.unit;
+  var stock = parseFloat(optEl.dataset.stock) || 0;
+
+  var tr = document.querySelector('#itemsBody tr[data-row-idx="' + rowIdx + '"]');
+  if (!tr) {
+    // fallback: find by panel row
+    var panel = document.querySelector('.mat-dd-panel[data-row="' + rowIdx + '"]');
+    if (panel) tr = panel.closest('tr');
+  }
+  if (!tr) return;
+
+  // Update trigger label
+  var trigger = tr.querySelector('.mat-dd-trigger');
+  if (trigger) {
+    trigger.textContent = matName;
+    trigger.classList.remove('placeholder');
+  }
+
+  // Store hidden values
+  var hiddenId = tr.querySelector('.mat-mat-id');
+  var hiddenName = tr.querySelector('.mat-mat-name');
+  if (hiddenId) hiddenId.value = matId;
+  if (hiddenName) hiddenName.value = matName;
+
+  // Unit
   var unitEl = tr.querySelector('.mat-unit');
+  if (unitEl) unitEl.value = unit;
+
+  // Stock
   var stockEl = tr.querySelector('.mat-stock');
-  if(!it){ unitEl.value=''; stockEl.value=''; return; }
-  unitEl.value = it.unit||'';
-  var nett = parseFloat(it.nett)||0;
-  stockEl.value = nett;
-  stockEl.style.color = nett<=0?'#c62828':nett<=3?'#e65100':'#2e7d32';
-  stockEl.style.fontWeight = '700';
-  inp.dataset.matId = it.id;
+  if (stockEl) {
+    stockEl.value = stock;
+    stockEl.style.color = stock <= 0 ? '#c62828' : stock <= 3 ? '#e65100' : '#2e7d32';
+  }
+
+  // Close panel
+  closeAllDropdowns(null);
 }
-function reindex(){
+
+function reindex() {
   var rows = document.getElementById('itemsBody').querySelectorAll('tr');
-  rows.forEach(function(r,i){r.cells[0].textContent=i+1;});
+  rows.forEach(function(r, i) { r.cells[0].textContent = i + 1; });
 }
-function getItems(){
+
+function getItems() {
   var rows = document.getElementById('itemsBody').querySelectorAll('tr');
-  var items=[];
-  rows.forEach(function(r){
-    var sel=r.querySelector('.mat-select');
-    var qty=r.querySelector('.mat-qty');
-    var unit=r.querySelector('.mat-unit');
-    if(sel&&sel.value){
+  var items = [];
+  rows.forEach(function(r) {
+    var hiddenName = r.querySelector('.mat-mat-name');
+    var hiddenId = r.querySelector('.mat-mat-id');
+    var qty = r.querySelector('.mat-qty');
+    var unit = r.querySelector('.mat-unit');
+    var stock = r.querySelector('.mat-stock');
+    if (hiddenName && hiddenName.value) {
       items.push({
-        matId: parseInt(sel.dataset.matId)||0,
-        matName: sel.value,
-        qty: parseFloat(qty.value)||1,
-        unit: unit.value,
-        inStock: parseFloat(r.querySelector('.mat-stock').value)||0
+        matId: parseInt(hiddenId ? hiddenId.value : 0) || 0,
+        matName: hiddenName.value,
+        qty: parseFloat(qty ? qty.value : 1) || 1,
+        unit: unit ? unit.value : '',
+        inStock: parseFloat(stock ? stock.value : 0) || 0
       });
     }
   });
