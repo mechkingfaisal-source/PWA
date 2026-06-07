@@ -326,6 +326,53 @@ iframe{width:100%;height:88vh;border:none;border-radius:14px;
     50%{box-shadow:0 8px 40px rgba(0,180,216,.85);transform:translateX(-50%) scale(1.03)}
   }
   #installBanner:active{transform:translateX(-50%) scale(.97)!important}
+
+/* ===== Logout button & confirmation (fix) ===== */
+.logout-btn{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:10px 16px;border-radius:12px;cursor:pointer;
+  font-family:'Poppins',Arial,sans-serif;font-weight:800;font-size:13px;
+  color:#fff;letter-spacing:.03em;
+  background:linear-gradient(135deg,#e53935 0%,#b71c1c 100%);
+  border:1px solid rgba(255,255,255,.25);
+  box-shadow:0 6px 18px rgba(183,28,28,.45), inset 0 1px 0 rgba(255,255,255,.25);
+  transition:transform .15s ease, box-shadow .15s ease, filter .15s ease;
+  -webkit-appearance:none;appearance:none;
+}
+.logout-btn:hover{transform:translateY(-1px);filter:brightness(1.07);box-shadow:0 10px 24px rgba(183,28,28,.55)}
+.logout-btn:active{transform:translateY(0);filter:brightness(.95)}
+
+.logout-confirm-overlay{
+  position:fixed;inset:0;z-index:99999;
+  background:rgba(5,15,35,.65);
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+  display:flex;align-items:center;justify-content:center;
+  padding:18px;animation:logoutFade .18s ease-out;
+}
+@keyframes logoutFade{from{opacity:0}to{opacity:1}}
+.logout-confirm-box{
+  width:100%;max-width:380px;background:#fff;border-radius:20px;
+  padding:26px 22px;text-align:center;
+  box-shadow:0 30px 60px rgba(0,0,0,.4);
+  font-family:'Poppins',Arial,sans-serif;
+  animation:logoutPop .22s cubic-bezier(.2,.9,.3,1.2);
+}
+@keyframes logoutPop{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
+.logout-confirm-box h3{font-size:18px;font-weight:900;color:#0a2e5c;margin-bottom:10px}
+.logout-confirm-box p{font-size:14px;font-weight:600;color:#334;line-height:1.6;margin-bottom:18px}
+.logout-confirm-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.logout-confirm-btns button{
+  flex:1;min-width:130px;padding:12px 14px;border-radius:12px;
+  font-family:'Poppins',Arial,sans-serif;font-weight:800;font-size:13px;
+  border:none;cursor:pointer;letter-spacing:.02em;
+  transition:transform .15s ease, filter .15s ease, box-shadow .15s ease;
+}
+.logout-confirm-btns button:hover{transform:translateY(-1px);filter:brightness(1.06)}
+.btn-cancel-logout{background:#e9eef5;color:#0a2e5c}
+.btn-confirm-logout{
+  color:#fff;background:linear-gradient(135deg,#e53935,#b71c1c);
+  box-shadow:0 6px 16px rgba(183,28,28,.45);
+}
 </style>
 
 </head>
