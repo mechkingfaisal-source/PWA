@@ -475,17 +475,25 @@ function renderIssue(){
       <div class="card">
         <h3 style="margin-bottom:12px;font-size:15px;font-weight:600">📤 Issue to Technician</h3>
         <div style="display:flex;flex-direction:column;gap:10px">
-          <label style="font-size:12px;font-weight:500">Material</label>
-          <select id="issItem" style="width:100%"><option value="">Select material...</option>${state.items.map(i=>`<option value="${i.id}">${i.code} · ${i.name} (${i.stock})</option>`).join('')}</select>
-          <label style="font-size:12px;font-weight:500">Quantity</label>
+          <label style="font-size:12px;font-weight:500">Material — المادة</label>
+          <div style="position:relative">
+            <input type="text" id="issSearch" placeholder="🔍 اكتب لبحث المادة — Type to search..." autocomplete="off"
+              style="width:100%;padding:9px 12px;border-radius:10px;border:1.5px solid var(--border);background:var(--background);color:var(--foreground);font-size:14px"
+              oninput="issFilterList(this.value)" onfocus="issShowList()" onblur="setTimeout(()=>issHideList(),200)">
+            <input type="hidden" id="issItem" value="">
+            <div id="issDropList" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--card);border:1.5px solid var(--ring);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.15);z-index:9999;max-height:220px;overflow-y:auto;margin-top:2px">
+            </div>
+          </div>
+          <div id="issSelectedBadge" style="display:none;background:color-mix(in srgb,var(--info) 12%,transparent);border:1px solid var(--info);border-radius:8px;padding:8px 12px;font-size:13px;font-weight:600;color:var(--info)"></div>
+          <label style="font-size:12px;font-weight:500">Quantity — الكمية</label>
           <input type="number" id="issQty" value="1" min="1">
-          <label style="font-size:12px;font-weight:500">Technician Name</label>
+          <label style="font-size:12px;font-weight:500">Technician Name — اسم الفني</label>
           <input type="text" id="issTech" placeholder="Technician name...">
           <label style="font-size:12px;font-weight:500">Work Order / Equipment</label>
           <input type="text" id="issWO" placeholder="e.g. WO-2026-001 / AHU-105">
           <label style="font-size:12px;font-weight:500">Notes</label>
           <textarea id="issNote" rows="2" placeholder="Optional..."></textarea>
-          <button class="btn btn-primary" style="margin-top:4px" onclick="doIssue()">Issue Material</button>
+          <button class="btn btn-primary" style="margin-top:4px" onclick="doIssue()">📤 Issue Material — صرف</button>
         </div>
       </div>
       <div class="card">
@@ -498,6 +506,48 @@ function renderIssue(){
       </div>
     </div>
   `;
+  issFilterList('');
+}
+
+function issFilterList(q){
+  var list = document.getElementById('issDropList'); if(!list) return;
+  var filtered = state.items.filter(function(i){
+    return !q || (i.name+' '+i.code).toLowerCase().includes(q.toLowerCase());
+  }).slice(0,40);
+  var rows = '';
+  if(!filtered.length){
+    rows = '<div style="padding:14px;text-align:center;color:var(--muted-foreground);font-size:13px">لا توجد نتائج</div>';
+  } else {
+    filtered.forEach(function(i){
+      var sc = i.stock<=0?'#c62828':i.stock<=i.minStock?'#e65100':'#2e7d32';
+      var sl = i.stock<=0?'نفد ❌':''+i.stock+' '+i.unit+' 📦';
+      rows += '<div class="iss-opt" data-id="'+i.id+'" onclick="issSelectItem('+i.id+')" style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border);font-size:13px;gap:8px">'
+        + '<div><div style="font-weight:600;color:var(--foreground)">'+i.name+'</div><div style="font-size:11px;color:var(--muted-foreground)">'+i.code+' · '+i.category+'</div></div>'
+        + '<span style="font-weight:700;font-size:12px;color:'+sc+';white-space:nowrap;flex-shrink:0">'+sl+'</span>'
+        + '</div>';
+    });
+  }
+  list.innerHTML = rows;
+  list.style.display = 'block';
+  // Add hover effect via JS after render
+  list.querySelectorAll('.iss-opt').forEach(function(el){
+    el.addEventListener('mouseenter', function(){ this.style.background='var(--accent)'; });
+    el.addEventListener('mouseleave', function(){ this.style.background=''; });
+  });
+}
+function issShowList(){ var l=document.getElementById('issDropList'); if(l){ issFilterList(document.getElementById('issSearch').value||''); l.style.display='block'; } }
+function issHideList(){ var l=document.getElementById('issDropList'); if(l) l.style.display='none'; }
+function issSelectItem(id){
+  var item=state.items.find(function(i){return i.id===id;}); if(!item) return;
+  document.getElementById('issItem').value=id;
+  document.getElementById('issSearch').value=item.name;
+  issHideList();
+  var badge=document.getElementById('issSelectedBadge');
+  if(badge){
+    var stockColor=item.stock<=0?'#c62828':item.stock<=item.minStock?'#e65100':'#2e7d32';
+    badge.style.display='block';
+    badge.innerHTML='✅ <b>'+item.name+'</b> &nbsp;|&nbsp; Stock: <span style="color:'+stockColor+';font-weight:700">'+item.stock+' '+item.unit+'</span>';
+  }
 }
 function doIssue(){
   const id=Number($('issItem').value); const qty=Number($('issQty').value); const tech=$('issTech').value.trim(); const wo=$('issWO').value.trim(); const note=$('issNote').value.trim();
@@ -953,11 +1003,16 @@ function startApprovedListener() {
   if (_arUnsubscribe) return; // already listening
   _arUnsubscribe = db.collection(MAT_COL)
     .where('status', 'in', ['Approved', 'Partial'])
-    .orderBy('createdAt', 'desc')
     .onSnapshot(function(snap) {
       _approvedRequests = [];
       snap.forEach(function(doc) {
         _approvedRequests.push(Object.assign({ _id: doc.id }, doc.data()));
+      });
+      // Sort client-side by createdAt descending (avoids composite index requirement)
+      _approvedRequests.sort(function(a, b) {
+        var ta = a.createdAt && a.createdAt.toMillis ? a.createdAt.toMillis() : (a.createdAt ? new Date(a.createdAt).getTime() : 0);
+        var tb = b.createdAt && b.createdAt.toMillis ? b.createdAt.toMillis() : (b.createdAt ? new Date(b.createdAt).getTime() : 0);
+        return tb - ta;
       });
       _approvedCount = _approvedRequests.length;
       renderNav();
