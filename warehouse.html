@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>HVAC Warehouse CMMS</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <style>
 :root {
   --radius: 0.875rem;
@@ -145,6 +147,7 @@ tr:hover { background: color-mix(in srgb, var(--accent) 50%, transparent); }
       <button class="menu-btn" onclick="toggleSidebar()" style="background:none;border:none;font-size:22px;color:var(--foreground)">☰</button>
       <h1 style="font-size:15px;font-weight:600">Mechanical Warehouse Management</h1>
       <div style="margin-left:auto;display:flex;align-items:center;gap:12px">
+        <div id="wh-notif-badge" onclick="go('approved-requests')" style="display:none;background:#2e7d32;color:#fff;border-radius:20px;padding:4px 14px;font-size:12px;font-weight:700;cursor:pointer;animation:pulse 1s infinite alternate">📬 0 طلب معتمد</div>
         <button onclick="toggleDark()" style="width:36px;height:36px;border-radius:10px;border:1px solid var(--border);background:var(--background);cursor:pointer;display:flex;align-items:center;justify-content:center">🌙</button>
         <div class="user-pill"><div class="user-avatar">S</div>Store Keeper</div>
       </div>
@@ -169,9 +172,9 @@ function now(){ return new Date().toISOString().slice(0,10); }
 let state = (()=>{ try{ const r=localStorage.getItem(LS_KEY); if(r){ const p=JSON.parse(r); if(p&&p.items&&p.items.length) return p; } }catch(e){} return {items:SEED_DATA.items.slice(),transactions:[],purchaseRequests:[]}; })();
 function save(){ localStorage.setItem(LS_KEY,JSON.stringify(state)); }
 
-const PAGES = ['dashboard','inventory','min-quantity','receiving','issue','purchase-requests','alerts','transactions','reports','stock-count','settings'];
-const LABELS = {dashboard:'Dashboard',inventory:'Inventory','min-quantity':'Min Qty Manager',receiving:'Receiving',issue:'Issue Material','purchase-requests':'Purchase Requests',alerts:'Alerts',transactions:'Transactions',reports:'Reports','stock-count':'Stock Count',settings:'Settings'};
-const ICONS = {dashboard:'📊',inventory:'📦','min-quantity':'🔔',receiving:'📥',issue:'📤','purchase-requests':'🛒',alerts:'🚨',transactions:'📋',reports:'📈','stock-count':'📋',settings:'⚙️'};
+const PAGES = ['dashboard','inventory','min-quantity','receiving','issue','approved-requests','purchase-requests','alerts','transactions','reports','stock-count','settings'];
+const LABELS = {dashboard:'Dashboard',inventory:'Inventory','min-quantity':'Min Qty Manager',receiving:'Receiving',issue:'Issue Material','approved-requests':'✅ Approved Requests',  'purchase-requests':'Purchase Requests',alerts:'Alerts',transactions:'Transactions',reports:'Reports','stock-count':'Stock Count',settings:'Settings'};
+const ICONS = {dashboard:'📊',inventory:'📦','min-quantity':'🔔',receiving:'📥',issue:'📤','approved-requests':'📬','purchase-requests':'🛒',alerts:'🚨',transactions:'📋',reports:'📈','stock-count':'📋',settings:'⚙️'};
 
 let currentPage = 'dashboard';
 
@@ -180,9 +183,10 @@ function renderNav(){
   const minQtyAlarms = state.items.filter(i=>i.stock <= i.minStock).length;
   const openPR = state.purchaseRequests.filter(p=>p.status==='Open').length;
   $('nav').innerHTML = PAGES.map(p=>{
-    const count = p==='alerts'?alertCount : p==='purchase-requests'?openPR : p==='min-quantity'?minQtyAlarms : 0;
+    const count = p==='alerts'?alertCount : p==='purchase-requests'?openPR : p==='min-quantity'?minQtyAlarms : p==='approved-requests'?_approvedCount : 0;
     const active = p===currentPage?'active':'';
-    return `<a href="#" class="${active}" onclick="go('${p}');return false;"><span>${ICONS[p]}</span><span style="flex:1">${LABELS[p]}</span>${count>0?`<span style="background:var(--danger);color:#fff;border-radius:999px;padding:2px 8px;font-size:10px;font-weight:700">${count}</span>`:''}</a>`;
+    const badgeColor = p==='approved-requests' ? 'var(--success)' : 'var(--danger)';
+    return `<a href="#" class="${active}" onclick="go('${p}');return false;"><span>${ICONS[p]}</span><span style="flex:1">${LABELS[p]}</span>${count>0?`<span style="background:${badgeColor};color:#fff;border-radius:999px;padding:2px 8px;font-size:10px;font-weight:700">${count}</span>`:''}</a>`;
   }).join('');
 }
 
@@ -198,6 +202,7 @@ function go(page){
   if(page==='receiving') renderReceiving();
   if(page==='issue') renderIssue();
   if(page==='transactions') renderTransactions();
+  if(page==='approved-requests') renderApprovedRequests();
   if(page==='purchase-requests') renderPRs();
   if(page==='reports') renderReports();
   if(page==='stock-count') renderStockCount();
@@ -927,9 +932,172 @@ function mqCreatePR(id){
   if(currentPage==='min-quantity') renderMinQty();
 }
 
+// ===== FIREBASE — Material Requests Integration =====
+const firebaseConfig = {
+  apiKey: "AIzaSyDr9meYf-fKn7i-3NeQxfSnXNTs-4HGJyE",
+  authDomain: "hvac-ppm.firebaseapp.com",
+  projectId: "hvac-ppm",
+  storageBucket: "hvac-ppm.firebasestorage.app",
+  messagingSenderId: "429823910983",
+  appId: "1:429823910983:web:1836576203d10cbc9c3d62"
+};
+if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const MAT_COL = 'material_requests';
+
+var _approvedRequests = [];
+var _approvedCount = 0;
+var _arUnsubscribe = null;
+
+function startApprovedListener() {
+  if (_arUnsubscribe) return; // already listening
+  _arUnsubscribe = db.collection(MAT_COL)
+    .where('status', 'in', ['Approved', 'Partial'])
+    .orderBy('createdAt', 'desc')
+    .onSnapshot(function(snap) {
+      _approvedRequests = [];
+      snap.forEach(function(doc) {
+        _approvedRequests.push(Object.assign({ _id: doc.id }, doc.data()));
+      });
+      _approvedCount = _approvedRequests.length;
+      renderNav();
+      // Update badge in header
+      var badge = document.getElementById('wh-notif-badge');
+      if (badge) {
+        badge.style.display = _approvedCount > 0 ? 'flex' : 'none';
+        badge.textContent = '📬 ' + _approvedCount + ' طلب معتمد';
+      }
+      if (currentPage === 'approved-requests') renderApprovedRequests();
+    }, function(err) {
+      console.warn('Firestore listener error:', err.message);
+    });
+}
+
+function renderApprovedRequests() {
+  var pg = $('approved-requests');
+  if (!pg) return;
+
+  if (!_approvedRequests.length) {
+    pg.innerHTML = `
+      <div class="page-header"><div><h2>📬 Approved Material Requests</h2><p>Requests approved by engineer — ready to dispense.</p></div></div>
+      <div class="card" style="text-align:center;padding:40px;color:var(--muted-foreground)">
+        <div style="font-size:40px;margin-bottom:12px">✅</div>
+        <div style="font-size:15px;font-weight:600">No approved requests pending dispatch.</div>
+        <div style="font-size:13px;margin-top:6px">All requests have been dispensed or none have been approved yet.</div>
+      </div>`;
+    return;
+  }
+
+  var html = `
+    <div class="page-header">
+      <div><h2>📬 Approved Material Requests</h2><p>${_approvedRequests.length} requests ready for dispatch — طلبات جاهزة للصرف</p></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px">`;
+
+  _approvedRequests.forEach(function(req) {
+    var dateStr = '';
+    try { dateStr = new Date(req.date).toLocaleDateString('en-GB', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}); } catch(e) { dateStr = req.date || ''; }
+    var engDate = '';
+    try { engDate = new Date(req.engDate).toLocaleDateString('en-GB', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}); } catch(e) { engDate = req.engDate || ''; }
+    var priBadge = req.priority === 'Urgent' ? '<span style="background:#fff3e0;color:#e65100;padding:2px 8px;border-radius:8px;font-size:11px;font-weight:700;border:1px solid #e65100">🟠 Urgent</span>' :
+                   req.priority === 'Critical' ? '<span style="background:#ffebee;color:#c62828;padding:2px 8px;border-radius:8px;font-size:11px;font-weight:700;border:1px solid #c62828">🔴 Critical</span>' : '';
+    var statusBadge = req.status === 'Partial' ?
+      '<span style="background:#e3f2fd;color:#1565c0;padding:2px 10px;border-radius:8px;font-size:12px;font-weight:700">⚠️ Partial Approval</span>' :
+      '<span style="background:#e8f5e9;color:#2e7d32;padding:2px 10px;border-radius:8px;font-size:12px;font-weight:700">✅ Approved</span>';
+
+    var itemsRows = '';
+    if (req.items && req.items.length) {
+      req.items.forEach(function(it) {
+        var whItem = state.items.find(function(w) { return w.id === it.matId || w.name.toLowerCase().trim() === (it.matName||'').toLowerCase().trim(); });
+        var whStock = whItem ? whItem.stock : it.inStock;
+        var stockColor = whStock <= 0 ? '#c62828' : whStock < it.qty ? '#e65100' : '#2e7d32';
+        var warning = whStock < it.qty ? '<span style="color:#e65100;font-size:10px;font-weight:700"> ⚠️ Low</span>' : '';
+        itemsRows += `<tr>
+          <td style="padding:6px 10px">${it.matName}</td>
+          <td style="padding:6px 10px;text-align:center;font-weight:700">${it.qty} ${it.unit}</td>
+          <td style="padding:6px 10px;text-align:center;font-weight:700;color:${stockColor}">${whStock}${warning}</td>
+        </tr>`;
+      });
+    }
+
+    html += `
+      <div class="card" style="padding:0;overflow:hidden;border-left:5px solid #2e7d32">
+        <div style="padding:14px 16px;background:var(--secondary);display:flex;flex-wrap:wrap;align-items:center;gap:10px">
+          <div style="flex:1;min-width:200px">
+            <div style="font-size:15px;font-weight:900;color:var(--foreground)">${req.reqNo}</div>
+            <div style="font-size:12px;color:var(--muted-foreground);margin-top:2px">${dateStr} · 👷 ${req.techName} · 🏢 ${req.building}</div>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">${priBadge}${statusBadge}</div>
+        </div>
+        <div style="padding:14px 16px">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;font-size:13px">
+            <div><span style="color:var(--muted-foreground)">Work Order:</span> <b>${req.workOrder || '—'}</b></div>
+            <div><span style="color:var(--muted-foreground)">Engineer:</span> <b>${req.engName || '—'}</b></div>
+            <div style="grid-column:span 2"><span style="color:var(--muted-foreground)">Reason:</span> ${req.reason || '—'}</div>
+            ${req.engNotes ? `<div style="grid-column:span 2"><span style="color:var(--muted-foreground)">Eng. Notes:</span> <i>${req.engNotes}</i></div>` : ''}
+            <div><span style="color:var(--muted-foreground)">Approved at:</span> ${engDate}</div>
+          </div>
+          <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:14px">
+            <thead><tr style="background:var(--primary);color:var(--primary-foreground)">
+              <th style="padding:7px 10px;text-align:left">Material المادة</th>
+              <th style="padding:7px 10px;text-align:center">Qty الكمية</th>
+              <th style="padding:7px 10px;text-align:center">WH Stock مخزون</th>
+            </tr></thead>
+            <tbody>${itemsRows}</tbody>
+          </table>
+          <button onclick="dispenseRequest('${req._id}')" style="width:100%;padding:13px;background:linear-gradient(135deg,#2e7d32,#388e3c);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:900;cursor:pointer;letter-spacing:.3px;display:flex;align-items:center;justify-content:center;gap:8px">
+            🏭 صرف الطلب — Dispense Request
+          </button>
+        </div>
+      </div>`;
+  });
+
+  html += '</div>';
+  pg.innerHTML = html;
+}
+
+function dispenseRequest(docId) {
+  var req = _approvedRequests.find(function(r) { return r._id === docId; });
+  if (!req) { toast('Request not found', 'error'); return; }
+
+  if (!confirm('تأكيد صرف الطلب ' + req.reqNo + ' ؟\nConfirm dispensing request ' + req.reqNo + '?')) return;
+
+  // Deduct from warehouse localStorage
+  if (req.items && req.items.length) {
+    req.items.forEach(function(it) {
+      var whItem = state.items.find(function(w) { return w.id === it.matId || w.name.toLowerCase().trim() === (it.matName||'').toLowerCase().trim(); });
+      if (whItem) {
+        whItem.stock = Math.max(0, whItem.stock - it.qty);
+        whItem.lastIssued = now();
+        state.transactions.unshift({
+          id: uid(), type: 'out', itemId: whItem.id, itemName: whItem.name,
+          qty: it.qty, unit: it.unit, user: req.techName,
+          workOrder: req.reqNo + ' / ' + req.workOrder,
+          note: 'Material request dispensed — Engineer: ' + req.engName,
+          ts: Date.now()
+        });
+      }
+    });
+    save();
+    renderNav();
+  }
+
+  // Update Firebase status to Dispensed
+  db.collection(MAT_COL).doc(docId).update({
+    status: 'Dispensed',
+    dispatchedBy: 'Warehouse Keeper',
+    dispatchedAt: new Date().toISOString()
+  }).then(function() {
+    toast('✅ تم صرف الطلب بنجاح — ' + req.reqNo);
+  }).catch(function(err) {
+    toast('❌ Firebase error: ' + err.message, 'error');
+  });
+}
+
 // ===== Init =====
 renderNav();
 go('dashboard');
+startApprovedListener();
 window.addEventListener('hashchange',()=>{});
 </script>
 </body>
