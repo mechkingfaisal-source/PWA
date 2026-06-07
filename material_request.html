@@ -625,14 +625,10 @@ function updateStatusTracker(data){
   if(!section) return;
   var status = data.status || 'Pending';
   var steps = [
-    {key:'submitted', icon:'📋', label:'تم الإرسال
-Submitted'},
-    {key:'pending_eng', icon:'⏳', label:'بانتظار المهندس
-Pending Eng.'},
-    {key:'approved_eng', icon:'✅', label:'اعتماد المهندس
-Eng. Approved'},
-    {key:'dispensed', icon:'🏭', label:'تم الصرف
-Dispatched'}
+    {key:'submitted', icon:'📋', label:'تم الإرسال\nSubmitted'},
+    {key:'pending_eng', icon:'⏳', label:'بانتظار المهندس\nPending Eng.'},
+    {key:'approved_eng', icon:'✅', label:'اعتماد المهندس\nEng. Approved'},
+    {key:'dispensed', icon:'🏭', label:'تم الصرف\nDispatched'}
   ];
   var activeIdx = status==='Pending'?1 : (status==='Approved'||status==='Partial')?2 : status==='Dispensed'?3 : status==='Rejected'?-1:1;
   section.innerHTML = '<div class="section-head" style="background:#fff;color:var(--blue);border-bottom:1px solid #e8eef5;padding:10px 16px;font-weight:900;font-size:13px">📍 حالة الطلب — Request Status</div>'+
@@ -694,7 +690,7 @@ function loadMyRequests(){
         var d=doc.data();
         var statusMap={Pending:'pending',Approved:'approved',Partial:'approved',Rejected:'rejected',Dispensed:'approved'};
         var statusLabel={Pending:'⏳ بانتظار المهندس',Approved:'✅ معتمد',Partial:'⚠️ جزئي',Rejected:'❌ مرفوض',Dispensed:'🏭 تم الصرف'};
-        html+='<div class="my-req-card '+(statusMap[d.status]||'pending')+'" onclick="viewOldRequest(''+doc.id+'',''+d.reqNo+'')">';
+        html+='<div class="my-req-card '+(statusMap[d.status]||'pending')+'" onclick="viewOldRequest(\"'+doc.id+'\",\"'+d.reqNo+'\")">'; 
         html+='<div style="display:flex;justify-content:space-between;align-items:center">';
         html+='<b style="color:var(--blue);font-size:13px">'+d.reqNo+'</b>';
         html+='<span class="badge badge-'+(d.status==='Pending'?'pending':d.status==='Approved'||d.status==='Partial'?'approved':d.status==='Dispensed'?'approved':'rejected')+'">'+(statusLabel[d.status]||d.status)+'</span>';
