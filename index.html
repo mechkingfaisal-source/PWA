@@ -306,7 +306,7 @@ iframe{width:100%;height:88vh;border:none;border-radius:14px;
 .ni-priority.Critical{background:#ffebee;color:#c62828}
 .notif-empty{padding:28px 16px;text-align:center;color:#aaa;font-size:13px;font-weight:700}
 
-{width:100%;height:110px;overflow:hidden;border-radius:10px;margin-bottom:12px;position:relative}
+.card-img-wrap{width:100%;height:110px;overflow:hidden;border-radius:10px;margin-bottom:12px;position:relative}
 .card-img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .3s}
 .card:hover .card-img{transform:scale(1.06)}
 
@@ -716,18 +716,16 @@ function closeInventory(){
   document.getElementById('dashboard').style.display='flex';
 }
 function openSystem(link){
-  // Open system inside the app via iframe so the Back button returns to dashboard.
-  var raw = sessionStorage.getItem('cmms_user') || localStorage.getItem('cmms_user');
-  var url = link;
-  if (raw) {
-    try { url += (link.indexOf('#') === -1 ? '#' : '&') + 'cmms_user=' + encodeURIComponent(raw); } catch(e){}
-  }
-  _systemOrigin = (document.getElementById('inventoryPage') && document.getElementById('inventoryPage').style.display === 'flex') ? 'inventory' : 'dashboard';
+  _systemOrigin = document.getElementById('inventoryPage').style.display==='flex' ? 'inventory' : 'dashboard';
   document.getElementById('dashboard').style.display='none';
-  var inv = document.getElementById('inventoryPage');
-  if (inv) inv.style.display='none';
-  document.getElementById('frame').src = url;
+  document.getElementById('inventoryPage').style.display='none';
   document.getElementById('system').style.display='flex';
+  var frame=document.getElementById('frame');
+  frame.src=link;
+  frame.onload=function(){
+    var raw=sessionStorage.getItem('cmms_user')||localStorage.getItem('cmms_user');
+    if(raw){try{frame.contentWindow.postMessage({type:'CMMS_USER',data:raw},'*');}catch(e){}}
+  };
   window.scrollTo(0,0);
 }
 function goBack(){
