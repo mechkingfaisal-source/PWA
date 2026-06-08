@@ -223,26 +223,29 @@
 
 <script>
   // Lucide-like inline SVG helpers
-  const I = {
+    const I = {
     dashboard: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>',
-    thermo: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4 4 0 1 0 5 0z"/></svg>',
-    droplets: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16.3c2.2 0 4-1.83 4-4.05 0-1.16-.57-2.26-1.71-3.19S7.29 6.75 7 5.3c-.29 1.45-1.14 2.84-2.29 3.76S3 11.1 3 12.25c0 2.22 1.8 4.05 4 4.05z"/><path d="M12.56 6.6A10.97 10.97 0 0 0 14 3.02c.5 2.5 2 4.9 4 6.5s3 3.5 3 5.5a6.98 6.98 0 0 1-11.91 4.97"/></svg>',
-    fan: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M10.827 16.379a6.082 6.082 0 0 1-8.618-7.002l5.412 1.45a6.082 6.082 0 0 1 7.002-8.618l-1.45 5.412a6.082 6.082 0 0 1 8.618 7.002l-5.412-1.45a6.082 6.082 0 0 1-7.002 8.618l1.45-5.412Z"/><circle cx="12" cy="12" r="1.5"/></svg>',
-    package: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8 12 13 3 8"/><path d="M3 16V8a2 2 0 0 1 1-1.73l7-4a2 2 0 0 1 2 0l7 4A2 2 0 0 1 21 8v8a2 2 0 0 1-1 1.73l-7 4a2 2 0 0 1-2 0l-7-4A2 2 0 0 1 3 16Z"/></svg>',
-    clipboard: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>',
-    check: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>',
+    building: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h.01M9 13h.01M9 17h.01M15 9h.01M15 13h.01M15 17h.01"/></svg>',
+    tower: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 012-2h8a2 2 0 012 2v18M6 22h12M10 6h.01M10 10h.01M10 14h.01M14 6h.01M14 10h.01M14 14h.01"/></svg>',
+    wrench: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>',
+    snowflake: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h20M12 2v20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07"/></svg>',
+    droplet: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 11-11.31 0z"/></svg>',
+    fan: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.59 4.59A2 2 0 1111 8H2m10.59 11.41A2 2 0 1014 16H2m15.73-8.27A2.5 2.5 0 1119.5 12H2"/></svg>',
+    warehouse: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8v13H3V8M1 3h22v5H1zM10 12h4"/></svg>',
+    clipboard: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>',
+    check: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
     chevron: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><polyline points="9 18 15 12 9 6"/></svg>',
   };
 
   const SYSTEMS = [
     { id: 'dashboard',         label: 'Dashboard',         icon: I.dashboard, badge: 'Home',        sub: 'Overview & quick links',                       url: null },
-    { id: 'main-building',     label: 'Main Building',     icon: I.thermo,    badge: 'HVAC PPM',    sub: 'AHU / FAHU Units · All Floors',                url: 'main.html' },
-    { id: 'medical-tower',     label: 'Medical Tower',     icon: I.thermo,    badge: 'HVAC PPM',    sub: 'AHU / FAHU Units · Tower Floors',              url: 'tower.html' },
-    { id: 'package-units',     label: 'Package Units',     icon: I.package,   badge: 'PPM',         sub: 'OPD Package Units · Preventive Maintenance',   url: 'package_opd.html' },
-    { id: 'chillers',          label: 'Chillers',          icon: I.thermo,    badge: 'Chillers PPM',sub: 'York · Daikin · Royal · Chiller Plant PPM',    url: 'chiller_colored.html' },
-    { id: 'chw-pumps',         label: 'CH.W. Pumps',       icon: I.droplets,  badge: 'Pumps PPM',   sub: 'York · Royal CH.W. Pumps',                     url: 'chilled_water_pumps.html' },
+    { id: 'main-building',     label: 'Main Building',     icon: I.building,    badge: 'HVAC PPM',    sub: 'AHU / FAHU Units · All Floors',                url: 'main.html' },
+    { id: 'medical-tower',     label: 'Medical Tower',     icon: I.tower,    badge: 'HVAC PPM',    sub: 'AHU / FAHU Units · Tower Floors',              url: 'tower.html' },
+    { id: 'package-units',     label: 'Package Units',     icon: I.wrench,   badge: 'PPM',         sub: 'OPD Package Units · Preventive Maintenance',   url: 'package_opd.html' },
+    { id: 'chillers',          label: 'Chillers',          icon: I.snowflake,    badge: 'Chillers PPM',sub: 'York · Daikin · Royal · Chiller Plant PPM',    url: 'chiller_colored.html' },
+    { id: 'chw-pumps',         label: 'CH.W. Pumps',       icon: I.droplet,  badge: 'Pumps PPM',   sub: 'York · Royal CH.W. Pumps',                     url: 'chilled_water_pumps.html' },
     { id: 'exhaust-fans',      label: 'Exhaust Fans',      icon: I.fan,       badge: 'EX Fans PPM', sub: 'All Zones — S.B.1 to Zone 9',                  url: 'exhaust_fans.html' },
-    { id: 'warehouse',         label: 'Warehouse',         icon: I.package,   badge: 'Store',       sub: 'Mechanical Materials · Stock Management',      url: 'warehouse.html' },
+    { id: 'warehouse',         label: 'Warehouse',         icon: I.warehouse,   badge: 'Store',       sub: 'Mechanical Materials · Stock Management',      url: 'warehouse.html' },
     { id: 'material-request',  label: 'Material Request',  icon: I.clipboard, badge: 'Request',     sub: 'Issue Materials · نموذج صرف مواد',             url: 'material_request.html' },
     { id: 'engineer-approval', label: 'Eng. Approval',     icon: I.check,     badge: 'Engineer',    sub: 'Approve Requests · اعتماد الطلبات',            url: 'engineer_approval.html' },
   ];
