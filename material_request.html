@@ -26,51 +26,25 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#0d1b2e;min-height:100vh
 .topbar-right{display:flex;align-items:center;gap:10px}
 .notif-btn{background:none;border:none;color:#7a9abf;font-size:20px;cursor:pointer;position:relative;padding:4px}
 .notif-dot{position:absolute;top:4px;right:4px;width:8px;height:8px;background:#e53935;border-radius:50%;border:2px solid #0a1628}
-.user-chip{background:#1a2f4a;border:1px solid #1e3a5f;border-radius:20px;padding:5px 12px 5px 8px;display:flex;align-items:center;gap:7px;cursor:pointer}
+.user-chip{background:#1a2f4a;border:1px solid #1e3a5f;border-radius:20px;padding:5px 12px 5px 8px;display:flex;align-items:center;gap:7px}
 .user-avatar{width:26px;height:26px;background:linear-gradient(135deg,#e6a817,#c67c00);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;color:#fff}
 .user-name{font-size:12px;font-weight:700;color:#d0e4f7}
 
-/* ── LAYOUT ── */
-.layout{display:flex;flex:1;min-height:0}
-
-/* ── SIDEBAR ── */
-.sidebar{
-  width:200px;min-width:200px;
-  background:#0a1628;
-  border-right:1px solid #1e3a5f;
-  padding:16px 0;
-  display:flex;flex-direction:column;gap:4px;
-}
-.nav-item{
-  display:flex;align-items:center;gap:10px;
-  padding:10px 18px;
-  color:#7a9abf;font-size:13px;font-weight:600;
-  cursor:pointer;border-radius:0;
-  transition:.15s;border-left:3px solid transparent;
-  text-decoration:none;
-}
-.nav-item:hover{background:#122040;color:#c2dcf5}
-.nav-item.active{background:#122040;color:#4fc3f7;border-left-color:#4fc3f7}
-.nav-icon{font-size:16px;min-width:20px;text-align:center}
-.nav-item.active .nav-chevron{color:#4fc3f7}
-.nav-chevron{margin-left:auto;font-size:11px;color:#3a5a7a}
-.sidebar-divider{height:1px;background:#1e3a5f;margin:8px 14px}
-
 /* ── MAIN ── */
-.main{flex:1;overflow-y:auto;padding:20px 24px}
+.main{flex:1;overflow-y:auto;padding:20px 24px;max-width:900px;width:100%;margin:0 auto}
 
 /* ── PAGE HEADER ── */
 .page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px}
-.page-title-wrap{}
 .page-title{font-size:20px;font-weight:900;color:#e0efff;display:flex;align-items:center;gap:8px}
 .page-subtitle{font-size:12px;color:#7a9abf;margin-top:3px;font-weight:600}
 .new-req-btn{
   background:linear-gradient(135deg,#00bcd4,#0097a7);
   color:#fff;border:none;border-radius:10px;
-  padding:10px 18px;font-size:13px;font-weight:900;
+  padding:11px 20px;font-size:13px;font-weight:900;
   cursor:pointer;display:flex;align-items:center;gap:6px;
   box-shadow:0 4px 14px #00bcd430;
   transition:.15s;white-space:nowrap;flex-shrink:0;
+  text-decoration:none;
 }
 .new-req-btn:hover{opacity:.9;transform:translateY(-1px)}
 
@@ -79,25 +53,26 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#0d1b2e;min-height:100vh
 .stat-card{
   border-radius:12px;padding:16px 18px;
   display:flex;flex-direction:column;gap:6px;
-  position:relative;overflow:hidden;
+  position:relative;overflow:hidden;cursor:pointer;
+  transition:.15s;
 }
+.stat-card:hover{filter:brightness(1.1)}
 .stat-num{font-size:28px;font-weight:900;line-height:1}
 .stat-label{font-size:12px;font-weight:700;opacity:.85;text-transform:uppercase;letter-spacing:.5px}
-.stat-card.pending{background:linear-gradient(135deg,#b7830a,#8a5f00);color:#fff7e0}
+.stat-card.pending {background:linear-gradient(135deg,#b7830a,#8a5f00);color:#fff7e0}
 .stat-card.approved{background:linear-gradient(135deg,#1b6e2e,#145224);color:#d4f5dc}
 .stat-card.rejected{background:linear-gradient(135deg,#7b1515,#5c0d0d);color:#ffd5d5}
-.stat-card.issued{background:linear-gradient(135deg,#4a2480,#2d1060);color:#e8d5ff}
+.stat-card.issued  {background:linear-gradient(135deg,#4a2480,#2d1060);color:#e8d5ff}
 .stat-card::after{content:'';position:absolute;right:-10px;bottom:-10px;width:60px;height:60px;border-radius:50%;background:#ffffff15}
 
 /* ── FILTER BAR ── */
-.filter-bar{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.filter-bar{display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap}
 .filter-tab{
   background:#122040;border:1px solid #1e3a5f;color:#7a9abf;
   padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;
   cursor:pointer;transition:.15s;
 }
-.filter-tab.active,
-.filter-tab:hover{background:#1565c0;border-color:#1565c0;color:#fff}
+.filter-tab.active,.filter-tab:hover{background:#1565c0;border-color:#1565c0;color:#fff}
 .search-wrap{margin-left:auto;position:relative}
 .search-inp{
   background:#122040;border:1px solid #1e3a5f;color:#d0e4f7;
@@ -106,30 +81,24 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#0d1b2e;min-height:100vh
 }
 .search-inp:focus{border-color:#1565c0}
 .search-inp::placeholder{color:#3a5a7a}
-.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#3a5a7a;font-size:14px}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#3a5a7a;font-size:14px;pointer-events:none}
 
 /* ── REQUEST CARDS ── */
 .req-list{display:flex;flex-direction:column;gap:10px}
-
 .req-card{
   background:#112035;border:1px solid #1e3a5f;border-radius:12px;
-  padding:14px 16px;cursor:pointer;
-  transition:.15s;
+  padding:14px 16px;cursor:pointer;transition:.15s;
   display:flex;flex-direction:column;gap:8px;
 }
 .req-card:hover{background:#162a45;border-color:#1e4d80}
-
-.req-card-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.req-card-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .mr-number{font-size:13px;font-weight:900;color:#4fc3f7;letter-spacing:.3px}
-.req-title{font-size:14px;font-weight:700;color:#d0e4f7;flex:1}
-.req-card-chevron{color:#3a5a7a;font-size:16px;margin-left:auto}
-
-.req-card-bottom{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.req-card-bottom{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .req-meta{font-size:11px;color:#5a7a9a;display:flex;align-items:center;gap:4px}
-.req-meta-dot{width:3px;height:3px;border-radius:50%;background:#2a4a6a}
+.req-meta-dot{width:3px;height:3px;border-radius:50%;background:#2a4a6a;flex-shrink:0}
 
-/* ── STATUS BADGES ── */
-.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:800;line-height:1;white-space:nowrap}
+/* ── BADGES ── */
+.badge{display:inline-flex;align-items:center;gap:3px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:800;line-height:1;white-space:nowrap}
 .badge-issued   {background:#1a3a5a;color:#4fc3f7;border:1px solid #1e5a8a}
 .badge-approved {background:#0d3520;color:#4caf50;border:1px solid #1a6030}
 .badge-pending  {background:#3a2000;color:#ffa726;border:1px solid #6a3a00}
@@ -146,22 +115,20 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#0d1b2e;min-height:100vh
 .empty-wrap{text-align:center;padding:50px 20px;color:#3a5a7a}
 .empty-icon{font-size:40px;margin-bottom:10px}
 .empty-text{font-size:14px;font-weight:700;margin-bottom:6px;color:#5a7a9a}
-.empty-sub{font-size:12px;color:#3a5a7a}
+.empty-sub{font-size:12px}
 
 /* ── TOAST ── */
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1565c0;color:#fff;padding:11px 22px;border-radius:10px;font-size:13px;font-weight:700;z-index:999;opacity:0;transition:.3s;pointer-events:none;white-space:nowrap}
 .toast.show{opacity:1}
 
-/* ── RESPONSIVE ── */
-@media(max-width:700px){
-  .sidebar{display:none}
+@media(max-width:600px){
   .stats-row{grid-template-columns:1fr 1fr}
   .main{padding:14px 12px}
+  .search-wrap{width:100%}
   .search-inp{width:100%}
-  .filter-bar{gap:6px}
+  .topbar-title{font-size:11px}
 }
-@media(max-width:420px){
-  .stats-row{grid-template-columns:1fr 1fr}
+@media(max-width:380px){
   .stat-num{font-size:22px}
 }
 </style>
@@ -178,9 +145,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#0d1b2e;min-height:100vh
     </div>
   </div>
   <div class="topbar-right">
-    <button class="notif-btn" title="Notifications">
-      🔔<span class="notif-dot"></span>
-    </button>
+    <button class="notif-btn" title="Notifications">🔔<span class="notif-dot"></span></button>
     <div class="user-chip">
       <div class="user-avatar" id="userAvatar">E</div>
       <span class="user-name" id="userNameChip">Eng. Ahmed</span>
@@ -188,77 +153,59 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#0d1b2e;min-height:100vh
   </div>
 </div>
 
-<!-- LAYOUT -->
-<div class="layout">
+<!-- MAIN -->
+<div class="main">
 
-  <!-- SIDEBAR -->
-  <nav class="sidebar">
-    <a class="nav-item" href="#"><span class="nav-icon">📊</span> Dashboard</a>
-    <div class="sidebar-divider"></div>
-    <a class="nav-item" href="#"><span class="nav-icon">💨</span> AHU / FAHU</a>
-    <a class="nav-item" href="#"><span class="nav-icon">❄️</span> Chillers</a>
-    <a class="nav-item" href="#"><span class="nav-icon">🔄</span> CHW Pumps</a>
-    <a class="nav-item" href="#"><span class="nav-icon">🌀</span> Exhaust Fans</a>
-    <div class="sidebar-divider"></div>
-    <a class="nav-item" href="#"><span class="nav-icon">🏭</span> Warehouse</a>
-    <a class="nav-item active" href="#"><span class="nav-icon">📋</span> Material Request <span class="nav-chevron">›</span></a>
-    <a class="nav-item" href="#"><span class="nav-icon">✅</span> Engineer Approval</a>
-  </nav>
-
-  <!-- MAIN -->
-  <main class="main">
-
-    <!-- Page Header -->
-    <div class="page-header">
-      <div class="page-title-wrap">
-        <div class="page-title">📋 Material Request</div>
-        <div class="page-subtitle">Issue Materials · نموذج صرف مواد</div>
-      </div>
-      <button class="new-req-btn" onclick="openNewRequest()">＋ New Request</button>
+  <!-- Page Header -->
+  <div class="page-header">
+    <div>
+      <div class="page-title">📋 Material Request</div>
+      <div class="page-subtitle">Issue Materials · نموذج صرف مواد</div>
     </div>
+    <button class="new-req-btn" id="newReqBtn" onclick="openNewRequest()">＋ New Request</button>
+  </div>
 
-    <!-- Stat Cards -->
-    <div class="stats-row">
-      <div class="stat-card pending">
-        <div class="stat-num" id="countPending">—</div>
-        <div class="stat-label">Pending</div>
-      </div>
-      <div class="stat-card approved">
-        <div class="stat-num" id="countApproved">—</div>
-        <div class="stat-label">Approved</div>
-      </div>
-      <div class="stat-card rejected">
-        <div class="stat-num" id="countRejected">—</div>
-        <div class="stat-label">Rejected</div>
-      </div>
-      <div class="stat-card issued">
-        <div class="stat-num" id="countIssued">—</div>
-        <div class="stat-label">Issued</div>
-      </div>
+  <!-- Stat Cards -->
+  <div class="stats-row">
+    <div class="stat-card pending"  onclick="setFilterByName('Pending')">
+      <div class="stat-num" id="countPending">—</div>
+      <div class="stat-label">Pending</div>
     </div>
-
-    <!-- Filter Bar -->
-    <div class="filter-bar">
-      <button class="filter-tab active" onclick="setFilter('all',this)">All</button>
-      <button class="filter-tab" onclick="setFilter('Pending',this)">Pending</button>
-      <button class="filter-tab" onclick="setFilter('Approved',this)">Approved</button>
-      <button class="filter-tab" onclick="setFilter('Rejected',this)">Rejected</button>
-      <button class="filter-tab" onclick="setFilter('Dispensed',this)">Issued</button>
-      <div class="search-wrap">
-        <span class="search-icon">🔍</span>
-        <input class="search-inp" type="text" id="searchInp" placeholder="Search MR# or equipment…" oninput="renderList()">
-      </div>
+    <div class="stat-card approved" onclick="setFilterByName('Approved')">
+      <div class="stat-num" id="countApproved">—</div>
+      <div class="stat-label">Approved</div>
     </div>
-
-    <!-- Request List -->
-    <div class="req-list" id="reqList">
-      <div class="loading-wrap">
-        <div class="spinner"></div>
-        Loading requests…
-      </div>
+    <div class="stat-card rejected" onclick="setFilterByName('Rejected')">
+      <div class="stat-num" id="countRejected">—</div>
+      <div class="stat-label">Rejected</div>
     </div>
+    <div class="stat-card issued"   onclick="setFilterByName('Dispensed')">
+      <div class="stat-num" id="countIssued">—</div>
+      <div class="stat-label">Issued</div>
+    </div>
+  </div>
 
-  </main>
+  <!-- Filter Bar -->
+  <div class="filter-bar">
+    <button class="filter-tab active" id="tab-all"       onclick="setFilter('all',this)">All</button>
+    <button class="filter-tab"        id="tab-Pending"   onclick="setFilter('Pending',this)">Pending</button>
+    <button class="filter-tab"        id="tab-Approved"  onclick="setFilter('Approved',this)">Approved</button>
+    <button class="filter-tab"        id="tab-Rejected"  onclick="setFilter('Rejected',this)">Rejected</button>
+    <button class="filter-tab"        id="tab-Dispensed" onclick="setFilter('Dispensed',this)">Issued</button>
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input class="search-inp" type="text" id="searchInp" placeholder="Search MR# or equipment…" oninput="renderList()">
+    </div>
+  </div>
+
+  <!-- Request List -->
+  <div class="req-list" id="reqList">
+    <div class="loading-wrap">
+      <div class="spinner"></div>
+      Loading requests…
+    </div>
+  </div>
+
 </div>
 
 <div class="toast" id="toast"></div>
@@ -296,7 +243,6 @@ window.addEventListener('message', function(e) {
     } catch (err) {}
   }
 });
-
 function applyUser(u) {
   loggedUser = u;
   var initials = (u.name || 'E').split(' ').map(function(w){ return w[0]; }).join('').toUpperCase().slice(0,2);
@@ -304,27 +250,47 @@ function applyUser(u) {
   document.getElementById('userNameChip').textContent = u.name || 'Engineer';
 }
 
+// ═══════════════ NEW REQUEST ═══════════════
+function openNewRequest() {
+  // Try parent frame first (when embedded in index shell)
+  if (window.parent && window.parent !== window) {
+    window.parent.postMessage({ type: 'NAVIGATE', url: 'material_request.html' }, '*');
+    return;
+  }
+  // Direct navigation — works when opened standalone
+  window.location.href = 'material_request.html';
+}
+
+// ═══════════════ OPEN EXISTING REQUEST ═══════════════
+function openRequest(docId) {
+  var url = 'material_request.html?id=' + encodeURIComponent(docId);
+  if (window.parent && window.parent !== window) {
+    window.parent.postMessage({ type: 'NAVIGATE', url: url }, '*');
+    return;
+  }
+  window.location.href = url;
+}
+
 // ═══════════════ LOAD DATA (live) ═══════════════
 function loadRequests() {
-  var query = db.collection(COL).orderBy('createdAt', 'desc').limit(100);
-
-  // If engineer role — show all; if technician — show own
-  // For now we show all (engineer view matching the photo)
-  query.onSnapshot(function(snap) {
-    allRequests = [];
-    snap.forEach(function(doc) {
-      var d = doc.data();
-      d._id = doc.id;
-      allRequests.push(d);
+  db.collection(COL)
+    .orderBy('createdAt', 'desc')
+    .limit(200)
+    .onSnapshot(function(snap) {
+      allRequests = [];
+      snap.forEach(function(doc) {
+        var d = doc.data();
+        d._id = doc.id;
+        allRequests.push(d);
+      });
+      updateStats();
+      renderList();
+    }, function(err) {
+      document.getElementById('reqList').innerHTML =
+        '<div class="empty-wrap"><div class="empty-icon">⚠️</div>' +
+        '<div class="empty-text">Could not load requests</div>' +
+        '<div class="empty-sub">' + escHtml(err.message) + '</div></div>';
     });
-    updateStats();
-    renderList();
-  }, function(err) {
-    document.getElementById('reqList').innerHTML =
-      '<div class="empty-wrap"><div class="empty-icon">⚠️</div>' +
-      '<div class="empty-text">Could not load requests</div>' +
-      '<div class="empty-sub">' + err.message + '</div></div>';
-  });
 }
 
 // ═══════════════ STATS ═══════════════
@@ -345,7 +311,14 @@ function updateStats() {
 function setFilter(f, btn) {
   activeFilter = f;
   document.querySelectorAll('.filter-tab').forEach(function(b){ b.classList.remove('active'); });
-  btn.classList.add('active');
+  if (btn) btn.classList.add('active');
+  renderList();
+}
+function setFilterByName(f) {
+  activeFilter = f;
+  document.querySelectorAll('.filter-tab').forEach(function(b){ b.classList.remove('active'); });
+  var tab = document.getElementById('tab-' + f);
+  if (tab) tab.classList.add('active');
   renderList();
 }
 
@@ -353,14 +326,15 @@ function setFilter(f, btn) {
 function renderList() {
   var q = (document.getElementById('searchInp').value || '').toLowerCase().trim();
   var filtered = allRequests.filter(function(r) {
-    var statusMatch = activeFilter === 'all' || r.status === activeFilter ||
-                      (activeFilter === 'Approved' && r.status === 'Partial') ||
-                      (activeFilter === 'Dispensed' && r.status === 'Dispensed');
-    var searchMatch = !q ||
-      (r.reqNo && r.reqNo.toLowerCase().indexOf(q) !== -1) ||
-      (r.workOrder && r.workOrder.toLowerCase().indexOf(q) !== -1) ||
-      (r.techName && r.techName.toLowerCase().indexOf(q) !== -1) ||
-      (r.building && r.building.toLowerCase().indexOf(q) !== -1);
+    var s = r.status || 'Pending';
+    var statusMatch = activeFilter === 'all'
+      || s === activeFilter
+      || (activeFilter === 'Approved' && s === 'Partial');
+    var searchMatch = !q
+      || (r.reqNo      && r.reqNo.toLowerCase().indexOf(q)      !== -1)
+      || (r.workOrder  && r.workOrder.toLowerCase().indexOf(q)  !== -1)
+      || (r.techName   && r.techName.toLowerCase().indexOf(q)   !== -1)
+      || (r.building   && r.building.toLowerCase().indexOf(q)   !== -1);
     return statusMatch && searchMatch;
   });
 
@@ -373,22 +347,21 @@ function renderList() {
   }
 
   list.innerHTML = filtered.map(function(r) {
-    var status = r.status || 'Pending';
+    var status   = r.status   || 'Pending';
     var priority = r.priority || 'Normal';
-    var statusBadge = statusBadgeHtml(status);
-    var priorityBadge = priorityBadgeHtml(priority);
-    var dateStr = '';
+    var dateStr  = '';
     if (r.createdAt) {
       var d = r.createdAt.toDate ? r.createdAt.toDate() : new Date(r.createdAt);
       dateStr = d.getFullYear() + '/' + (d.getMonth()+1) + '/' + d.getDate();
     }
     var itemCount = (r.items && r.items.length) ? r.items.length : 0;
-    var title = r.workOrder || r.building || '—';
+    var title     = r.workOrder || r.building || '—';
+    var safeId    = (r._id || '').replace(/'/g, "\\'");
 
-    return '<div class="req-card" onclick="openRequest(\'' + r._id + '\')">' +
+    return '<div class="req-card" onclick="openRequest(\'' + safeId + '\')">' +
       '<div class="req-card-top">' +
-        '<span class="mr-number">' + (r.reqNo || '—') + '</span>' +
-        statusBadge + ' ' + priorityBadge +
+        '<span class="mr-number">' + escHtml(r.reqNo || '—') + '</span>' +
+        statusBadgeHtml(status) + ' ' + priorityBadgeHtml(priority) +
       '</div>' +
       '<div style="font-size:14px;font-weight:700;color:#c8dff5">' + escHtml(title) + '</div>' +
       '<div class="req-card-bottom">' +
@@ -405,54 +378,27 @@ function renderList() {
 
 function statusBadgeHtml(status) {
   var map = {
-    Pending:  ['badge-pending',  '⏳ pending'],
-    Approved: ['badge-approved', '✅ approved'],
-    Partial:  ['badge-approved', '⚠️ partial'],
-    Rejected: ['badge-rejected', '❌ rejected'],
-    Dispensed:['badge-issued',   '🏭 issued']
+    Pending:   ['badge-pending',  '⏳ pending'],
+    Approved:  ['badge-approved', '✅ approved'],
+    Partial:   ['badge-approved', '⚠️ partial'],
+    Rejected:  ['badge-rejected', '❌ rejected'],
+    Dispensed: ['badge-issued',   '🏭 issued']
   };
-  var info = map[status] || ['badge-pending', status.toLowerCase()];
+  var info = map[status] || ['badge-pending', escHtml(status.toLowerCase())];
   return '<span class="badge ' + info[0] + '">' + info[1] + '</span>';
 }
 
 function priorityBadgeHtml(priority) {
   var p = (priority || 'Normal').toLowerCase();
-  var map = {
-    normal:   'badge-normal',
-    medium:   'badge-medium',
-    urgent:   'badge-urgent',
-    high:     'badge-high',
-    critical: 'badge-high'
-  };
-  var cls = map[p] || 'badge-medium';
-  return '<span class="badge ' + cls + '">' + priority.toLowerCase() + '</span>';
+  var cls = {normal:'badge-normal', medium:'badge-medium', urgent:'badge-urgent',
+             high:'badge-high', critical:'badge-high'}[p] || 'badge-medium';
+  return '<span class="badge ' + cls + '">' + escHtml(p) + '</span>';
 }
 
 function escHtml(str) {
   return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
-// ═══════════════ NAVIGATION ═══════════════
-function openRequest(docId) {
-  // Open the form in view/edit mode
-  var url = 'material_request.html?id=' + docId;
-  if (window.parent && window.parent !== window) {
-    window.parent.postMessage({ type: 'NAVIGATE', url: url }, '*');
-  } else {
-    window.location.href = url;
-  }
-}
-
-function openNewRequest() {
-  var url = 'material_request.html';
-  if (window.parent && window.parent !== window) {
-    window.parent.postMessage({ type: 'NAVIGATE', url: url }, '*');
-  } else {
-    window.location.href = url;
-  }
-}
-
-// ═══════════════ TOAST ═══════════════
 function showToast(msg) {
   var t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
