@@ -644,7 +644,7 @@ function toggleNotifDropdown(e){
 function openApprovals(e){
   e.stopPropagation();
   document.getElementById('notifDropdown').style.display = 'none';
-  openSystem('engineer_approval.html');
+  window.open('engineer_approval.html', '_blank');
 }
 
 // Close dropdown when clicking outside
@@ -716,26 +716,11 @@ function closeInventory(){
   document.getElementById('dashboard').style.display='flex';
 }
 function openSystem(link){
-  _systemOrigin = document.getElementById('inventoryPage').style.display==='flex' ? 'inventory' : 'dashboard';
-  document.getElementById('dashboard').style.display='none';
-  document.getElementById('inventoryPage').style.display='none';
-  document.getElementById('system').style.display='flex';
-  var frame=document.getElementById('frame');
-  frame.src=link;
-  frame.onload=function(){
-    var raw=sessionStorage.getItem('cmms_user')||localStorage.getItem('cmms_user');
-    if(raw){try{frame.contentWindow.postMessage({type:'CMMS_USER',data:raw},'*');}catch(e){}}
-  };
-  window.scrollTo(0,0);
+  window.open(link, '_blank');
 }
 function goBack(){
-  document.getElementById('frame').src='';
-  document.getElementById('system').style.display='none';
-  if(_systemOrigin==='inventory'){
-    document.getElementById('inventoryPage').style.display='flex';
-  } else {
-    document.getElementById('dashboard').style.display='flex';
-  }
+  document.getElementById('inventoryPage').style.display='none';
+  document.getElementById('dashboard').style.display='flex';
 }
 </script>
     <script>
