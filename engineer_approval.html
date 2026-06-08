@@ -35,7 +35,7 @@ body{font-family:Arial,sans-serif;background:#f0f4f8;min-height:100vh}
 .badge-approved{background:#e8f5e9;color:var(--green)}
 .badge-rejected{background:#ffebee;color:var(--red)}
 .badge-partial{background:#e3f2fd;color:var(--blue2)}
-.badge-critical{background:#ffebee;color:var(--red);border:1px solid var(--red)}
+.badge-issued{background:#f3e5f5;color:#6a1fa8;border:1px solid #6a1fa8}
 .badge-urgent{background:#fff3e0;color:var(--orange);border:1px solid var(--orange)}
 
 /* detail panel */
@@ -84,6 +84,18 @@ body{font-family:Arial,sans-serif;background:#f0f4f8;min-height:100vh}
 .rejected-result{background:#ffebee;border-radius:10px;padding:14px;margin-top:14px;border:1.5px solid #ef9a9a;font-size:13px}
 .print-btn{background:var(--blue);color:#fff;border:none;border-radius:8px;padding:8px 18px;cursor:pointer;font-size:13px;font-weight:700;margin-top:10px}
 
+/* stat cards */
+.stat-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:14px 12px 4px;max-width:900px;margin:0 auto}
+.stat-card{border-radius:14px;padding:16px 18px;color:#fff;display:flex;flex-direction:column;gap:4px;cursor:pointer;transition:.15s;box-shadow:0 3px 12px #0002}
+.stat-card:hover{transform:translateY(-2px);box-shadow:0 6px 18px #0003}
+.stat-card .sc-count{font-size:28px;font-weight:900;line-height:1}
+.stat-card .sc-label{font-size:12px;font-weight:700;opacity:.88}
+.stat-card.pending{background:linear-gradient(135deg,#b8860b,#d4a017)}
+.stat-card.approved{background:linear-gradient(135deg,#1a5c1a,#2e7d32)}
+.stat-card.rejected{background:linear-gradient(135deg,#8b1c1c,#c62828)}
+.stat-card.issued{background:linear-gradient(135deg,#4a1a7a,#6a1fa8)}
+@media(max-width:500px){.stat-cards{grid-template-columns:repeat(2,1fr)}}
+
 /* loading */
 .loading{text-align:center;padding:40px;color:#888;font-size:14px}
 
@@ -125,10 +137,30 @@ body{font-family:Arial,sans-serif;background:#f0f4f8;min-height:100vh}
 </style>
 
 <div class="tabs no-print">
-  <div class="tab active" onclick="filterRequests('Pending')" id="tab-pending">⏳ Pending <span class="cnt" id="cntPending">0</span></div>
+  <div class="tab active" onclick="filterRequests('All')" id="tab-all">📋 All</div>
+  <div class="tab" onclick="filterRequests('Pending')" id="tab-pending">⏳ Pending <span class="cnt" id="cntPending">0</span></div>
   <div class="tab" onclick="filterRequests('Approved')" id="tab-approved">✅ Approved <span class="cnt" style="background:var(--green)" id="cntApproved">0</span></div>
   <div class="tab" onclick="filterRequests('Rejected')" id="tab-rejected">❌ Rejected <span class="cnt" style="background:#555" id="cntRejected">0</span></div>
-  <div class="tab" onclick="filterRequests('All')" id="tab-all">📋 All</div>
+  <div class="tab" onclick="filterRequests('Issued')" id="tab-issued">📦 Issued <span class="cnt" style="background:#6a1fa8" id="cntIssued">0</span></div>
+</div>
+
+<div class="stat-cards no-print">
+  <div class="stat-card pending" onclick="filterRequests('Pending')">
+    <div class="sc-count" id="sc-pending">0</div>
+    <div class="sc-label">⏳ Pending</div>
+  </div>
+  <div class="stat-card approved" onclick="filterRequests('Approved')">
+    <div class="sc-count" id="sc-approved">0</div>
+    <div class="sc-label">✅ Approved</div>
+  </div>
+  <div class="stat-card rejected" onclick="filterRequests('Rejected')">
+    <div class="sc-count" id="sc-rejected">0</div>
+    <div class="sc-label">⊘ Rejected</div>
+  </div>
+  <div class="stat-card issued" onclick="filterRequests('Issued')">
+    <div class="sc-count" id="sc-issued">0</div>
+    <div class="sc-label">⊙ Issued</div>
+  </div>
 </div>
 
 <div class="list-wrap" id="listWrap">
@@ -154,7 +186,7 @@ const COL = 'material_requests';
 // ═══════════════ STATE ═══════════════
 var loggedUser = null;
 var allRequests = [];
-var currentFilter = 'Pending';
+var currentFilter = 'All';
 var sigPads = {};
 var selectedDecision = {};
 
@@ -195,15 +227,24 @@ function updateCounts(){
   var p=allRequests.filter(function(r){return r.status==='Pending';}).length;
   var a=allRequests.filter(function(r){return r.status==='Approved';}).length;
   var rj=allRequests.filter(function(r){return r.status==='Rejected';}).length;
+  var is=allRequests.filter(function(r){return r.status==='Issued';}).length;
   document.getElementById('cntPending').textContent=p;
   document.getElementById('cntApproved').textContent=a;
   document.getElementById('cntRejected').textContent=rj;
+  document.getElementById('cntIssued').textContent=is;
+  document.getElementById('sc-pending').textContent=p;
+  document.getElementById('sc-approved').textContent=a;
+  document.getElementById('sc-rejected').textContent=rj;
+  document.getElementById('sc-issued').textContent=is;
+  // notification bell
+  var bell=document.getElementById('notifBell');
+  if(bell){bell.style.display=p>0?'inline-block':'none';document.getElementById('notifCount').textContent=p;}
 }
 
 // ═══════════════ FILTER ═══════════════
 function filterRequests(f){
   currentFilter=f;
-  ['Pending','Approved','Rejected','All'].forEach(function(t){
+  ['Pending','Approved','Rejected','All','Issued'].forEach(function(t){
     var el=document.getElementById('tab-'+t.toLowerCase());
     if(el) el.classList.toggle('active',t===f);
   });
@@ -239,6 +280,7 @@ function buildCard(req){
   if(req.status==='Approved') statusBadge='<span class="badge badge-approved">✅ Approved</span>';
   if(req.status==='Rejected') statusBadge='<span class="badge badge-rejected">❌ Rejected</span>';
   if(req.status==='Partial') statusBadge='<span class="badge badge-partial">⚠️ Partial</span>';
+  if(req.status==='Issued') statusBadge='<span class="badge badge-issued">📦 Issued</span>';
 
   var prioBadge='';
   if(req.priority==='Urgent') prioBadge='<span class="badge badge-urgent">🟠 Urgent</span>';
