@@ -3,819 +3,466 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-<title>طلب قطع غيار — CMMS KFMC</title>
+<title>Material Request — CMMS KFMC</title>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Arial,sans-serif;background:#f0f4f8;min-height:100vh}
-:root{--blue:#0a2e5c;--blue2:#1565c0;--green:#2e7d32;--red:#c62828;--orange:#e65100;--border:#b0c4de}
-.header{background:var(--blue);color:#fff;padding:10px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px #0005}
-.header h1{font-size:15px;font-weight:900;flex:1}
-.back-btn{background:#fff2;border:none;color:#fff;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700}
-.user-badge{background:#fff2;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#0d1b2e;min-height:100vh;display:flex;flex-direction:column}
 
-/* form */
-.form-wrap{max-width:780px;margin:16px auto;padding:0 12px 40px}
-.section{background:#fff;border-radius:14px;box-shadow:0 2px 10px #0001;margin-bottom:16px;overflow:hidden}
-.section-head{background:var(--blue);color:#fff;padding:10px 16px;font-weight:900;font-size:14px;display:flex;align-items:center;gap:8px}
-.section-body{padding:16px}
-.form-row{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
-.form-row label{font-size:12px;font-weight:700;color:#555}
-.form-row input,.form-row select,.form-row textarea{border:1.5px solid var(--border);border-radius:8px;padding:8px 10px;font-size:13px;font-family:Arial;outline:none;width:100%;background:#fff}
-.form-row input:focus,.form-row select:focus,.form-row textarea:focus{border-color:var(--blue)}
-.form-row input[readonly]{background:#f0f4f8;color:#555}
-.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
-@media(max-width:500px){.two-col,.three-col{grid-template-columns:1fr}}
+/* ── TOP BAR ── */
+.topbar{
+  background:#0a1628;
+  border-bottom:1px solid #1e3a5f;
+  padding:10px 20px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:200;
+  box-shadow:0 2px 12px #0006;
+}
+.topbar-left{display:flex;align-items:center;gap:12px}
+.topbar-logo{width:34px;height:34px;background:linear-gradient(135deg,#1565c0,#0d47a1);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.topbar-title{font-size:13px;font-weight:900;color:#fff;line-height:1.2}
+.topbar-sub{font-size:10px;color:#7a9abf;font-weight:600}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.notif-btn{background:none;border:none;color:#7a9abf;font-size:20px;cursor:pointer;position:relative;padding:4px}
+.notif-dot{position:absolute;top:4px;right:4px;width:8px;height:8px;background:#e53935;border-radius:50%;border:2px solid #0a1628}
+.user-chip{background:#1a2f4a;border:1px solid #1e3a5f;border-radius:20px;padding:5px 12px 5px 8px;display:flex;align-items:center;gap:7px;cursor:pointer}
+.user-avatar{width:26px;height:26px;background:linear-gradient(135deg,#e6a817,#c67c00);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;color:#fff}
+.user-name{font-size:12px;font-weight:700;color:#d0e4f7}
 
-/* items table */
-.items-table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:10px}
-.items-table th{background:var(--blue);color:#fff;padding:8px 10px;text-align:left}
-.items-table td{padding:7px 8px;border-bottom:1px solid #e8eef5;vertical-align:top}
-.items-table input,.items-table select{border:1.5px solid var(--border);border-radius:6px;padding:5px 7px;font-size:12px;width:100%;font-family:Arial;outline:none}
-.del-row{background:none;border:none;cursor:pointer;font-size:16px;color:var(--red);padding:0 6px}
-.add-row-btn{background:var(--blue);color:#fff;border:none;border-radius:8px;padding:7px 16px;cursor:pointer;font-size:13px;font-weight:700;margin-top:4px}
+/* ── LAYOUT ── */
+.layout{display:flex;flex:1;min-height:0}
 
-/* Custom searchable dropdown */
-.mat-dd-wrap{position:relative}
-.mat-dd-trigger{width:100%;border:1.5px solid var(--border);border-radius:6px;padding:6px 24px 6px 8px;font-size:12px;font-family:Arial;outline:none;cursor:pointer;background:#fff;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#888;position:relative;display:block}
-.mat-dd-trigger.selected{color:#222;font-weight:700}
-.mat-dd-trigger:focus{border-color:var(--blue)}
-.dd-global-panel{display:none;position:fixed;background:#fff;border:2px solid var(--blue);border-radius:10px;box-shadow:0 8px 28px #0003;z-index:999999;flex-direction:column;overflow:hidden;min-width:280px}
-.dd-global-panel.open{display:flex}
-.dd-search-wrap{padding:8px 10px;border-bottom:1px solid #e8eef5;flex-shrink:0}
-.dd-search-inp{width:100%;border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;font-size:13px;font-family:Arial;outline:none}
-.dd-search-inp:focus{border-color:var(--blue)}
-.dd-list{overflow-y:auto;max-height:240px;padding:4px 0}
-.dd-opt{padding:9px 12px;cursor:pointer;font-size:12px;display:flex;justify-content:space-between;align-items:center;gap:8px;border-bottom:1px solid #f0f4f8}
-.dd-opt:hover{background:#e8f0ff}
-.dd-opt:last-child{border-bottom:none}
-.dd-opt-name{flex:1;font-weight:600;color:#1a1a1a;line-height:1.3}
-.dd-opt-cat{font-size:10px;color:#888;margin-top:1px}
-.dd-opt-stock{font-size:11px;font-weight:700;padding:2px 8px;border-radius:8px;white-space:nowrap;flex-shrink:0}
-.dd-stock-ok{background:#e8f5e9;color:#2e7d32}
-.dd-stock-low{background:#fff3e0;color:#e65100}
-.dd-stock-zero{background:#ffebee;color:#c62828}
-.dd-empty{padding:20px;text-align:center;color:#aaa;font-size:12px}
+/* ── SIDEBAR ── */
+.sidebar{
+  width:200px;min-width:200px;
+  background:#0a1628;
+  border-right:1px solid #1e3a5f;
+  padding:16px 0;
+  display:flex;flex-direction:column;gap:4px;
+}
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 18px;
+  color:#7a9abf;font-size:13px;font-weight:600;
+  cursor:pointer;border-radius:0;
+  transition:.15s;border-left:3px solid transparent;
+  text-decoration:none;
+}
+.nav-item:hover{background:#122040;color:#c2dcf5}
+.nav-item.active{background:#122040;color:#4fc3f7;border-left-color:#4fc3f7}
+.nav-icon{font-size:16px;min-width:20px;text-align:center}
+.nav-item.active .nav-chevron{color:#4fc3f7}
+.nav-chevron{margin-left:auto;font-size:11px;color:#3a5a7a}
+.sidebar-divider{height:1px;background:#1e3a5f;margin:8px 14px}
 
-/* signature */
-.sig-wrap{border:2px dashed var(--border);border-radius:10px;background:#fafcff;text-align:center;position:relative}
-.sig-wrap canvas{display:block;width:100%;touch-action:none;cursor:crosshair}
-.sig-wrap .sig-label{font-size:11px;color:#888;padding:6px;font-weight:700}
-.sig-clear{position:absolute;top:6px;right:8px;background:var(--red);color:#fff;border:none;border-radius:6px;padding:3px 9px;cursor:pointer;font-size:11px;font-weight:700}
+/* ── MAIN ── */
+.main{flex:1;overflow-y:auto;padding:20px 24px}
 
-/* status badge */
-.badge{display:inline-block;padding:3px 10px;border-radius:10px;font-size:12px;font-weight:700}
-.badge-pending{background:#fff3e0;color:#e65100}
-.badge-approved{background:#e8f5e9;color:var(--green)}
-.badge-rejected{background:#ffebee;color:var(--red)}
+/* ── PAGE HEADER ── */
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px}
+.page-title-wrap{}
+.page-title{font-size:20px;font-weight:900;color:#e0efff;display:flex;align-items:center;gap:8px}
+.page-subtitle{font-size:12px;color:#7a9abf;margin-top:3px;font-weight:600}
+.new-req-btn{
+  background:linear-gradient(135deg,#00bcd4,#0097a7);
+  color:#fff;border:none;border-radius:10px;
+  padding:10px 18px;font-size:13px;font-weight:900;
+  cursor:pointer;display:flex;align-items:center;gap:6px;
+  box-shadow:0 4px 14px #00bcd430;
+  transition:.15s;white-space:nowrap;flex-shrink:0;
+}
+.new-req-btn:hover{opacity:.9;transform:translateY(-1px)}
 
-/* submit */
-.submit-btn{width:100%;padding:14px;background:var(--blue);color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:900;cursor:pointer;margin-top:8px;letter-spacing:.5px}
-.submit-btn:active{opacity:.85}
-.submit-btn:disabled{opacity:.5;cursor:not-allowed}
+/* ── STAT CARDS ── */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.stat-card{
+  border-radius:12px;padding:16px 18px;
+  display:flex;flex-direction:column;gap:6px;
+  position:relative;overflow:hidden;
+}
+.stat-num{font-size:28px;font-weight:900;line-height:1}
+.stat-label{font-size:12px;font-weight:700;opacity:.85;text-transform:uppercase;letter-spacing:.5px}
+.stat-card.pending{background:linear-gradient(135deg,#b7830a,#8a5f00);color:#fff7e0}
+.stat-card.approved{background:linear-gradient(135deg,#1b6e2e,#145224);color:#d4f5dc}
+.stat-card.rejected{background:linear-gradient(135deg,#7b1515,#5c0d0d);color:#ffd5d5}
+.stat-card.issued{background:linear-gradient(135deg,#4a2480,#2d1060);color:#e8d5ff}
+.stat-card::after{content:'';position:absolute;right:-10px;bottom:-10px;width:60px;height:60px;border-radius:50%;background:#ffffff15}
 
-/* request number */
-.req-number{background:var(--blue);color:#fff;padding:6px 16px;border-radius:20px;font-size:13px;font-weight:900;display:inline-block;margin-bottom:12px}
+/* ── FILTER BAR ── */
+.filter-bar{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.filter-tab{
+  background:#122040;border:1px solid #1e3a5f;color:#7a9abf;
+  padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;
+  cursor:pointer;transition:.15s;
+}
+.filter-tab.active,
+.filter-tab:hover{background:#1565c0;border-color:#1565c0;color:#fff}
+.search-wrap{margin-left:auto;position:relative}
+.search-inp{
+  background:#122040;border:1px solid #1e3a5f;color:#d0e4f7;
+  padding:7px 12px 7px 34px;border-radius:8px;font-size:13px;
+  outline:none;width:220px;transition:.15s;
+}
+.search-inp:focus{border-color:#1565c0}
+.search-inp::placeholder{color:#3a5a7a}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#3a5a7a;font-size:14px}
 
-/* toast */
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:12px 24px;border-radius:12px;font-size:14px;font-weight:700;z-index:999;opacity:0;transition:.3s;pointer-events:none}
+/* ── REQUEST CARDS ── */
+.req-list{display:flex;flex-direction:column;gap:10px}
+
+.req-card{
+  background:#112035;border:1px solid #1e3a5f;border-radius:12px;
+  padding:14px 16px;cursor:pointer;
+  transition:.15s;
+  display:flex;flex-direction:column;gap:8px;
+}
+.req-card:hover{background:#162a45;border-color:#1e4d80}
+
+.req-card-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.mr-number{font-size:13px;font-weight:900;color:#4fc3f7;letter-spacing:.3px}
+.req-title{font-size:14px;font-weight:700;color:#d0e4f7;flex:1}
+.req-card-chevron{color:#3a5a7a;font-size:16px;margin-left:auto}
+
+.req-card-bottom{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.req-meta{font-size:11px;color:#5a7a9a;display:flex;align-items:center;gap:4px}
+.req-meta-dot{width:3px;height:3px;border-radius:50%;background:#2a4a6a}
+
+/* ── STATUS BADGES ── */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:800;line-height:1;white-space:nowrap}
+.badge-issued   {background:#1a3a5a;color:#4fc3f7;border:1px solid #1e5a8a}
+.badge-approved {background:#0d3520;color:#4caf50;border:1px solid #1a6030}
+.badge-pending  {background:#3a2000;color:#ffa726;border:1px solid #6a3a00}
+.badge-rejected {background:#3a0a0a;color:#ef5350;border:1px solid #6a1010}
+.badge-high     {background:#3a1a00;color:#ff7043;border:1px solid #6a2a00}
+.badge-medium   {background:#1a2a3a;color:#90caf9;border:1px solid #2a4a6a}
+.badge-urgent   {background:#3a1500;color:#ff6f00;border:1px solid #6a2500}
+.badge-normal   {background:#0d2a1a;color:#66bb6a;border:1px solid #1a4a2a}
+
+/* ── LOADING / EMPTY ── */
+.loading-wrap{text-align:center;padding:40px;color:#3a5a7a;font-size:14px}
+.spinner{width:28px;height:28px;border:3px solid #1e3a5f;border-top-color:#4fc3f7;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty-wrap{text-align:center;padding:50px 20px;color:#3a5a7a}
+.empty-icon{font-size:40px;margin-bottom:10px}
+.empty-text{font-size:14px;font-weight:700;margin-bottom:6px;color:#5a7a9a}
+.empty-sub{font-size:12px;color:#3a5a7a}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1565c0;color:#fff;padding:11px 22px;border-radius:10px;font-size:13px;font-weight:700;z-index:999;opacity:0;transition:.3s;pointer-events:none;white-space:nowrap}
 .toast.show{opacity:1}
 
-/* PRINT */
-@media print{
-  .header,.back-btn,.no-print{display:none!important}
-  body{background:#fff}
-  .form-wrap{max-width:100%;margin:0;padding:0}
-  .section{box-shadow:none;border:1px solid #ccc;margin-bottom:10px}
-  .submit-btn,.add-row-btn,.del-row,.sig-clear{display:none!important}
-  .print-header{display:block!important}
+/* ── RESPONSIVE ── */
+@media(max-width:700px){
+  .sidebar{display:none}
+  .stats-row{grid-template-columns:1fr 1fr}
+  .main{padding:14px 12px}
+  .search-inp{width:100%}
+  .filter-bar{gap:6px}
 }
-
-/* Live status tracker */
-.status-tracker{display:flex;align-items:center;gap:0;margin:16px 0;overflow-x:auto;padding-bottom:4px}
-.status-step{display:flex;flex-direction:column;align-items:center;flex:1;min-width:80px;position:relative}
-.status-step:not(:last-child)::after{content:'';position:absolute;top:16px;left:60%;width:80%;height:2px;background:#e0e0e0;z-index:0}
-.status-step.done:not(:last-child)::after{background:var(--green)}
-.step-circle{width:32px;height:32px;border-radius:50%;border:2.5px solid #e0e0e0;background:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;position:relative;z-index:1;transition:.3s}
-.status-step.done .step-circle{background:var(--green);border-color:var(--green);color:#fff}
-.status-step.active .step-circle{background:var(--blue);border-color:var(--blue);color:#fff;animation:pulse-step .8s infinite alternate}
-.status-step.rejected .step-circle{background:var(--red);border-color:var(--red);color:#fff}
-@keyframes pulse-step{from{box-shadow:0 0 0 0 rgba(21,101,192,.4)}to{box-shadow:0 0 0 8px rgba(21,101,192,0)}}
-.step-label{font-size:10px;color:#888;margin-top:6px;text-align:center;font-weight:700}
-
-/* My requests cards */
-.my-req-card{border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px;background:#fff;cursor:pointer;transition:.15s}
-.my-req-card:hover{border-color:var(--blue);background:#f0f7ff}
-.my-req-card.approved{border-right:4px solid var(--green)}
-.my-req-card.rejected{border-right:4px solid var(--red)}
-.my-req-card.pending{border-right:4px solid var(--orange)}
-
-.print-header{display:none;text-align:center;margin-bottom:16px}
-.print-header h2{font-size:18px;color:var(--blue);font-weight:900}
-.print-header p{font-size:12px;color:#555;margin-top:4px}
+@media(max-width:420px){
+  .stats-row{grid-template-columns:1fr 1fr}
+  .stat-num{font-size:22px}
+}
 </style>
 </head>
 <body>
 
-<div class="header no-print">
-  <div>
-    <div style="font-size:10px;opacity:.7">CMMS KFMC — AL MAJAL AL ARABI GROUP</div>
-    <h1>📋 Material Request Form</h1>
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-logo">🏥</div>
+    <div>
+      <div class="topbar-title">King Faisal Medical Complex — AL MAJAL AL ARABI GROUP</div>
+      <div class="topbar-sub">CMMS System · Mechanical Maintenance</div>
+    </div>
   </div>
-  <span class="user-badge" id="userBadge">👷 —</span>
-  <button class="back-btn" onclick="goBack()">← Back</button>
+  <div class="topbar-right">
+    <button class="notif-btn" title="Notifications">
+      🔔<span class="notif-dot"></span>
+    </button>
+    <div class="user-chip">
+      <div class="user-avatar" id="userAvatar">E</div>
+      <span class="user-name" id="userNameChip">Eng. Ahmed</span>
+    </div>
+  </div>
 </div>
 
-<div class="form-wrap">
+<!-- LAYOUT -->
+<div class="layout">
 
-  <!-- Print header (visible only on print) -->
-  <div class="print-header">
-    <h2>KING FAISAL MEDICAL COMPLEX — KFMC</h2>
-    <p>AL MAJAL AL ARABI GROUP — Mechanical Maintenance Department</p>
-    <h3 style="margin-top:8px;font-size:16px">MATERIAL REQUEST FORM — نموذج طلب صرف مواد</h3>
-  </div>
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <a class="nav-item" href="#"><span class="nav-icon">📊</span> Dashboard</a>
+    <div class="sidebar-divider"></div>
+    <a class="nav-item" href="#"><span class="nav-icon">💨</span> AHU / FAHU</a>
+    <a class="nav-item" href="#"><span class="nav-icon">❄️</span> Chillers</a>
+    <a class="nav-item" href="#"><span class="nav-icon">🔄</span> CHW Pumps</a>
+    <a class="nav-item" href="#"><span class="nav-icon">🌀</span> Exhaust Fans</a>
+    <div class="sidebar-divider"></div>
+    <a class="nav-item" href="#"><span class="nav-icon">🏭</span> Warehouse</a>
+    <a class="nav-item active" href="#"><span class="nav-icon">📋</span> Material Request <span class="nav-chevron">›</span></a>
+    <a class="nav-item" href="#"><span class="nav-icon">✅</span> Engineer Approval</a>
+  </nav>
 
-  <div class="req-number" id="reqNumber">WR-2025-···</div>
+  <!-- MAIN -->
+  <main class="main">
 
-  <!-- ── SECTION 1: REQUEST INFO ── -->
-  <div class="section">
-    <div class="section-head">📝 Request Information — بيانات الطلب</div>
-    <div class="section-body">
-      <div class="two-col">
-        <div class="form-row">
-          <label>Request No. رقم الطلب</label>
-          <input type="text" id="reqNo" readonly>
-        </div>
-        <div class="form-row">
-          <label>Date التاريخ</label>
-          <input type="text" id="reqDate" readonly>
-        </div>
+    <!-- Page Header -->
+    <div class="page-header">
+      <div class="page-title-wrap">
+        <div class="page-title">📋 Material Request</div>
+        <div class="page-subtitle">Issue Materials · نموذج صرف مواد</div>
       </div>
-      <div class="form-row">
-        <label>Technician Name اسم الفني</label>
-        <input type="text" id="techName" readonly>
+      <button class="new-req-btn" onclick="openNewRequest()">＋ New Request</button>
+    </div>
+
+    <!-- Stat Cards -->
+    <div class="stats-row">
+      <div class="stat-card pending">
+        <div class="stat-num" id="countPending">—</div>
+        <div class="stat-label">Pending</div>
       </div>
-      <div class="two-col">
-        <div class="form-row">
-          <label>Building / Zone المبنى</label>
-          <select id="building">
-            <option value="">— Select —</option>
-            <option>Main Building</option>
-            <option>Medical Tower</option>
-            <option>OPD / Package Units</option>
-            <option>Chiller Plant A</option>
-            <option>Chiller Plant B</option>
-            <option>Service Building</option>
-            <option>Other</option>
-          </select>
-        </div>
-        <div class="form-row">
-          <label>Priority الأولوية</label>
-          <select id="priority">
-            <option value="Normal">🟢 Normal</option>
-            <option value="Urgent">🟠 Urgent</option>
-            <option value="Critical">🔴 Critical</option>
-          </select>
-        </div>
+      <div class="stat-card approved">
+        <div class="stat-num" id="countApproved">—</div>
+        <div class="stat-label">Approved</div>
       </div>
-      <div class="form-row">
-        <label>Equipment / Work Order المعدة / أمر العمل</label>
-        <input type="text" id="workOrder" placeholder="e.g. AHU-01 / Cooling Tower CT-02 ...">
+      <div class="stat-card rejected">
+        <div class="stat-num" id="countRejected">—</div>
+        <div class="stat-label">Rejected</div>
       </div>
-      <div class="form-row">
-        <label>Reason for Request سبب الطلب</label>
-        <textarea id="reason" rows="2" placeholder="Describe the maintenance work requiring these materials..."></textarea>
+      <div class="stat-card issued">
+        <div class="stat-num" id="countIssued">—</div>
+        <div class="stat-label">Issued</div>
       </div>
     </div>
-  </div>
 
-  <!-- ── SECTION 2: MATERIALS ── -->
-  <div class="section">
-    <div class="section-head">📦 Requested Materials — المواد المطلوبة</div>
-    <div class="section-body">
-      <div style="overflow-x:auto">
-        <table class="items-table" id="itemsTable">
-          <thead>
-            <tr>
-              <th style="width:36px">#</th>
-              <th>Material Name اسم المادة</th>
-              <th style="width:80px">Qty الكمية</th>
-              <th style="width:70px">Unit الوحدة</th>
-              <th style="width:90px">In Stock</th>
-              <th class="no-print" style="width:40px"></th>
-            </tr>
-          </thead>
-          <tbody id="itemsBody"></tbody>
-        </table>
-      </div>
-      <button class="add-row-btn no-print" onclick="addRow()">+ Add Item إضافة بند</button>
-    </div>
-  </div>
-
-
-  <!-- ── SECTION 4: ENGINEER (read-only until approved) ── -->
-  <div class="section" id="engSection">
-    <div class="section-head">👷‍♂️ Engineer Approval — اعتماد المهندس</div>
-    <div class="section-body" id="engBody">
-      <div style="text-align:center;padding:20px;color:#aaa;font-size:13px">
-        ⏳ Pending engineer review — في انتظار اعتماد المهندس
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+      <button class="filter-tab active" onclick="setFilter('all',this)">All</button>
+      <button class="filter-tab" onclick="setFilter('Pending',this)">Pending</button>
+      <button class="filter-tab" onclick="setFilter('Approved',this)">Approved</button>
+      <button class="filter-tab" onclick="setFilter('Rejected',this)">Rejected</button>
+      <button class="filter-tab" onclick="setFilter('Dispensed',this)">Issued</button>
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input class="search-inp" type="text" id="searchInp" placeholder="Search MR# or equipment…" oninput="renderList()">
       </div>
     </div>
-  </div>
 
-  <!-- ── SECTION 5: MY PREVIOUS REQUESTS ── -->
-  <div class="section" id="myRequestsSection" style="display:none">
-    <div class="section-head">📋 طلباتي السابقة — My Previous Requests</div>
-    <div class="section-body" id="myRequestsBody">
-      <div style="text-align:center;padding:16px;color:#aaa;font-size:13px">جاري التحميل...</div>
+    <!-- Request List -->
+    <div class="req-list" id="reqList">
+      <div class="loading-wrap">
+        <div class="spinner"></div>
+        Loading requests…
+      </div>
     </div>
-  </div>
 
-
-  <!-- ── STATUS TRACKER (shown after submit) ── -->
-  <div class="section" id="statusTrackerSection" style="display:none">
-  </div>
-  <button class="submit-btn no-print" id="submitBtn" onclick="submitRequest()">
-    📤 Submit Request — إرسال الطلب
-  </button>
-
+  </main>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
 // ═══════════════ FIREBASE ═══════════════
-const firebaseConfig={
-  apiKey:"AIzaSyDr9meYf-fKn7i-3NeQxfSnXNTs-4HGJyE",
-  authDomain:"hvac-ppm.firebaseapp.com",
-  projectId:"hvac-ppm",
-  storageBucket:"hvac-ppm.firebasestorage.app",
-  messagingSenderId:"429823910983",
-  appId:"1:429823910983:web:1836576203d10cbc9c3d62"
+const firebaseConfig = {
+  apiKey: "AIzaSyDr9meYf-fKn7i-3NeQxfSnXNTs-4HGJyE",
+  authDomain: "hvac-ppm.firebaseapp.com",
+  projectId: "hvac-ppm",
+  storageBucket: "hvac-ppm.firebasestorage.app",
+  messagingSenderId: "429823910983",
+  appId: "1:429823910983:web:1836576203d10cbc9c3d62"
 };
-if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const COL = 'material_requests';
 
-// ═══════════════ WAREHOUSE ITEMS ═══════════════
-var WAREHOUSE_SEED = [{"id":1,"name":"BREEZING ROD قصدير لحام","opening":10,"in_stock":0,"nett":10,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"General"},{"id":2,"name":"BREEZING POWDER","opening":4,"in_stock":0,"nett":4,"monthly_avg":0,"unit":"pcs","min_stock":3,"category":"Chemicals & Sealants"},{"id":3,"name":"INSULATION TAPE (Black)","opening":123,"in_stock":0,"nett":123,"monthly_avg":0,"unit":"pcs","min_stock":10,"category":"Insulation & Tapes"},{"id":4,"name":"ALUMINAM TAPE","opening":36,"in_stock":10,"nett":46,"monthly_avg":0,"unit":"pcs","min_stock":10,"category":"Insulation & Tapes"},{"id":5,"name":"ELECRICAL TAPE","opening":66,"in_stock":0,"nett":66,"monthly_avg":0,"unit":"pcs","min_stock":10,"category":"Insulation & Tapes"},{"id":6,"name":"سلك لحام نحاس","opening":12,"in_stock":0,"nett":12,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"General"},{"id":7,"name":"سلك لحام نحاس مبروم","opening":20,"in_stock":0,"nett":20,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"General"},{"id":8,"name":"WELDING ROD سلك لحام ازرق","opening":21,"in_stock":0,"nett":21,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"General"},{"id":9,"name":"ELECTARODE WELDING ROD (packet)","opening":1,"in_stock":0,"nett":1,"monthly_avg":0,"unit":"pcs","min_stock":2,"category":"General"},{"id":10,"name":"SUPER GLUE","opening":20,"in_stock":0,"nett":19,"monthly_avg":1,"unit":"pcs","min_stock":5,"category":"Chemicals & Sealants"},{"id":11,"name":"FILL&FIX FOAM","opening":35,"in_stock":0,"nett":35,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Chemicals & Sealants"},{"id":12,"name":"FRIDGE DOOR SWITCH مفتاح باب تلأجه","opening":24,"in_stock":0,"nett":24,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"General"},{"id":13,"name":"A.C SWITCH (NOB) ازرارتكيف","opening":35,"in_stock":0,"nett":35,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"General"},{"id":14,"name":"FRIDGE DOOR RUBBER (GASKIT) جوان باب تلأجه","opening":16,"in_stock":0,"nett":16,"monthly_avg":0,"unit":"M","min_stock":5,"category":"General"},{"id":15,"name":"C.R.C","opening":28,"in_stock":0,"nett":28,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Chemicals & Sealants"},{"id":16,"name":"W.D 40","opening":21,"in_stock":0,"nett":19,"monthly_avg":2,"unit":"pcs","min_stock":5,"category":"Chemicals & Sealants"},{"id":17,"name":"A.C COPPER PIPE (5/8)","opening":5,"in_stock":0,"nett":5,"monthly_avg":0,"unit":"pcs","min_stock":3,"category":"Piping"},{"id":18,"name":"A.C COPPER PIPE (1/4)","opening":5,"in_stock":0,"nett":5,"monthly_avg":0,"unit":"pcs","min_stock":3,"category":"Piping"},{"id":19,"name":"A.C COPPER PIPE (1/2)","opening":5,"in_stock":0,"nett":5,"monthly_avg":0,"unit":"pcs","min_stock":3,"category":"Piping"},{"id":20,"name":"A.C COPPER PIPE (3/8)","opening":5,"in_stock":0,"nett":5,"monthly_avg":0,"unit":"pcs","min_stock":3,"category":"Piping"},{"id":21,"name":"عزل 5/8","opening":22,"in_stock":0,"nett":22,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Insulation & Tapes"},{"id":22,"name":"عزل 1/4","opening":21,"in_stock":0,"nett":21,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Insulation & Tapes"},{"id":23,"name":"عزل 3/4","opening":0,"in_stock":5,"nett":5,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Insulation & Tapes"},{"id":24,"name":"عزل 1/2","opening":0,"in_stock":5,"nett":5,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Insulation & Tapes"},{"id":25,"name":"A.C DRAIN PIPE لي صرف مكيف","opening":38,"in_stock":0,"nett":38,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Piping"},{"id":26,"name":"WINDOW A.C COVER","opening":13,"in_stock":0,"nett":13,"monthly_avg":0,"unit":"pcs","min_stock":3,"category":"General"},{"id":27,"name":"EXHAUSE DEFUSER دفيوزر مرواحه","opening":8,"in_stock":0,"nett":8,"monthly_avg":0,"unit":"pcs","min_stock":3,"category":"General"},{"id":28,"name":"DEFUSER 60/60 دفيوزر","opening":1,"in_stock":0,"nett":1,"monthly_avg":0,"unit":"pcs","min_stock":2,"category":"General"},{"id":29,"name":"FLEXIBLE DUCT CONNECTER وصله مرنه","opening":1,"in_stock":0,"nett":1,"monthly_avg":0,"unit":"pcs","min_stock":2,"category":"General"},{"id":30,"name":"لفة عزل داكت 2\"","opening":1,"in_stock":0,"nett":1,"monthly_avg":0,"unit":"pcs","min_stock":2,"category":"Insulation & Tapes"},{"id":31,"name":"لفة عزل داكت 1\"","opening":1,"in_stock":0,"nett":1,"monthly_avg":0,"unit":"pcs","min_stock":2,"category":"Insulation & Tapes"},{"id":32,"name":"لفة عازل صوت للأبواب","opening":28,"in_stock":0,"nett":28,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Insulation & Tapes"},{"id":33,"name":"بكرة لأصق دبل فيس","opening":21,"in_stock":0,"nett":21,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"General"},{"id":34,"name":"لفة عازل لأصق","opening":6,"in_stock":10,"nett":16,"monthly_avg":0,"unit":"M","min_stock":5,"category":"Insulation & Tapes"},{"id":35,"name":"CHARGING VALVE بلف شحن","opening":40,"in_stock":0,"nett":40,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Fittings & Valves"},{"id":36,"name":"علبة أورينج كبيرة","opening":0,"in_stock":2,"nett":2,"monthly_avg":0,"unit":"pcs","min_stock":3,"category":"General"},{"id":37,"name":"ANTI VIBRATION","opening":29,"in_stock":0,"nett":29,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"General"},{"id":38,"name":"A.C REFRIGENT GAS (R-22)","opening":25,"in_stock":0,"nett":24,"monthly_avg":1,"unit":"Cyl","min_stock":5,"category":"Refrigerant Gas"},{"id":39,"name":"A.C REFRIGENT GAS (R-134)","opening":15,"in_stock":0,"nett":13,"monthly_avg":2,"unit":"Cyl","min_stock":5,"category":"Refrigerant Gas"},{"id":40,"name":"A.C REFRIGENT GAS (R-141b)","opening":1,"in_stock":0,"nett":1,"monthly_avg":0,"unit":"Cyl","min_stock":2,"category":"Refrigerant Gas"},{"id":41,"name":"A.C REFRIGENT GAS (R-404a)","opening":10,"in_stock":0,"nett":10,"monthly_avg":0,"unit":"Cyl","min_stock":3,"category":"Refrigerant Gas"},{"id":42,"name":"A.C REFRIGENT GAS (R-407c)","opening":15,"in_stock":0,"nett":15,"monthly_avg":0,"unit":"Cyl","min_stock":3,"category":"Refrigerant Gas"},{"id":43,"name":"A.C REFRIGENT GAS (R-410a)","opening":0,"in_stock":0,"nett":0,"monthly_avg":0,"unit":"Cyl","min_stock":3,"category":"Refrigerant Gas"},{"id":44,"name":"A.C REFRIGENT GAS (R-600a)","opening":13,"in_stock":0,"nett":12,"monthly_avg":1,"unit":"Cyl","min_stock":3,"category":"Refrigerant Gas"},{"id":45,"name":"A.C REFRIGENT GAS (R-11)","opening":8,"in_stock":0,"nett":8,"monthly_avg":0,"unit":"Cyl","min_stock":3,"category":"Refrigerant Gas"},{"id":46,"name":"RUBBER BELT (A-20)","opening":32,"in_stock":0,"nett":32,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":47,"name":"RUBBER BELT (A-21)","opening":28,"in_stock":0,"nett":28,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":48,"name":"RUBBER BELT (A-22)","opening":23,"in_stock":6,"nett":29,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":49,"name":"RUBBER BELT (A-23)","opening":17,"in_stock":6,"nett":23,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":50,"name":"RUBBER BELT (A-24)","opening":29,"in_stock":0,"nett":29,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":51,"name":"RUBBER BELT (A-25)","opening":12,"in_stock":0,"nett":12,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":52,"name":"RUBBER BELT (A-26)","opening":12,"in_stock":0,"nett":12,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":53,"name":"RUBBER BELT (A-27)","opening":20,"in_stock":0,"nett":20,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":54,"name":"RUBBER BELT (A-28)","opening":20,"in_stock":0,"nett":20,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":55,"name":"RUBBER BELT (A-29)","opening":18,"in_stock":0,"nett":18,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":56,"name":"RUBBER BELT (A-30)","opening":14,"in_stock":0,"nett":14,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":57,"name":"RUBBER BELT (A-31)","opening":14,"in_stock":6,"nett":20,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":58,"name":"RUBBER BELT (A-32)","opening":12,"in_stock":6,"nett":16,"monthly_avg":2,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":59,"name":"RUBBER BELT (A-33)","opening":15,"in_stock":0,"nett":13,"monthly_avg":2,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":60,"name":"RUBBER BELT (A-34)","opening":17,"in_stock":6,"nett":21,"monthly_avg":2,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":61,"name":"RUBBER BELT (A-35)","opening":14,"in_stock":0,"nett":13,"monthly_avg":1,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":62,"name":"RUBBER BELT (A-38)","opening":9,"in_stock":6,"nett":15,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":63,"name":"RUBBER BELT (A-39)","opening":15,"in_stock":0,"nett":15,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":64,"name":"RUBBER BELT (A-40)","opening":12,"in_stock":0,"nett":11,"monthly_avg":1,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":65,"name":"RUBBER BELT (A-41)","opening":7,"in_stock":6,"nett":13,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":66,"name":"RUBBER BELT (A-43)","opening":16,"in_stock":0,"nett":14,"monthly_avg":2,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":67,"name":"RUBBER BELT (A-44)","opening":10,"in_stock":6,"nett":16,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":68,"name":"RUBBER BELT (A-45)","opening":24,"in_stock":0,"nett":23,"monthly_avg":1,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":69,"name":"RUBBER BELT (A-46)","opening":43,"in_stock":0,"nett":41,"monthly_avg":2,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":70,"name":"RUBBER BELT (A-47)","opening":10,"in_stock":6,"nett":14,"monthly_avg":2,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":71,"name":"RUBBER BELT (A-48)","opening":27,"in_stock":0,"nett":25,"monthly_avg":2,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":72,"name":"RUBBER BELT (A-49)","opening":13,"in_stock":0,"nett":13,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":73,"name":"RUBBER BELT (A-50)","opening":11,"in_stock":0,"nett":11,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":74,"name":"RUBBER BELT (A-51)","opening":33,"in_stock":0,"nett":33,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":75,"name":"RUBBER BELT (A-52)","opening":10,"in_stock":0,"nett":10,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":76,"name":"RUBBER BELT (A-53)","opening":10,"in_stock":6,"nett":14,"monthly_avg":2,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":77,"name":"RUBBER BELT (A-54)","opening":7,"in_stock":6,"nett":13,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":78,"name":"RUBBER BELT (A-57)","opening":17,"in_stock":0,"nett":17,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":79,"name":"RUBBER BELT (A-59)","opening":47,"in_stock":0,"nett":47,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":80,"name":"RUBBER BELT (A-60)","opening":17,"in_stock":0,"nett":17,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":81,"name":"RUBBER BELT (A-63)","opening":33,"in_stock":0,"nett":33,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":82,"name":"RUBBER BELT (A-65)","opening":23,"in_stock":0,"nett":23,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":83,"name":"RUBBER BELT (A-67)","opening":11,"in_stock":0,"nett":11,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":84,"name":"RUBBER BELT (A-68)","opening":14,"in_stock":0,"nett":14,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":85,"name":"RUBBER BELT (A-69)","opening":4,"in_stock":0,"nett":4,"monthly_avg":0,"unit":"pcs","min_stock":3,"category":"Rubber Belts"},{"id":86,"name":"RUBBER BELT (A-70)","opening":11,"in_stock":0,"nett":11,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":87,"name":"RUBBER BELT (A-71)","opening":11,"in_stock":0,"nett":11,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":88,"name":"RUBBER BELT (A-72)","opening":18,"in_stock":0,"nett":18,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":89,"name":"RUBBER BELT (A-73)","opening":39,"in_stock":0,"nett":39,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":90,"name":"RUBBER BELT (A-74)","opening":14,"in_stock":0,"nett":14,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":91,"name":"RUBBER BELT (A-79)","opening":21,"in_stock":0,"nett":21,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":92,"name":"RUBBER BELT (A-80)","opening":8,"in_stock":0,"nett":8,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":93,"name":"RUBBER BELT (A-89)","opening":11,"in_stock":0,"nett":11,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":94,"name":"RUBBER BELT (A-93)","opening":16,"in_stock":0,"nett":16,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":95,"name":"RUBBER BELT (SPA-732)","opening":12,"in_stock":0,"nett":12,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":96,"name":"RUBBER BELT (SPA-757)","opening":18,"in_stock":0,"nett":18,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":97,"name":"RUBBER BELT (SPA-800)","opening":16,"in_stock":0,"nett":16,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":98,"name":"RUBBER BELT (SPA-825)","opening":33,"in_stock":0,"nett":31,"monthly_avg":2,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":99,"name":"RUBBER BELT (SPA-832)","opening":17,"in_stock":0,"nett":17,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":100,"name":"RUBBER BELT (SPA-882)","opening":16,"in_stock":0,"nett":15,"monthly_avg":1,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":101,"name":"RUBBER BELT (SPA-900)","opening":11,"in_stock":0,"nett":11,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":102,"name":"RUBBER BELT (SPA-932)","opening":22,"in_stock":0,"nett":22,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":103,"name":"RUBBER BELT (SPA-1032)","opening":9,"in_stock":5,"nett":14,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":104,"name":"RUBBER BELT (SPA-1060)","opening":5,"in_stock":10,"nett":15,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":105,"name":"RUBBER BELT (SPA-1082)","opening":8,"in_stock":5,"nett":12,"monthly_avg":1,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":106,"name":"RUBBER BELT (SPA-1107)","opening":20,"in_stock":0,"nett":20,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":107,"name":"RUBBER BELT (SPA-1132)","opening":12,"in_stock":6,"nett":18,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":108,"name":"RUBBER BELT (SPA-1157)","opening":7,"in_stock":0,"nett":7,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":109,"name":"RUBBER BELT (SPA-1180)","opening":16,"in_stock":6,"nett":18,"monthly_avg":4,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":110,"name":"RUBBER BELT (SPA-1232)","opening":15,"in_stock":0,"nett":15,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":111,"name":"RUBBER BELT (SPA-1250)","opening":9,"in_stock":0,"nett":9,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":112,"name":"RUBBER BELT (SPA-1320)","opening":26,"in_stock":0,"nett":26,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":113,"name":"RUBBER BELT (SPA-1357)","opening":25,"in_stock":0,"nett":25,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":114,"name":"RUBBER BELT (SPA-1432)","opening":22,"in_stock":0,"nett":22,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":115,"name":"RUBBER BELT (SPA-1482)","opening":32,"in_stock":0,"nett":32,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":116,"name":"RUBBER BELT (SPA-1532)","opening":55,"in_stock":0,"nett":55,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":117,"name":"RUBBER BELT (SPA-1557)","opening":37,"in_stock":0,"nett":37,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":118,"name":"RUBBER BELT (SPA-1682)","opening":10,"in_stock":0,"nett":10,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":119,"name":"RUBBER BELT (SPA-1707)","opening":25,"in_stock":0,"nett":25,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":120,"name":"RUBBER BELT (SPA-1732)","opening":44,"in_stock":0,"nett":44,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":121,"name":"RUBBER BELT (SPA-1750)","opening":13,"in_stock":0,"nett":13,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":122,"name":"RUBBER BELT (SPA-1757)","opening":39,"in_stock":0,"nett":39,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":123,"name":"RUBBER BELT (SPA-1782)","opening":27,"in_stock":0,"nett":27,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":124,"name":"RUBBER BELT (SPA-1882)","opening":11,"in_stock":0,"nett":11,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":125,"name":"RUBBER BELT (SPA-1982)","opening":17,"in_stock":0,"nett":17,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":126,"name":"RUBBER BELT (SPA-2432)","opening":24,"in_stock":0,"nett":24,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":127,"name":"RUBBER BELT (SPA-2450)","opening":11,"in_stock":0,"nett":11,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":128,"name":"THERMOSTATE","opening":0,"in_stock":0,"nett":0,"monthly_avg":0,"unit":"pcs","min_stock":2,"category":"Electrical"},{"id":129,"name":"CAPACITOR (35+5uf)","opening":0,"in_stock":0,"nett":0,"monthly_avg":0,"unit":"pcs","min_stock":2,"category":"Electrical"},{"id":130,"name":"CAPACITOR (40+5uf)","opening":0,"in_stock":0,"nett":0,"monthly_avg":0,"unit":"pcs","min_stock":2,"category":"Electrical"},{"id":131,"name":"CAPACITOR (45+5uf)","opening":0,"in_stock":0,"nett":0,"monthly_avg":0,"unit":"pcs","min_stock":2,"category":"Electrical"},{"id":132,"name":"CAPACITOR (50+5uf)","opening":0,"in_stock":0,"nett":0,"monthly_avg":0,"unit":"pcs","min_stock":2,"category":"Electrical"},{"id":133,"name":"CAPACITOR (55+5uf)","opening":0,"in_stock":0,"nett":0,"monthly_avg":0,"unit":"pcs","min_stock":2,"category":"Electrical"},{"id":134,"name":"CAPACITOR (60+5uf)","opening":1,"in_stock":0,"nett":1,"monthly_avg":0,"unit":"pcs","min_stock":2,"category":"Electrical"},{"id":135,"name":"CAPACITOR (70+5uf)","opening":0,"in_stock":0,"nett":0,"monthly_avg":0,"unit":"pcs","min_stock":2,"category":"Electrical"},{"id":136,"name":"COMPRESOR (1.5ton)","opening":1,"in_stock":0,"nett":1,"monthly_avg":0,"unit":"pcs","min_stock":1,"category":"Compressors"},{"id":137,"name":"P.T.C RELAY (1.5uf)","opening":5,"in_stock":0,"nett":5,"monthly_avg":0,"unit":"pcs","min_stock":3,"category":"Electrical"},{"id":138,"name":"P.T.C RELAY (2.5uf)","opening":5,"in_stock":0,"nett":5,"monthly_avg":0,"unit":"pcs","min_stock":3,"category":"Electrical"},{"id":139,"name":"P.T.C RELAY (3uf)","opening":3,"in_stock":0,"nett":3,"monthly_avg":0,"unit":"pcs","min_stock":3,"category":"Electrical"},{"id":140,"name":"P.T.C RELAY (5uf)","opening":2,"in_stock":0,"nett":2,"monthly_avg":0,"unit":"pcs","min_stock":3,"category":"Electrical"},{"id":141,"name":"P.T.C RELAY (6uf)","opening":4,"in_stock":0,"nett":4,"monthly_avg":0,"unit":"pcs","min_stock":3,"category":"Electrical"},{"id":142,"name":"P.T.C RELAY (8uf)","opening":3,"in_stock":0,"nett":3,"monthly_avg":0,"unit":"pcs","min_stock":3,"category":"Electrical"},{"id":143,"name":"DEAD NUT 3/8","opening":15,"in_stock":0,"nett":15,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Fittings & Valves"},{"id":144,"name":"DEAD NUT 5/8","opening":13,"in_stock":0,"nett":13,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Fittings & Valves"},{"id":145,"name":"DEAD NUT 1/4","opening":14,"in_stock":0,"nett":14,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Fittings & Valves"},{"id":146,"name":"DEAD NUT 1/2","opening":14,"in_stock":0,"nett":14,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Fittings & Valves"},{"id":147,"name":"MOTOR (0.75hp)","opening":1,"in_stock":0,"nett":1,"monthly_avg":0,"unit":"pcs","min_stock":1,"category":"Motors"},{"id":148,"name":"MOTOR (1hp)","opening":1,"in_stock":0,"nett":1,"monthly_avg":0,"unit":"pcs","min_stock":1,"category":"Motors"},{"id":149,"name":"MOTOR (1.5hp)","opening":1,"in_stock":0,"nett":1,"monthly_avg":0,"unit":"pcs","min_stock":1,"category":"Motors"},{"id":150,"name":"MOTOR (2hp)","opening":1,"in_stock":0,"nett":1,"monthly_avg":0,"unit":"pcs","min_stock":1,"category":"Motors"},{"id":151,"name":"MOTOR (3hp)","opening":2,"in_stock":0,"nett":2,"monthly_avg":0,"unit":"pcs","min_stock":1,"category":"Motors"},{"id":152,"name":"MOTOR (5hp)","opening":1,"in_stock":0,"nett":1,"monthly_avg":0,"unit":"pcs","min_stock":1,"category":"Motors"},{"id":153,"name":"WISE","opening":1,"in_stock":0,"nett":1,"monthly_avg":0,"unit":"pcs","min_stock":1,"category":"General"},{"id":154,"name":"RUBBER BELT (B-23)","opening":15,"in_stock":0,"nett":15,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":155,"name":"RUBBER BELT (B-28)","opening":20,"in_stock":0,"nett":20,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":156,"name":"RUBBER BELT (B-33)","opening":15,"in_stock":0,"nett":15,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":157,"name":"RUBBER BELT (B-34)","opening":5,"in_stock":0,"nett":5,"monthly_avg":0,"unit":"pcs","min_stock":3,"category":"Rubber Belts"},{"id":158,"name":"RUBBER BELT (B-38)","opening":10,"in_stock":0,"nett":10,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":159,"name":"RUBBER BELT (B-39)","opening":10,"in_stock":0,"nett":10,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":160,"name":"RUBBER BELT (B-41)","opening":7,"in_stock":0,"nett":7,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":161,"name":"RUBBER BELT (B-42)","opening":14,"in_stock":0,"nett":14,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":162,"name":"RUBBER BELT (B-43)","opening":9,"in_stock":0,"nett":9,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":163,"name":"RUBBER BELT (B-47)","opening":15,"in_stock":0,"nett":15,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":164,"name":"RUBBER BELT (B-48)","opening":12,"in_stock":0,"nett":12,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":165,"name":"RUBBER BELT (B-58)","opening":18,"in_stock":0,"nett":18,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":166,"name":"RUBBER BELT (B-59)","opening":23,"in_stock":0,"nett":23,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":167,"name":"RUBBER BELT (B-60)","opening":15,"in_stock":0,"nett":15,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":168,"name":"RUBBER BELT (B-67)","opening":30,"in_stock":0,"nett":30,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":169,"name":"RUBBER BELT (B-71)","opening":33,"in_stock":0,"nett":33,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":170,"name":"RUBBER BELT (B-73)","opening":53,"in_stock":0,"nett":53,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":171,"name":"RUBBER BELT (B-74)","opening":12,"in_stock":0,"nett":12,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":172,"name":"RUBBER BELT (B-96)","opening":10,"in_stock":0,"nett":10,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":173,"name":"RUBBER BELT (B-106)","opening":6,"in_stock":0,"nett":6,"monthly_avg":0,"unit":"pcs","min_stock":3,"category":"Rubber Belts"},{"id":174,"name":"RUBBER BELT (B-710)","opening":4,"in_stock":0,"nett":4,"monthly_avg":0,"unit":"pcs","min_stock":3,"category":"Rubber Belts"},{"id":175,"name":"RUBBER BELT (B-2350)","opening":20,"in_stock":0,"nett":20,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":176,"name":"RUBBER BELT (B-2675)","opening":10,"in_stock":0,"nett":10,"monthly_avg":0,"unit":"pcs","min_stock":5,"category":"Rubber Belts"},{"id":177,"name":"RUBBER BELT (B-2710)","opening":4,"in_stock":0,"nett":4,"monthly_avg":0,"unit":"pcs","min_stock":3,"category":"Rubber Belts"},{"id":178,"name":"RUBBER BELT PACKAGE (BX-30)","opening":9,"in_stock":0,"nett":9,"monthly_avg":0,"unit":"pcs","min_stock":3,"category":"Rubber Belts"},{"id":179,"name":"CAPALARY TUBE (4)","opening":7,"in_stock":0,"nett":7,"monthly_avg":0,"unit":"pcs","min_stock":3,"category":"Piping"},{"id":180,"name":"CAPALARY TUBE (5)","opening":5,"in_stock":0,"nett":5,"monthly_avg":0,"unit":"pcs","min_stock":3,"category":"Piping"},{"id":181,"name":"CAPALARY TUBE (6)","opening":7,"in_stock":0,"nett":7,"monthly_avg":0,"unit":"pcs","min_stock":3,"category":"Piping"},{"id":182,"name":"CAPALARY TUBE (7)","opening":3,"in_stock":0,"nett":3,"monthly_avg":0,"unit":"pcs","min_stock":3,"category":"Piping"},{"id":183,"name":"CAPALARY TUBE (8)","opening":6,"in_stock":0,"nett":6,"monthly_avg":0,"unit":"pcs","min_stock":3,"category":"Piping"},{"id":184,"name":"CAPALARY TUBE (9)","opening":3,"in_stock":0,"nett":3,"monthly_avg":0,"unit":"pcs","min_stock":3,"category":"Piping"},{"id":185,"name":"CAPALARY TUBE (10)","opening":2,"in_stock":0,"nett":2,"monthly_avg":0,"unit":"pcs","min_stock":3,"category":"Piping"},{"id":186,"name":"DRAYER FILTER (A.C)","opening":4,"in_stock":0,"nett":4,"monthly_avg":0,"unit":"pcs","min_stock":3,"category":"Filters"},{"id":187,"name":"DRAYER FILTER (Fridge)","opening":10,"in_stock":0,"nett":10,"monthly_avg":0,"unit":"pcs","min_stock":3,"category":"Filters"}];
-var warehouseItems = [];
-function loadWarehouseItems(){
-  // Read from the same localStorage key used by warehouse.html
-  try{
-    var raw = localStorage.getItem('kfmc-warehouse-v1');
-    if(raw){
-      var parsed = JSON.parse(raw);
-      warehouseItems = (parsed && parsed.items && parsed.items.length) ? parsed.items : [];
-    }
-  }catch(e){ warehouseItems=[]; }
-  // Fallback: try old key
-  if(!warehouseItems.length){
-    try{
-      var raw2 = localStorage.getItem('wh_items');
-      warehouseItems = raw2 ? JSON.parse(raw2) : [];
-    }catch(e){ warehouseItems=[]; }
-  }
-  // Final fallback: use built-in seed data
-  if(!warehouseItems.length){ warehouseItems = WAREHOUSE_SEED.slice(); }
-  // Normalize: ensure each item has a 'nett' field (warehouse uses 'stock')
-  warehouseItems = warehouseItems.map(function(i){
-    return {
-      id: i.id,
-      name: i.name || '',
-      category: i.category || 'General',
-      unit: i.unit || 'pcs',
-      nett: i.nett !== undefined ? i.nett : (i.stock !== undefined ? i.stock : 0),
-      min_stock: i.min_stock !== undefined ? i.min_stock : (i.minStock !== undefined ? i.minStock : 0)
-    };
-  });
-}
+// ═══════════════ STATE ═══════════════
+var allRequests = [];
+var activeFilter = 'all';
+var loggedUser = null;
 
 // ═══════════════ SESSION ═══════════════
-var loggedUser = null;
-function getUser(){
-  var raw=sessionStorage.getItem('cmms_user')||localStorage.getItem('cmms_user');
-  if(!raw)return null;
-  try{return JSON.parse(raw);}catch(e){return null;}
+function getUser() {
+  var raw = sessionStorage.getItem('cmms_user') || localStorage.getItem('cmms_user');
+  if (!raw) return null;
+  try { return JSON.parse(raw); } catch (e) { return null; }
 }
-window.addEventListener('message',function(e){
-  if(e.data&&e.data.type==='CMMS_USER'){
-    try{
-      var u=JSON.parse(e.data.data);
-      if(u&&u.name){sessionStorage.setItem('cmms_user',e.data.data);init();}
-    }catch(err){}
+window.addEventListener('message', function(e) {
+  if (e.data && e.data.type === 'CMMS_USER') {
+    try {
+      var u = JSON.parse(e.data.data);
+      if (u && u.name) { sessionStorage.setItem('cmms_user', e.data.data); applyUser(u); }
+    } catch (err) {}
   }
 });
 
-// ═══════════════ REQUEST NUMBER ═══════════════
-function genReqNo(){
-  var d=new Date();
-  var y=d.getFullYear();
-  var rand=Math.floor(1000+Math.random()*9000);
-  return 'WR-'+y+'-'+rand;
+function applyUser(u) {
+  loggedUser = u;
+  var initials = (u.name || 'E').split(' ').map(function(w){ return w[0]; }).join('').toUpperCase().slice(0,2);
+  document.getElementById('userAvatar').textContent = initials;
+  document.getElementById('userNameChip').textContent = u.name || 'Engineer';
 }
 
-// ═══════════════ INIT ═══════════════
-var currentReqNo = '';
-function init(){
-  loadWarehouseItems();
-  loggedUser = getUser();
-  currentReqNo = genReqNo();
-  var nowD = new Date();
-  // Auto date formatted nicely
-  var days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  var dateStr = days[nowD.getDay()] + ', '
-               + nowD.getDate() + ' ' + months[nowD.getMonth()] + ' ' + nowD.getFullYear()
-               + '  —  ' + nowD.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
-  // Auto request number
-  var reqNoEl = document.getElementById('reqNo');
-  var reqNumEl = document.getElementById('reqNumber');
-  var reqDateEl = document.getElementById('reqDate');
-  if(reqNoEl) reqNoEl.value = currentReqNo;
-  if(reqNumEl){ reqNumEl.textContent = currentReqNo; reqNumEl.title = 'Auto-generated request number'; }
-  if(reqDateEl) reqDateEl.value = dateStr;
-  // Auto tech name from login session
-  if(loggedUser){
-    var tnEl = document.getElementById('techName');
-    var ubEl = document.getElementById('userBadge');
-    if(tnEl){ tnEl.value = loggedUser.name || '—'; }
-    if(ubEl){ ubEl.textContent = '👷 '+(loggedUser.name||''); }
-  }
-  if(!document.getElementById('itemsBody').children.length) addRow();
-}
+// ═══════════════ LOAD DATA (live) ═══════════════
+function loadRequests() {
+  var query = db.collection(COL).orderBy('createdAt', 'desc').limit(100);
 
-// ═══════════════ ITEMS TABLE ═══════════════
-
-// Single global dropdown panel - appended to body, never inside table
-var _ddPanel = null;
-var _ddActiveRow = null;  // the TR element currently open
-
-function _buildGlobalPanel() {
-  if (_ddPanel) return;
-  _ddPanel = document.createElement('div');
-  _ddPanel.className = 'dd-global-panel';
-  _ddPanel.id = 'ddGlobalPanel';
-  _ddPanel.innerHTML =
-    '<div class="dd-search-wrap">' +
-      '<input type="text" class="dd-search-inp" id="ddSearchInp" placeholder="🔍 ابحث — Search..." autocomplete="off">' +
-    '</div>' +
-    '<div class="dd-list" id="ddList"></div>';
-  document.body.appendChild(_ddPanel);
-
-  document.getElementById('ddSearchInp').addEventListener('input', function() {
-    _populateList(this.value);
-  });
-
-  // Close on outside click
-  document.addEventListener('click', function(e) {
-    if (_ddPanel.classList.contains('open') &&
-        !e.target.closest('.dd-global-panel') &&
-        !e.target.closest('.mat-dd-trigger')) {
-      _closePanel();
-    }
-  });
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') _closePanel();
+  // If engineer role — show all; if technician — show own
+  // For now we show all (engineer view matching the photo)
+  query.onSnapshot(function(snap) {
+    allRequests = [];
+    snap.forEach(function(doc) {
+      var d = doc.data();
+      d._id = doc.id;
+      allRequests.push(d);
+    });
+    updateStats();
+    renderList();
+  }, function(err) {
+    document.getElementById('reqList').innerHTML =
+      '<div class="empty-wrap"><div class="empty-icon">⚠️</div>' +
+      '<div class="empty-text">Could not load requests</div>' +
+      '<div class="empty-sub">' + err.message + '</div></div>';
   });
 }
 
-function _closePanel() {
-  if (!_ddPanel) return;
-  _ddPanel.classList.remove('open');
-  _ddActiveRow = null;
+// ═══════════════ STATS ═══════════════
+function updateStats() {
+  var counts = { Pending: 0, Approved: 0, Rejected: 0, Dispensed: 0 };
+  allRequests.forEach(function(r) {
+    var s = r.status || 'Pending';
+    if (s === 'Partial') s = 'Approved';
+    if (counts[s] !== undefined) counts[s]++;
+  });
+  document.getElementById('countPending').textContent  = counts.Pending;
+  document.getElementById('countApproved').textContent = counts.Approved;
+  document.getElementById('countRejected').textContent = counts.Rejected;
+  document.getElementById('countIssued').textContent   = counts.Dispensed;
 }
 
-function _populateList(q) {
-  var list = document.getElementById('ddList');
-  if (!list) return;
-  var query = (q || '').toLowerCase().trim();
-  var results = warehouseItems.filter(function(it) {
-    return !query || (it.name || '').toLowerCase().indexOf(query) !== -1;
+// ═══════════════ FILTER ═══════════════
+function setFilter(f, btn) {
+  activeFilter = f;
+  document.querySelectorAll('.filter-tab').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  renderList();
+}
+
+// ═══════════════ RENDER LIST ═══════════════
+function renderList() {
+  var q = (document.getElementById('searchInp').value || '').toLowerCase().trim();
+  var filtered = allRequests.filter(function(r) {
+    var statusMatch = activeFilter === 'all' || r.status === activeFilter ||
+                      (activeFilter === 'Approved' && r.status === 'Partial') ||
+                      (activeFilter === 'Dispensed' && r.status === 'Dispensed');
+    var searchMatch = !q ||
+      (r.reqNo && r.reqNo.toLowerCase().indexOf(q) !== -1) ||
+      (r.workOrder && r.workOrder.toLowerCase().indexOf(q) !== -1) ||
+      (r.techName && r.techName.toLowerCase().indexOf(q) !== -1) ||
+      (r.building && r.building.toLowerCase().indexOf(q) !== -1);
+    return statusMatch && searchMatch;
   });
-  if (!results.length) {
-    list.innerHTML = '<div class="dd-empty">لا توجد نتائج — No results found</div>';
+
+  var list = document.getElementById('reqList');
+  if (!filtered.length) {
+    list.innerHTML = '<div class="empty-wrap"><div class="empty-icon">📭</div>' +
+      '<div class="empty-text">No requests found</div>' +
+      '<div class="empty-sub">Try changing the filter or search term</div></div>';
     return;
   }
-  list.innerHTML = '';
-  results.forEach(function(it) {
-    var nett = parseFloat(it.nett) || 0;
-    var stockCls = nett <= 0 ? 'dd-stock-zero' : nett <= 3 ? 'dd-stock-low' : 'dd-stock-ok';
-    var stockTxt = nett <= 0 ? '❌ نفد' : nett + ' ' + (it.unit || '');
-    var div = document.createElement('div');
-    div.className = 'dd-opt';
-    div.innerHTML =
-      '<div>' +
-        '<div class="dd-opt-name">' + _esc(it.name || '') + '</div>' +
-        '<div class="dd-opt-cat">' + _esc(it.category || '') + '</div>' +
-      '</div>' +
-      '<span class="dd-opt-stock ' + stockCls + '">' + stockTxt + '</span>';
-    div.addEventListener('click', function() {
-      _selectItem(it);
-    });
-    list.appendChild(div);
-  });
-}
 
-function _esc(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-
-function _selectItem(it) {
-  if (!_ddActiveRow) { _closePanel(); return; }
-  var nett = parseFloat(it.nett) || 0;
-
-  // Update trigger button label
-  var trigger = _ddActiveRow.querySelector('.mat-dd-trigger');
-  if (trigger) {
-    trigger.textContent = it.name || '';
-    trigger.classList.add('selected');
-    trigger.classList.remove('placeholder');
-  }
-
-  // Store values in hidden inputs
-  var hidId   = _ddActiveRow.querySelector('.mat-mat-id');
-  var hidName = _ddActiveRow.querySelector('.mat-mat-name');
-  if (hidId)   hidId.value   = it.id;
-  if (hidName) hidName.value = it.name || '';
-
-  // Unit
-  var unitEl = _ddActiveRow.querySelector('.mat-unit');
-  if (unitEl) unitEl.value = it.unit || '';
-
-  // Stock with color
-  var stockEl = _ddActiveRow.querySelector('.mat-stock');
-  if (stockEl) {
-    stockEl.value = nett;
-    stockEl.style.color = nett <= 0 ? '#c62828' : nett <= 3 ? '#e65100' : '#2e7d32';
-  }
-
-  _closePanel();
-}
-
-function openMatDropdown(triggerBtn) {
-  _buildGlobalPanel();
-
-  // Find parent TR
-  _ddActiveRow = triggerBtn.closest('tr');
-
-  // Position panel under trigger button
-  var rect = triggerBtn.getBoundingClientRect();
-  var panelW = Math.max(rect.width + 40, 300);
-  var leftPos = rect.left;
-
-  // Prevent going off right edge
-  if (leftPos + panelW > window.innerWidth - 8) {
-    leftPos = window.innerWidth - panelW - 8;
-  }
-
-  _ddPanel.style.top    = (rect.bottom + window.scrollY + 4) + 'px';
-  _ddPanel.style.left   = leftPos + 'px';
-  _ddPanel.style.width  = panelW + 'px';
-  _ddPanel.classList.add('open');
-
-  // Reset search and populate
-  var inp = document.getElementById('ddSearchInp');
-  if (inp) inp.value = '';
-  _populateList('');
-  if (inp) setTimeout(function(){ inp.focus(); }, 30);
-}
-
-function addRow() {
-  _buildGlobalPanel();
-  var tbody = document.getElementById('itemsBody');
-  var rowIdx = tbody.children.length;
-  var num = rowIdx + 1;
-
-  var tr = document.createElement('tr');
-  tr.setAttribute('data-row-idx', rowIdx);
-
-  var td0 = document.createElement('td');
-  td0.style.cssText = 'text-align:center;font-weight:700;vertical-align:middle;width:36px';
-  td0.textContent = num;
-
-  var td1 = document.createElement('td');
-  td1.style.cssText = 'min-width:220px';
-  var wrap = document.createElement('div');
-  wrap.className = 'mat-dd-wrap';
-
-  var trigger = document.createElement('button');
-  trigger.type = 'button';
-  trigger.className = 'mat-dd-trigger placeholder';
-  trigger.textContent = '🔍 اختر المادة — Select material ▾';
-  trigger.addEventListener('click', function(e) {
-    e.stopPropagation();
-    openMatDropdown(trigger);
-  });
-
-  var hidId   = document.createElement('input');
-  hidId.type  = 'hidden';
-  hidId.className = 'mat-mat-id';
-
-  var hidName  = document.createElement('input');
-  hidName.type = 'hidden';
-  hidName.className = 'mat-mat-name';
-
-  wrap.appendChild(trigger);
-  wrap.appendChild(hidId);
-  wrap.appendChild(hidName);
-  td1.appendChild(wrap);
-
-  var td2 = document.createElement('td');
-  td2.style.width = '80px';
-  var qtyInp = document.createElement('input');
-  qtyInp.type = 'number';
-  qtyInp.className = 'mat-qty';
-  qtyInp.min = '1';
-  qtyInp.value = '1';
-  qtyInp.style.cssText = 'width:70px';
-  td2.appendChild(qtyInp);
-
-  var td3 = document.createElement('td');
-  td3.style.width = '70px';
-  var unitInp = document.createElement('input');
-  unitInp.type = 'text';
-  unitInp.className = 'mat-unit';
-  unitInp.readOnly = true;
-  unitInp.style.cssText = 'background:#f0f4f8;color:#555';
-  td3.appendChild(unitInp);
-
-  var td4 = document.createElement('td');
-  td4.style.width = '80px';
-  var stockInp = document.createElement('input');
-  stockInp.type = 'text';
-  stockInp.className = 'mat-stock';
-  stockInp.readOnly = true;
-  stockInp.style.cssText = 'background:#f0f4f8;font-weight:700;text-align:center';
-  td4.appendChild(stockInp);
-
-  var td5 = document.createElement('td');
-  td5.className = 'no-print';
-  td5.style.width = '40px';
-  var delBtn = document.createElement('button');
-  delBtn.className = 'del-row';
-  delBtn.textContent = '🗑';
-  delBtn.addEventListener('click', function() {
-    tr.remove();
-    reindex();
-  });
-  td5.appendChild(delBtn);
-
-  tr.appendChild(td0);
-  tr.appendChild(td1);
-  tr.appendChild(td2);
-  tr.appendChild(td3);
-  tr.appendChild(td4);
-  tr.appendChild(td5);
-
-  tbody.appendChild(tr);
-}
-
-function reindex() {
-  var rows = document.getElementById('itemsBody').querySelectorAll('tr');
-  rows.forEach(function(r, i) {
-    r.cells[0].textContent = i + 1;
-    r.setAttribute('data-row-idx', i);
-  });
-}
-
-function getItems() {
-  var rows = document.getElementById('itemsBody').querySelectorAll('tr');
-  var items = [];
-  rows.forEach(function(r) {
-    var hidName  = r.querySelector('.mat-mat-name');
-    var hidId    = r.querySelector('.mat-mat-id');
-    var qty      = r.querySelector('.mat-qty');
-    var unit     = r.querySelector('.mat-unit');
-    var stock    = r.querySelector('.mat-stock');
-    var name = hidName ? hidName.value.trim() : '';
-    if (name) {
-      items.push({
-        matId   : parseInt(hidId ? hidId.value : 0) || 0,
-        matName : name,
-        qty     : parseFloat(qty ? qty.value : 1) || 1,
-        unit    : unit ? unit.value : '',
-        inStock : parseFloat(stock ? stock.value : 0) || 0
-      });
+  list.innerHTML = filtered.map(function(r) {
+    var status = r.status || 'Pending';
+    var priority = r.priority || 'Normal';
+    var statusBadge = statusBadgeHtml(status);
+    var priorityBadge = priorityBadgeHtml(priority);
+    var dateStr = '';
+    if (r.createdAt) {
+      var d = r.createdAt.toDate ? r.createdAt.toDate() : new Date(r.createdAt);
+      dateStr = d.getFullYear() + '/' + (d.getMonth()+1) + '/' + d.getDate();
     }
-  });
-  return items;
+    var itemCount = (r.items && r.items.length) ? r.items.length : 0;
+    var title = r.workOrder || r.building || '—';
+
+    return '<div class="req-card" onclick="openRequest(\'' + r._id + '\')">' +
+      '<div class="req-card-top">' +
+        '<span class="mr-number">' + (r.reqNo || '—') + '</span>' +
+        statusBadge + ' ' + priorityBadge +
+      '</div>' +
+      '<div style="font-size:14px;font-weight:700;color:#c8dff5">' + escHtml(title) + '</div>' +
+      '<div class="req-card-bottom">' +
+        '<span class="req-meta">👷 ' + escHtml(r.techName || '—') + '</span>' +
+        '<span class="req-meta-dot"></span>' +
+        '<span class="req-meta">📅 ' + (dateStr || '—') + '</span>' +
+        '<span class="req-meta-dot"></span>' +
+        '<span class="req-meta">📦 ' + itemCount + ' items</span>' +
+        (r.building ? '<span class="req-meta-dot"></span><span class="req-meta">🏢 ' + escHtml(r.building) + '</span>' : '') +
+      '</div>' +
+    '</div>';
+  }).join('');
 }
 
-// ═══════════════ SIGNATURE ═══════════════
-var sigPads = {};
-function initSig(who){
-  var canvas = document.getElementById(who+'SigCanvas');
-  if(!canvas)return;
-  var ctx = canvas.getContext('2d');
-  var wrap = canvas.parentElement;
-  function resize(){canvas.width=wrap.offsetWidth;ctx.strokeStyle='#0a2e5c';ctx.lineWidth=2.5;ctx.lineCap='round';}
-  resize();
-  window.addEventListener('resize',resize);
-  var drawing=false, lx=0, ly=0;
-  function pos(e){
-    var r=canvas.getBoundingClientRect();
-    var sc=canvas.width/r.width;
-    var src=e.touches?e.touches[0]:e;
-    return{x:(src.clientX-r.left)*sc,y:(src.clientY-r.top)*sc};
-  }
-  canvas.addEventListener('mousedown',function(e){drawing=true;var p=pos(e);lx=p.x;ly=p.y;});
-  canvas.addEventListener('mousemove',function(e){if(!drawing)return;var p=pos(e);ctx.beginPath();ctx.moveTo(lx,ly);ctx.lineTo(p.x,p.y);ctx.stroke();lx=p.x;ly=p.y;});
-  canvas.addEventListener('mouseup',function(){drawing=false;});
-  canvas.addEventListener('touchstart',function(e){e.preventDefault();drawing=true;var p=pos(e);lx=p.x;ly=p.y;},{passive:false});
-  canvas.addEventListener('touchmove',function(e){e.preventDefault();if(!drawing)return;var p=pos(e);ctx.beginPath();ctx.moveTo(lx,ly);ctx.lineTo(p.x,p.y);ctx.stroke();lx=p.x;ly=p.y;},{passive:false});
-  canvas.addEventListener('touchend',function(){drawing=false;});
-  sigPads[who]=canvas;
-}
-function clearSig(who){
-  var canvas=sigPads[who];
-  if(!canvas)return;
-  canvas.getContext('2d').clearRect(0,0,canvas.width,canvas.height);
-}
-function getSigData(who){
-  var canvas=sigPads[who];
-  if(!canvas)return'';
-  return canvas.toDataURL('image/png');
-}
-function isSigEmpty(who){
-  var canvas=sigPads[who];
-  if(!canvas)return true;
-  var d=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data;
-  for(var i=3;i<d.length;i+=4){if(d[i]>10)return false;}
-  return true;
-}
-
-// ═══════════════ SUBMIT ═══════════════
-function submitRequest(){
-  var building=document.getElementById('building').value;
-  var workOrder=document.getElementById('workOrder').value.trim();
-  var reason=document.getElementById('reason').value.trim();
-  var items=getItems();
-  if(!building){showToast('⚠️ Select building / zone');return;}
-  if(!workOrder){showToast('⚠️ Enter equipment / work order');return;}
-  if(!items.length){showToast('⚠️ Add at least one material');return;}
-
-  var btn=document.getElementById('submitBtn');
-  btn.disabled=true;
-  btn.textContent='⏳ Submitting...';
-
-  var doc = {
-    reqNo: currentReqNo,
-    date: new Date().toISOString(),
-    techName: document.getElementById('techName').value,
-    building: building,
-    priority: document.getElementById('priority').value,
-    workOrder: workOrder,
-    reason: reason,
-    items: items,
-    status: 'Pending',
-    engName:'',engSig:'',engDecision:'',engNotes:'',engDate:'',
-    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+function statusBadgeHtml(status) {
+  var map = {
+    Pending:  ['badge-pending',  '⏳ pending'],
+    Approved: ['badge-approved', '✅ approved'],
+    Partial:  ['badge-approved', '⚠️ partial'],
+    Rejected: ['badge-rejected', '❌ rejected'],
+    Dispensed:['badge-issued',   '🏭 issued']
   };
+  var info = map[status] || ['badge-pending', status.toLowerCase()];
+  return '<span class="badge ' + info[0] + '">' + info[1] + '</span>';
+}
 
-  db.collection(COL).add(doc)
-    .then(function(ref){
-      showToast('✅ تم الإرسال! رقم الطلب: '+currentReqNo);
-      // Show tracker section
-      var tracker = document.getElementById('statusTrackerSection');
-      if(tracker){ tracker.style.display='block'; }
-      startLiveTracking(ref.id, currentReqNo);
-      btn.textContent='✅ Submitted — '+currentReqNo;
-      btn.style.background='#2e7d32';
-      // Show pending eng section
-      document.getElementById('engBody').innerHTML=
-        '<div style="text-align:center;padding:20px;color:#e65100;font-size:14px;font-weight:700">'+
-        '⏳ Pending engineer approval — في انتظار اعتماد المهندس</div>';
-    })
-    .catch(function(err){
-      showToast('❌ Error: '+err.message);
-      btn.disabled=false;
-      btn.textContent='📤 Submit Request — إرسال الطلب';
-    });
+function priorityBadgeHtml(priority) {
+  var p = (priority || 'Normal').toLowerCase();
+  var map = {
+    normal:   'badge-normal',
+    medium:   'badge-medium',
+    urgent:   'badge-urgent',
+    high:     'badge-high',
+    critical: 'badge-high'
+  };
+  var cls = map[p] || 'badge-medium';
+  return '<span class="badge ' + cls + '">' + priority.toLowerCase() + '</span>';
+}
+
+function escHtml(str) {
+  return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ═══════════════ NAVIGATION ═══════════════
+function openRequest(docId) {
+  // Open the form in view/edit mode
+  var url = 'material_request.html?id=' + docId;
+  if (window.parent && window.parent !== window) {
+    window.parent.postMessage({ type: 'NAVIGATE', url: url }, '*');
+  } else {
+    window.location.href = url;
+  }
+}
+
+function openNewRequest() {
+  var url = 'material_request.html';
+  if (window.parent && window.parent !== window) {
+    window.parent.postMessage({ type: 'NAVIGATE', url: url }, '*');
+  } else {
+    window.location.href = url;
+  }
 }
 
 // ═══════════════ TOAST ═══════════════
-function showToast(msg){
-  var t=document.getElementById('toast');
-  t.textContent=msg;t.classList.add('show');
-  setTimeout(function(){t.classList.remove('show');},3000);
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 3000);
 }
 
-function goBack(){
-  if(window.parent&&window.parent!==window){window.parent.postMessage({type:'BACK'},'*');}
-  else window.location.href='index.html';
-}
-
-
-// ═══════════════ LIVE REQUEST TRACKING ═══════════════
-var myUnsubscribe = null;
-var myCurrentDocId = null;
-
-function startLiveTracking(docId, reqNo){
-  myCurrentDocId = docId;
-  if(myUnsubscribe) myUnsubscribe();
-  myUnsubscribe = db.collection(COL).doc(docId).onSnapshot(function(snap){
-    if(!snap.exists) return;
-    var data = snap.data();
-    updateStatusTracker(data);
-    updateEngBody(data);
-  });
-}
-
-function updateStatusTracker(data){
-  var section = document.getElementById('statusTrackerSection');
-  if(!section) return;
-  var status = data.status || 'Pending';
-  var steps = [
-    {key:'submitted', icon:'📋', label:'تم الإرسال\nSubmitted'},
-    {key:'pending_eng', icon:'⏳', label:'بانتظار المهندس\nPending Eng.'},
-    {key:'approved_eng', icon:'✅', label:'اعتماد المهندس\nEng. Approved'},
-    {key:'dispensed', icon:'🏭', label:'تم الصرف\nDispatched'}
-  ];
-  var activeIdx = status==='Pending'?1 : (status==='Approved'||status==='Partial')?2 : status==='Dispensed'?3 : status==='Rejected'?-1:1;
-  section.innerHTML = '<div class="section-head" style="background:#fff;color:var(--blue);border-bottom:1px solid #e8eef5;padding:10px 16px;font-weight:900;font-size:13px">📍 حالة الطلب — Request Status</div>'+
-  '<div class="section-body"><div class="status-tracker">'+
-  steps.map(function(s,i){
-    var cls = 'status-step';
-    if(status==='Rejected' && i===2) cls += ' rejected';
-    else if(i < activeIdx) cls += ' done';
-    else if(i === activeIdx) cls += ' active';
-    return '<div class="'+cls+'"><div class="step-circle">'+s.icon+'</div><div class="step-label">'+s.label.replace('\n','<br>')+'</div></div>';
-  }).join('')+
-  '</div>'+
-  (status==='Rejected'?'<div style="background:#ffebee;border-radius:8px;padding:10px;font-size:12px;color:var(--red);margin-top:8px;font-weight:700">❌ رُفض الطلب — '+((data.engNotes)||'بدون سبب')+'</div>':'')+
-  (status==='Dispensed'?'<div style="background:#e8f5e9;border-radius:8px;padding:10px;font-size:12px;color:var(--green);margin-top:8px;font-weight:700">✅ تم صرف الطلب من المستودع</div>':'')+
-  '</div>';
-}
-
-function updateEngBody(data){
-  var body = document.getElementById('engBody');
-  if(!body) return;
-  var status = data.status || 'Pending';
-  if(status === 'Pending'){
-    body.innerHTML = '<div style="text-align:center;padding:20px;color:#e65100;font-size:14px;font-weight:700">⏳ في انتظار اعتماد المهندس — Pending Engineer Approval</div>';
-  } else if(status === 'Approved' || status === 'Partial'){
-    body.innerHTML = '<div style="background:#e8f5e9;border-radius:8px;padding:14px">'+
-      '<div style="font-weight:900;color:var(--green);margin-bottom:8px">'+(status==='Approved'?'✅ تم الاعتماد':'⚠️ اعتماد جزئي')+' — '+data.engName+'</div>'+
-      '<div style="font-size:12px;color:#555">'+new Date(data.engDate).toLocaleString('ar-SA')+'</div>'+
-      (data.engNotes?'<div style="margin-top:8px;font-size:12px">ملاحظات: '+data.engNotes+'</div>':'')+
-      (data.engSig?'<img src="'+data.engSig+'" style="max-width:200px;margin-top:10px;border:1px solid #ccc;border-radius:8px">':'')+
-      '</div>';
-  } else if(status === 'Rejected'){
-    body.innerHTML = '<div style="background:#ffebee;border-radius:8px;padding:14px">'+
-      '<div style="font-weight:900;color:var(--red);margin-bottom:8px">❌ رُفض الطلب — '+data.engName+'</div>'+
-      '<div style="font-size:12px;color:#555">سبب الرفض: '+data.engNotes+'</div>'+
-      '</div>';
-  } else if(status === 'Dispensed'){
-    body.innerHTML = '<div style="background:#e8f5e9;border-radius:8px;padding:14px">'+
-      '<div style="font-weight:900;color:var(--green);margin-bottom:4px">✅ تم الاعتماد والصرف</div>'+
-      '<div style="font-size:12px;color:#555">صُرف من المستودع بواسطة: '+(data.dispatchedBy||'مسؤول المستودع')+'</div>'+
-      '<div style="font-size:11px;color:#888;margin-top:4px">'+(data.dispatchedAt?new Date(data.dispatchedAt).toLocaleString('ar-SA'):'')+'</div>'+
-      '</div>';
-  }
-}
-
-function loadMyRequests(){
-  if(!loggedUser||!loggedUser.name) return;
-  var section = document.getElementById('myRequestsSection');
-  var body = document.getElementById('myRequestsBody');
-  if(section) section.style.display='block';
-  db.collection(COL)
-    .where('techName','==',loggedUser.name)
-    .orderBy('createdAt','desc')
-    .limit(10)
-    .get()
-    .then(function(snap){
-      if(snap.empty){body.innerHTML='<div style="text-align:center;padding:16px;color:#aaa;font-size:13px">لا توجد طلبات سابقة</div>';return;}
-      var html='';
-      snap.forEach(function(doc){
-        var d=doc.data();
-        var statusMap={Pending:'pending',Approved:'approved',Partial:'approved',Rejected:'rejected',Dispensed:'approved'};
-        var statusLabel={Pending:'⏳ بانتظار المهندس',Approved:'✅ معتمد',Partial:'⚠️ جزئي',Rejected:'❌ مرفوض',Dispensed:'🏭 تم الصرف'};
-        html+='<div class="my-req-card '+(statusMap[d.status]||'pending')+'" onclick="viewOldRequest(\"'+doc.id+'\",\"'+d.reqNo+'\")">'; 
-        html+='<div style="display:flex;justify-content:space-between;align-items:center">';
-        html+='<b style="color:var(--blue);font-size:13px">'+d.reqNo+'</b>';
-        html+='<span class="badge badge-'+(d.status==='Pending'?'pending':d.status==='Approved'||d.status==='Partial'?'approved':d.status==='Dispensed'?'approved':'rejected')+'">'+(statusLabel[d.status]||d.status)+'</span>';
-        html+='</div>';
-        html+='<div style="font-size:12px;color:#555;margin-top:4px">'+d.building+' · '+d.workOrder+'</div>';
-        html+='<div style="font-size:11px;color:#aaa;margin-top:2px">'+(d.items?d.items.length:0)+' قطعة · '+(d.priority||'Normal')+'</div>';
-        html+='</div>';
-      });
-      body.innerHTML=html;
-    }).catch(function(e){body.innerHTML='<div style="color:red;font-size:12px;padding:10px">خطأ: '+e.message+'</div>';});
-}
-
-function viewOldRequest(docId, reqNo){
-  showToast('📋 جاري تتبع الطلب: '+reqNo);
-  startLiveTracking(docId, reqNo);
-  window.scrollTo(0,0);
-}
-
-// ═══════════════ START ═══════════════
-init();
-loadMyRequests();
+// ═══════════════ INIT ═══════════════
+loggedUser = getUser();
+if (loggedUser) applyUser(loggedUser);
+loadRequests();
 </script>
 </body>
 </html>
