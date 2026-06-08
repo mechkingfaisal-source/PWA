@@ -495,7 +495,8 @@ iframe{width:100%;flex:1;min-height:0;border:none;border-radius:14px;
 </div>
 
 <!-- Inventory Management Sub-Page -->
-<div id="inventoryPage" style="display:none;width:100%;max-width:900px;flex-direction:column">
+<div id="inventoryPage" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:500;flex-direction:column;overflow-y:auto;background:linear-gradient(135deg,#0a2e5c 0%,#0f4c81 60%,#1565c0 100%);padding:16px;align-items:center">
+  <div style="width:100%;max-width:900px">
   <button class="back-btn" onclick="closeInventory()">⬅ Back to Dashboard</button>
 
   <!-- Inventory Header -->
@@ -559,6 +560,7 @@ iframe{width:100%;flex:1;min-height:0;border:none;border-radius:14px;
     </div>
 
   </div>
+  </div><!-- /max-width wrapper -->
 </div>
 
 <!-- System View -->
@@ -713,15 +715,11 @@ function doLogout() {
 <script>
 var _systemOrigin='dashboard';
 function openInventory(){
-  document.getElementById('dashboard').style.display='none';
   document.getElementById('inventoryPage').style.display='flex';
-  document.getElementById('inventoryPage').style.flexDirection='column';
-  document.getElementById('inventoryPage').style.alignItems='stretch';
   window.scrollTo(0,0);
 }
 function closeInventory(){
   document.getElementById('inventoryPage').style.display='none';
-  document.getElementById('dashboard').style.display='flex';
 }
 function openSystem(link){
   document.getElementById('system').style.display='flex';
