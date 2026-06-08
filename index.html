@@ -1,24 +1,13 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<script>if(!localStorage.getItem("cmms_user") && !sessionStorage.getItem("cmms_user")){window.location.replace("login.html");}</script>
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>CMMS — King Faisal Medical Complex</title>
 <meta name="description" content="CMMS dashboard for King Faisal Medical Complex — HVAC, inventory, approvals." />
-<link rel="manifest" href="/PWA/manifest.json">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="CMMS KFMC">
-<link rel="apple-touch-icon" href="/PWA/icons/icon-192x192.png">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#030712">
-<meta name="application-name" content="CMMS KFMC">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
   tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter','ui-sans-serif','system-ui'] } } } };
@@ -223,7 +212,7 @@
 
 <script>
   // Lucide-like inline SVG helpers
-    const I = {
+  const I = {
     dashboard: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>',
     building: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h.01M9 13h.01M9 17h.01M15 9h.01M15 13h.01M15 17h.01"/></svg>',
     tower: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 012-2h8a2 2 0 012 2v18M6 22h12M10 6h.01M10 10h.01M10 14h.01M14 6h.01M14 10h.01M14 14h.01"/></svg>',
@@ -234,23 +223,23 @@
     warehouse: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8v13H3V8M1 3h22v5H1zM10 12h4"/></svg>',
     clipboard: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>',
     check: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
-    chevron: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><polyline points="9 18 15 12 9 6"/></svg>',
+    chevron: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><polyline points="9 18 15 12 9 6"/></svg>',
   };
 
   const SYSTEMS = [
-    { id: 'dashboard',         label: 'Dashboard',         icon: I.dashboard, badge: 'Home',        sub: 'Overview & quick links',                       url: null },
-    { id: 'main-building',     label: 'Main Building',     icon: I.building,    badge: 'HVAC PPM',    sub: 'AHU / FAHU Units · All Floors',                url: 'main.html' },
-    { id: 'medical-tower',     label: 'Medical Tower',     icon: I.tower,    badge: 'HVAC PPM',    sub: 'AHU / FAHU Units · Tower Floors',              url: 'tower.html' },
-    { id: 'package-units',     label: 'Package Units',     icon: I.wrench,   badge: 'PPM',         sub: 'OPD Package Units · Preventive Maintenance',   url: 'package_opd.html' },
-    { id: 'chillers',          label: 'Chillers',          icon: I.snowflake,    badge: 'Chillers PPM',sub: 'York · Daikin · Royal · Chiller Plant PPM',    url: 'chiller_colored.html' },
-    { id: 'chw-pumps',         label: 'CH.W. Pumps',       icon: I.droplet,  badge: 'Pumps PPM',   sub: 'York · Royal CH.W. Pumps',                     url: 'chilled_water_pumps.html' },
-    { id: 'exhaust-fans',      label: 'Exhaust Fans',      icon: I.fan,       badge: 'EX Fans PPM', sub: 'All Zones — S.B.1 to Zone 9',                  url: 'exhaust_fans.html' },
-    { id: 'warehouse',         label: 'Warehouse',         icon: I.warehouse,   badge: 'Store',       sub: 'Mechanical Materials · Stock Management',      url: 'warehouse.html' },
-    { id: 'material-request',  label: 'Material Request',  icon: I.clipboard, badge: 'Request',     sub: 'Issue Materials · نموذج صرف مواد',             url: 'material_request.html' },
-    { id: 'engineer-approval', label: 'Eng. Approval',     icon: I.check,     badge: 'Engineer',    sub: 'Approve Requests · اعتماد الطلبات',            url: 'engineer_approval.html' },
+    { id: 'dashboard',  label: 'Dashboard',          icon: I.dashboard, badge: 'Home',     sub: 'Overview & quick links',                url: null },
+    { id: 'main-building',   label: 'Main Building',         icon: I.building,    badge: 'HVAC PPM',     sub: 'AHU / FAHU Units · All Floors',   url: 'main.html' },
+    { id: 'medical-tower',   label: 'Medical Tower',         icon: I.tower,       badge: 'HVAC PPM',     sub: 'AHU / FAHU Units · Tower Floors', url: 'tower.html' },
+    { id: 'package-units',   label: 'Package Units',         icon: I.wrench,      badge: 'PPM',          sub: 'OPD Package Units · Preventive Maintenance', url: 'package_opd.html' },
+    { id: 'chillers',        label: 'Chillers',              icon: I.snowflake,   badge: 'Chillers PPM', sub: 'York · Daikin · Royal · Chiller Plant PPM', url: 'chiller_colored.html' },
+    { id: 'chw-pumps',       label: 'CH.W. Pumps',           icon: I.droplet,     badge: 'Pumps PPM',    sub: 'York · Royal CH.W. Pumps',        url: 'chilled_water_pumps.html' },
+    { id: 'exhaust-fans',    label: 'Exhaust Fans',          icon: I.fan,         badge: 'EX Fans PPM',  sub: 'All Zones — S.B.1 to Zone 9',       url: 'exhaust_fans.html' },
+    { id: 'warehouse',       label: 'Warehouse',             icon: I.warehouse,   badge: 'Inventory',    sub: 'Store · Stock movements',           url: 'warehouse.html' },
+    { id: 'material-request', label: 'Material Request',     icon: I.clipboard,   badge: 'Request',      sub: 'Issue materials · نموذج صرف مواد',  url: 'material_request.html' },
+    { id: 'engineer-approval', label: 'Engineer Approval',   icon: I.check,       badge: 'Engineer',     sub: 'Approve requests · اعتماد الطلبات', url: 'engineer_approval.html' },
   ];
 
-  const TABS = ['dashboard','main-building','warehouse','material-request'];
+    const TABS = ['dashboard','main-building','warehouse','material-request'];
 
   let current = 'dashboard';
 
