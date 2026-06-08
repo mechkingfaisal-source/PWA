@@ -229,14 +229,22 @@ body{
 .footer{margin-top:22px;text-align:center;font-size:10px;
   color:rgba(255,255,255,.3);font-weight:700;letter-spacing:.05em}
 
-/* System view */
-#system{display:none;width:100%;max-width:900px;flex-direction:column}
-.back-btn{margin-bottom:12px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;
+/* System view — fullscreen overlay */
+#system{
+  display:none;
+  position:fixed;top:0;left:0;right:0;bottom:0;
+  z-index:1000;
+  flex-direction:column;
+  background:linear-gradient(135deg,#0a2e5c 0%,#0f4c81 60%,#1565c0 100%);
+  padding:12px;
+}
+.back-btn{margin-bottom:10px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;
   background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);
   color:#fff;padding:8px 16px;border-radius:10px;font-weight:800;
-  font-size:12px;font-family:inherit;letter-spacing:.02em;backdrop-filter:blur(6px)}
+  font-size:12px;font-family:inherit;letter-spacing:.02em;backdrop-filter:blur(6px);
+  align-self:flex-start;}
 .back-btn:hover{background:rgba(255,255,255,.25)}
-iframe{width:100%;height:88vh;border:none;border-radius:14px;
+iframe{width:100%;flex:1;min-height:0;border:none;border-radius:14px;
   background:#fff;box-shadow:0 10px 40px rgba(0,0,0,.3)}
 
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
@@ -644,7 +652,7 @@ function toggleNotifDropdown(e){
 function openApprovals(e){
   e.stopPropagation();
   document.getElementById('notifDropdown').style.display = 'none';
-  window.open('engineer_approval.html', '_blank');
+  openSystem('engineer_approval.html');
 }
 
 // Close dropdown when clicking outside
@@ -716,11 +724,17 @@ function closeInventory(){
   document.getElementById('dashboard').style.display='flex';
 }
 function openSystem(link){
-  window.open(link, '_blank');
+  document.getElementById('system').style.display='flex';
+  var frame=document.getElementById('frame');
+  frame.src=link;
+  frame.onload=function(){
+    var raw=sessionStorage.getItem('cmms_user')||localStorage.getItem('cmms_user');
+    if(raw){try{frame.contentWindow.postMessage({type:'CMMS_USER',data:raw},'*');}catch(e){}}
+  };
 }
 function goBack(){
-  document.getElementById('inventoryPage').style.display='none';
-  document.getElementById('dashboard').style.display='flex';
+  document.getElementById('frame').src='';
+  document.getElementById('system').style.display='none';
 }
 </script>
     <script>
