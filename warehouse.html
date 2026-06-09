@@ -1115,20 +1115,64 @@ function dispenseRequest(docId) {
   var req = _approvedRequests.find(function(r) { return r._id === docId; });
   if (!req) { toast('Request not found', 'error'); return; }
 
-  if (!confirm('تأكيد صرف الطلب ' + req.reqNo + ' ؟\nConfirm dispensing request ' + req.reqNo + '?')) return;
-
-  // Deduct from warehouse localStorage
+  // Check for insufficient stock before confirming
+  var stockWarnings = [];
   if (req.items && req.items.length) {
     req.items.forEach(function(it) {
-      var whItem = state.items.find(function(w) { return w.id === it.matId || w.name.toLowerCase().trim() === (it.matName||'').toLowerCase().trim(); });
+      var whItem = state.items.find(function(w) {
+        return w.id === Number(it.matId) ||
+               w.id === it.matId ||
+               w.name.toLowerCase().trim() === (it.matName||'').toLowerCase().trim() ||
+               (w.code && it.matCode && w.code === it.matCode);
+      });
+      var avail = whItem ? whItem.stock : 0;
+      if (avail < it.qty) {
+        stockWarnings.push((it.matName||'?') + ': طلب ' + it.qty + ' · متاح ' + avail);
+      }
+    });
+  }
+
+  var confirmMsg = 'تأكيد صرف الطلب ' + req.reqNo + ' ؟\nConfirm dispensing request ' + req.reqNo + '?';
+  if (stockWarnings.length) {
+    confirmMsg += '\n\n⚠️ تحذير — رصيد منخفض:\n' + stockWarnings.join('\n');
+  }
+  if (!confirm(confirmMsg)) return;
+
+  var dispensedBy = 'Warehouse Keeper';
+  try {
+    var u = JSON.parse(sessionStorage.getItem('cmms_user') || localStorage.getItem('cmms_user') || '{}');
+    if (u && u.name) dispensedBy = u.name;
+  } catch(e) {}
+
+  // Deduct from warehouse state (localStorage)
+  var deductedItems = [];
+  if (req.items && req.items.length) {
+    req.items.forEach(function(it) {
+      var whItem = state.items.find(function(w) {
+        return w.id === Number(it.matId) ||
+               w.id === it.matId ||
+               w.name.toLowerCase().trim() === (it.matName||'').toLowerCase().trim() ||
+               (w.code && it.matCode && w.code === it.matCode);
+      });
       if (whItem) {
+        var deducted = Math.min(it.qty, whItem.stock);
         whItem.stock = Math.max(0, whItem.stock - it.qty);
         whItem.lastIssued = now();
         state.transactions.unshift({
           id: uid(), type: 'out', itemId: whItem.id, itemName: whItem.name,
-          qty: it.qty, unit: it.unit, user: req.techName,
-          workOrder: req.reqNo + ' / ' + req.workOrder,
-          note: 'Material request dispensed — Engineer: ' + req.engName,
+          qty: deducted, unit: it.unit || whItem.unit, user: req.techName || dispensedBy,
+          workOrder: (req.reqNo || '') + (req.workOrder ? ' / ' + req.workOrder : ''),
+          note: 'صرف طلب معتمد — مهندس: ' + (req.engName || '—') + ' · مستودع: ' + dispensedBy,
+          ts: Date.now()
+        });
+        deductedItems.push(whItem.name + ': -' + deducted + ' ' + (it.unit || whItem.unit));
+      } else {
+        // Item not found in warehouse — log without deduction
+        state.transactions.unshift({
+          id: uid(), type: 'out', itemId: 0, itemName: it.matName || 'غير معروف',
+          qty: it.qty, unit: it.unit || 'pcs', user: req.techName || dispensedBy,
+          workOrder: (req.reqNo || '') + (req.workOrder ? ' / ' + req.workOrder : ''),
+          note: '⚠️ لم يُوجد في المخزون — ' + dispensedBy,
           ts: Date.now()
         });
       }
@@ -1140,10 +1184,12 @@ function dispenseRequest(docId) {
   // Update Firebase status to Dispensed
   db.collection(MAT_COL).doc(docId).update({
     status: 'Dispensed',
-    dispatchedBy: 'Warehouse Keeper',
-    dispatchedAt: new Date().toISOString()
+    dispatchedBy: dispensedBy,
+    dispatchedAt: new Date().toISOString(),
+    dispensedItems: deductedItems
   }).then(function() {
     toast('✅ تم صرف الطلب بنجاح — ' + req.reqNo);
+    if (currentPage === 'inventory' || currentPage === 'dashboard') go(currentPage);
   }).catch(function(err) {
     toast('❌ Firebase error: ' + err.message, 'error');
   });
