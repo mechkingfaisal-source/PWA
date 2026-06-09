@@ -213,6 +213,9 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#0d1b2e;min-height:100vh
   .btn-cancel,.btn-submit{width:100%;justify-content:center}
 }
 
+.stock-ok{background:#0d3520;color:#66bb6a;border-radius:8px}
+.stock-low{background:#3a2000;color:#ffa726;border-radius:8px}
+.stock-out{background:#3a0a0a;color:#ef5350;border-radius:8px}
 </style>
 </head>
 <body>
@@ -653,23 +656,58 @@ function addItemRow() {
   tr.setAttribute('data-mat-id', '');
   tr.setAttribute('data-mat-code', '');
   tr.setAttribute('data-in-stock', '');
-  tr.innerHTML =
-    '<td>' +
-      '<div class="mat-search-wrap">' +
-        '<input class="form-input" placeholder="ابحث عن قطعة… Search…" ' +
-          'oninput="filterMats(this,'' + rowId + '')" ' +
-          'onfocus="filterMats(this,'' + rowId + '')" ' +
-          'autocomplete="off" style="font-size:12px">' +
-        '<div class="mat-dropdown hidden" id="dd-' + rowId + '"></div>' +
-      '</div>' +
-    '</td>' +
-    '<td style="text-align:center">' +
-      '<input class="form-input" type="number" min="1" value="1" style="width:70px;text-align:center;font-size:13px" ' +
-        'oninput="updateStockBadge('' + rowId + '')">' +
-    '</td>' +
-    '<td style="text-align:center;font-size:12px;color:#7a9abf" id="unit-' + rowId + '">—</td>' +
-    '<td style="text-align:center" id="stock-' + rowId + '"><span style="color:#3a5a7a;font-size:12px">—</span></td>' +
-    '<td><button class="del-item-btn" onclick="delItemRow('' + rowId + '')">🗑</button></td>';
+
+  // Build cells separately to avoid quote escaping issues
+  var tdMat = document.createElement('td');
+  var wrap = document.createElement('div');
+  wrap.className = 'mat-search-wrap';
+  var inp = document.createElement('input');
+  inp.className = 'form-input';
+  inp.placeholder = 'ابحث عن قطعة… Search…';
+  inp.autocomplete = 'off';
+  inp.style.fontSize = '12px';
+  inp.addEventListener('input', function(){ filterMats(inp, rowId); });
+  inp.addEventListener('focus', function(){ filterMats(inp, rowId); });
+  var dd = document.createElement('div');
+  dd.className = 'mat-dropdown hidden';
+  dd.id = 'dd-' + rowId;
+  wrap.appendChild(inp);
+  wrap.appendChild(dd);
+  tdMat.appendChild(wrap);
+
+  var tdQty = document.createElement('td');
+  tdQty.style.textAlign = 'center';
+  var qtyInp = document.createElement('input');
+  qtyInp.className = 'form-input';
+  qtyInp.type = 'number';
+  qtyInp.min = '1';
+  qtyInp.value = '1';
+  qtyInp.style.cssText = 'width:70px;text-align:center;font-size:13px';
+  qtyInp.addEventListener('input', function(){ updateStockBadge(rowId); });
+  tdQty.appendChild(qtyInp);
+
+  var tdUnit = document.createElement('td');
+  tdUnit.id = 'unit-' + rowId;
+  tdUnit.style.cssText = 'text-align:center;font-size:12px;color:#7a9abf';
+  tdUnit.textContent = '—';
+
+  var tdStock = document.createElement('td');
+  tdStock.id = 'stock-' + rowId;
+  tdStock.style.textAlign = 'center';
+  tdStock.innerHTML = '<span style="color:#3a5a7a;font-size:12px">—</span>';
+
+  var tdDel = document.createElement('td');
+  var delBtn = document.createElement('button');
+  delBtn.className = 'del-item-btn';
+  delBtn.textContent = '🗑';
+  delBtn.addEventListener('click', function(){ delItemRow(rowId); });
+  tdDel.appendChild(delBtn);
+
+  tr.appendChild(tdMat);
+  tr.appendChild(tdQty);
+  tr.appendChild(tdUnit);
+  tr.appendChild(tdStock);
+  tr.appendChild(tdDel);
   tbody.appendChild(tr);
 }
 
