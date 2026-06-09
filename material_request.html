@@ -455,14 +455,18 @@ function openRequest(docId) {
 // ═══════════════ LOAD DATA (live) ═══════════════
 function loadRequests() {
   db.collection(COL)
-    .orderBy('createdAt', 'desc')
-    .limit(200)
     .onSnapshot(function(snap) {
       allRequests = [];
       snap.forEach(function(doc) {
         var d = doc.data();
         d._id = doc.id;
         allRequests.push(d);
+      });
+      // Sort newest first client-side (avoids Firestore composite index requirement)
+      allRequests.sort(function(a, b) {
+        var ta = a.createdAt && a.createdAt.toDate ? a.createdAt.toDate().getTime() : new Date(a.date||0).getTime();
+        var tb = b.createdAt && b.createdAt.toDate ? b.createdAt.toDate().getTime() : new Date(b.date||0).getTime();
+        return tb - ta;
       });
       updateStats();
       renderList();
