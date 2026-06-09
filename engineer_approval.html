@@ -8,558 +8,858 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Arial,sans-serif;background:#f0f4f8;min-height:100vh}
-:root{--blue:#0a2e5c;--blue2:#1565c0;--green:#2e7d32;--red:#c62828;--orange:#e65100;--border:#b0c4de}
-.header{background:var(--blue);color:#fff;padding:10px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px #0005}
-.header h1{font-size:15px;font-weight:900;flex:1}
-.back-btn{background:#fff2;border:none;color:#fff;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700}
-.user-badge{background:#fff2;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#0d1b2e;min-height:100vh;color:#d0e4f7}
+:root{
+  --blue:#0a2e5c;--blue2:#1565c0;--cyan:#00bcd4;
+  --green:#2e7d32;--red:#c62828;--orange:#e65100;
+  --bg:#0d1b2e;--card:#112035;--border:#1e3a5f;
+  --text:#d0e4f7;--sub:#7a9abf;
+}
 
-/* tabs */
-.tabs{display:flex;background:#fff;border-bottom:2px solid var(--border)}
-.tab{padding:11px 18px;cursor:pointer;font-size:13px;font-weight:700;color:#888;border-bottom:3px solid transparent;white-space:nowrap}
-.tab.active{color:var(--blue);border-bottom-color:var(--blue)}
-.tab .cnt{background:var(--red);color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;margin-left:5px}
+/* TOP BAR */
+.topbar{background:#0a1628;border-bottom:1px solid var(--border);padding:10px 20px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:200;box-shadow:0 2px 12px #0006}
+.topbar-left{display:flex;align-items:center;gap:12px}
+.topbar-logo{width:34px;height:34px;background:linear-gradient(135deg,#1565c0,#0d47a1);
+  border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.topbar-title{font-size:13px;font-weight:900;color:#fff;line-height:1.2}
+.topbar-sub{font-size:10px;color:var(--sub);font-weight:600}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.notif-bell{background:none;border:none;color:var(--sub);font-size:20px;cursor:pointer;
+  position:relative;padding:4px;display:none}
+.notif-bell.has-notif{display:inline-flex;align-items:center;gap:6px;
+  background:#c62828;color:#fff;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;
+  animation:bellpulse .6s infinite alternate}
+@keyframes bellpulse{from{transform:scale(1)}to{transform:scale(1.04)}}
+.user-chip{background:#1a2f4a;border:1px solid var(--border);border-radius:20px;
+  padding:5px 12px 5px 8px;display:flex;align-items:center;gap:7px}
+.user-avatar{width:26px;height:26px;background:linear-gradient(135deg,#1565c0,#0d47a1);
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:900;color:#fff}
+.user-name{font-size:12px;font-weight:700;color:var(--text)}
+.back-btn{background:#1a2f4a;border:1px solid var(--border);color:var(--sub);
+  padding:6px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700}
+.back-btn:hover{background:var(--border);color:#fff}
 
-/* list */
-.list-wrap{max-width:900px;margin:0 auto;padding:12px}
-.req-card{background:#fff;border-radius:12px;box-shadow:0 2px 8px #0001;margin-bottom:12px;overflow:hidden;border-left:5px solid var(--orange)}
-.req-card.approved{border-color:var(--green)}
-.req-card.rejected{border-color:var(--red)}
+/* STAT CARDS */
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:16px 20px 8px;max-width:960px;margin:0 auto}
+.stat-card{border-radius:12px;padding:14px 16px;color:#fff;display:flex;flex-direction:column;gap:4px;
+  cursor:pointer;transition:.15s;position:relative;overflow:hidden}
+.stat-card:hover{filter:brightness(1.1);transform:translateY(-1px)}
+.stat-card::after{content:'';position:absolute;right:-10px;bottom:-10px;width:55px;height:55px;
+  border-radius:50%;background:#ffffff15}
+.stat-num{font-size:26px;font-weight:900;line-height:1}
+.stat-lbl{font-size:11px;font-weight:700;opacity:.88;text-transform:uppercase;letter-spacing:.4px}
+.stat-card.sc-pending {background:linear-gradient(135deg,#b8860b,#8a5f00)}
+.stat-card.sc-approved{background:linear-gradient(135deg,#1a5c1a,#2e7d32)}
+.stat-card.sc-rejected{background:linear-gradient(135deg,#8b1c1c,#c62828)}
+.stat-card.sc-issued  {background:linear-gradient(135deg,#4a1a7a,#6a1fa8)}
+
+/* TABS */
+.tabs{display:flex;background:#0a1628;border-bottom:1px solid var(--border);
+  padding:0 20px;max-width:960px;margin:8px auto 0;border-radius:10px 10px 0 0;overflow:hidden}
+.tab{padding:10px 16px;cursor:pointer;font-size:12px;font-weight:700;color:var(--sub);
+  border-bottom:3px solid transparent;white-space:nowrap;transition:.15s;display:flex;align-items:center;gap:5px}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--cyan);border-bottom-color:var(--cyan)}
+.tab-cnt{background:#c62828;color:#fff;border-radius:10px;padding:1px 7px;font-size:10px;min-width:18px;text-align:center}
+.tab-cnt.green{background:#2e7d32}
+.tab-cnt.grey {background:#3a5a7a}
+.tab-cnt.purple{background:#6a1fa8}
+
+/* LIST */
+.list-wrap{max-width:960px;margin:0 auto;padding:12px 20px 30px}
+
+/* REQUEST CARD */
+.req-card{background:var(--card);border:1px solid var(--border);border-radius:12px;
+  margin-bottom:10px;overflow:hidden;border-left:4px solid var(--orange);transition:.15s}
+.req-card.approved{border-left-color:#4caf50}
+.req-card.partial {border-left-color:#1565c0}
+.req-card.rejected{border-left-color:#ef5350}
+.req-card.issued  {border-left-color:#9c27b0}
 .req-head{padding:12px 16px;display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none}
-.req-head:hover{background:#f5f9ff}
-.req-number{font-weight:900;font-size:14px;color:var(--blue)}
-.req-meta{flex:1;font-size:12px;color:#555}
-.badge{display:inline-block;padding:3px 10px;border-radius:10px;font-size:12px;font-weight:700}
-.badge-pending{background:#fff3e0;color:var(--orange)}
-.badge-approved{background:#e8f5e9;color:var(--green)}
-.badge-rejected{background:#ffebee;color:var(--red)}
-.badge-partial{background:#e3f2fd;color:var(--blue2)}
-.badge-issued{background:#f3e5f5;color:#6a1fa8;border:1px solid #6a1fa8}
-.badge-urgent{background:#fff3e0;color:var(--orange);border:1px solid var(--orange)}
+.req-head:hover{background:#162a45}
+.req-num{font-weight:900;font-size:14px;color:#4fc3f7;letter-spacing:.3px}
+.req-meta{flex:1;font-size:11px;color:var(--sub);margin-top:2px}
+.req-arrow{font-size:14px;transition:transform .2s;color:var(--sub);flex-shrink:0}
+.req-arrow.open{transform:rotate(180deg)}
 
-/* detail panel */
-.req-detail{display:none;padding:0 16px 16px;border-top:1px solid #e8eef5}
+/* BADGES */
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:12px;
+  font-size:11px;font-weight:800;white-space:nowrap}
+.b-pending {background:#3a2000;color:#ffa726;border:1px solid #6a3a00}
+.b-approved{background:#0d3520;color:#4caf50;border:1px solid #1a6030}
+.b-partial {background:#0d2040;color:#90caf9;border:1px solid #1a4080}
+.b-rejected{background:#3a0a0a;color:#ef5350;border:1px solid #6a1010}
+.b-issued  {background:#1a0a30;color:#ce93d8;border:1px solid #4a1a7a}
+.b-urgent  {background:#3a1500;color:#ff7043;border:1px solid #6a2500}
+.b-critical{background:#4a0000;color:#ff1744;border:1px solid #8a0000}
+
+/* DETAIL PANEL */
+.req-detail{display:none;padding:0 16px 16px;border-top:1px solid var(--border)}
 .req-detail.open{display:block}
-.detail-section{margin-top:14px}
-.detail-section h4{font-size:12px;color:#888;font-weight:700;text-transform:uppercase;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid #e8eef5}
+.det-section{margin-top:14px}
+.det-section h4{font-size:11px;color:var(--cyan);font-weight:700;text-transform:uppercase;
+  letter-spacing:.6px;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--border)}
 .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 16px}
-.info-row{font-size:13px}
-.info-row span{font-weight:700;color:var(--blue)}
-.items-tbl{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px}
-.items-tbl th{background:var(--blue);color:#fff;padding:7px 10px;text-align:left}
-.items-tbl td{padding:6px 10px;border-bottom:1px solid #e8eef5}
-.items-tbl tr.stock-warn td{background:#fff3e0}
-.items-tbl tr.stock-zero td{background:#ffebee}
+.info-row{font-size:13px;color:var(--sub)}
+.info-row b{color:var(--text);font-weight:700}
+.full{grid-column:span 2}
 
-/* sig preview */
-.sig-preview{border:1px solid var(--border);border-radius:8px;max-width:220px;background:#fafcff;padding:4px}
-.sig-preview img{width:100%;display:block}
-.sig-preview p{font-size:10px;text-align:center;color:#888;padding:3px}
+/* ITEMS TABLE */
+.items-tbl{width:100%;border-collapse:collapse;font-size:12px;margin-top:6px}
+.items-tbl th{background:#0a1628;color:var(--sub);font-size:11px;font-weight:700;
+  text-transform:uppercase;padding:7px 10px;text-align:left;border-bottom:1px solid var(--border)}
+.items-tbl td{padding:7px 10px;border-bottom:1px solid #152a45;color:var(--text)}
+.items-tbl tr:last-child td{border-bottom:none}
+.stock-warn td{background:#2a1500}
+.stock-zero td{background:#1a0000}
 
-/* approval panel */
-.approval-panel{background:#f0f7ff;border-radius:10px;padding:14px;margin-top:14px;border:1.5px solid var(--blue2)}
-.approval-panel h4{color:var(--blue);font-weight:900;font-size:14px;margin-bottom:12px}
-.form-row{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
-.form-row label{font-size:12px;font-weight:700;color:#555}
-.form-row input,.form-row select,.form-row textarea{border:1.5px solid var(--border);border-radius:8px;padding:8px 10px;font-size:13px;font-family:Arial;outline:none;background:#fff}
-.form-row textarea{resize:vertical;min-height:60px}
-.decision-btns{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
-.dec-btn{flex:1;padding:12px;border:2.5px solid transparent;border-radius:10px;cursor:pointer;font-size:14px;font-weight:900;font-family:Arial;transition:.15s;background:#fff}
-.dec-btn.approve{border-color:var(--green);color:var(--green)}
-.dec-btn.approve.selected{background:var(--green);color:#fff}
-.dec-btn.partial{border-color:var(--blue2);color:var(--blue2)}
-.dec-btn.partial.selected{background:var(--blue2);color:#fff}
-.dec-btn.reject{border-color:var(--red);color:var(--red)}
-.dec-btn.reject.selected{background:var(--red);color:#fff}
-.sig-wrap{border:2px dashed var(--border);border-radius:10px;background:#fafcff;position:relative}
+/* SIG PREVIEW */
+.sig-preview{border:1px solid var(--border);border-radius:8px;max-width:200px;
+  background:#080f1e;padding:4px;margin-top:6px}
+.sig-preview img{width:100%;display:block;border-radius:4px}
+.sig-preview p{font-size:10px;text-align:center;color:var(--sub);padding:3px}
+
+/* APPROVAL PANEL */
+.approval-panel{background:#091828;border:1.5px solid var(--blue2);border-radius:10px;padding:16px;margin-top:14px}
+.approval-panel h4{color:var(--cyan);font-weight:900;font-size:14px;margin-bottom:14px}
+.dec-btns{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.dec-btn{flex:1;padding:11px;border:2px solid transparent;border-radius:10px;cursor:pointer;
+  font-size:13px;font-weight:900;font-family:inherit;transition:.15s;background:#0a1628;min-width:100px}
+.dec-btn.approve{border-color:#4caf50;color:#4caf50}
+.dec-btn.approve.sel{background:#4caf50;color:#fff}
+.dec-btn.partial{border-color:#1565c0;color:#90caf9}
+.dec-btn.partial.sel{background:#1565c0;color:#fff}
+.dec-btn.reject{border-color:#ef5350;color:#ef5350}
+.dec-btn.reject.sel{background:#ef5350;color:#fff}
+.form-grp{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+.form-grp label{font-size:11px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.4px}
+.form-grp textarea{background:#0a1628;border:1.5px solid var(--border);color:var(--text);
+  padding:8px 10px;border-radius:8px;font-size:13px;font-family:inherit;
+  outline:none;resize:vertical;min-height:60px}
+.form-grp textarea:focus{border-color:var(--blue2)}
+.sig-wrap{border:2px dashed var(--border);border-radius:10px;background:#060e1a;position:relative}
 .sig-wrap canvas{display:block;width:100%;touch-action:none;cursor:crosshair}
-.sig-wrap .sig-label{font-size:11px;color:#888;padding:6px;font-weight:700;text-align:center}
-.sig-clear{position:absolute;top:6px;right:8px;background:var(--red);color:#fff;border:none;border-radius:6px;padding:3px 9px;cursor:pointer;font-size:11px;font-weight:700}
-.confirm-btn{width:100%;padding:13px;background:var(--blue);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:900;cursor:pointer;margin-top:10px}
-.confirm-btn:disabled{opacity:.5;cursor:not-allowed}
+.sig-lbl{font-size:11px;color:var(--sub);padding:6px;font-weight:700;text-align:center}
+.sig-clear-btn{position:absolute;top:6px;right:8px;background:#3a0a0a;color:#ef5350;
+  border:none;border-radius:6px;padding:3px 9px;cursor:pointer;font-size:11px;font-weight:700}
+.confirm-btn{width:100%;padding:13px;background:var(--blue2);color:#fff;border:none;
+  border-radius:10px;font-size:14px;font-weight:900;cursor:pointer;margin-top:10px;font-family:inherit;transition:.15s}
+.confirm-btn:disabled{opacity:.45;cursor:not-allowed}
+.confirm-btn:not(:disabled):hover{opacity:.88}
 
-/* approved result */
-.approved-result{background:#e8f5e9;border-radius:10px;padding:14px;margin-top:14px;border:1.5px solid #a5d6a7;font-size:13px}
-.rejected-result{background:#ffebee;border-radius:10px;padding:14px;margin-top:14px;border:1.5px solid #ef9a9a;font-size:13px}
-.print-btn{background:var(--blue);color:#fff;border:none;border-radius:8px;padding:8px 18px;cursor:pointer;font-size:13px;font-weight:700;margin-top:10px}
+/* RESULT PANELS */
+.result-approved{background:#071a0e;border:1.5px solid #2e7d32;border-radius:10px;padding:14px;margin-top:14px;font-size:13px}
+.result-partial {background:#07131e;border:1.5px solid #1565c0;border-radius:10px;padding:14px;margin-top:14px;font-size:13px}
+.result-rejected{background:#1a0707;border:1.5px solid #c62828;border-radius:10px;padding:14px;margin-top:14px;font-size:13px}
+.result-issued  {background:#100720;border:1.5px solid #6a1fa8;border-radius:10px;padding:14px;margin-top:14px;font-size:13px}
+.warehouse-note{background:#0a1e30;border-radius:8px;padding:10px;margin-top:8px;
+  font-size:12px;color:#90caf9;font-weight:700;line-height:1.5}
+.warehouse-note a{color:var(--cyan);font-weight:900}
+.print-btn{background:var(--blue2);color:#fff;border:none;border-radius:8px;
+  padding:7px 16px;cursor:pointer;font-size:12px;font-weight:700;margin-top:10px;font-family:inherit}
+.print-btn:hover{opacity:.85}
 
-/* stat cards */
-.stat-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:14px 12px 4px;max-width:900px;margin:0 auto}
-.stat-card{border-radius:14px;padding:16px 18px;color:#fff;display:flex;flex-direction:column;gap:4px;cursor:pointer;transition:.15s;box-shadow:0 3px 12px #0002}
-.stat-card:hover{transform:translateY(-2px);box-shadow:0 6px 18px #0003}
-.stat-card .sc-count{font-size:28px;font-weight:900;line-height:1}
-.stat-card .sc-label{font-size:12px;font-weight:700;opacity:.88}
-.stat-card.pending{background:linear-gradient(135deg,#b8860b,#d4a017)}
-.stat-card.approved{background:linear-gradient(135deg,#1a5c1a,#2e7d32)}
-.stat-card.rejected{background:linear-gradient(135deg,#8b1c1c,#c62828)}
-.stat-card.issued{background:linear-gradient(135deg,#4a1a7a,#6a1fa8)}
-@media(max-width:500px){.stat-cards{grid-template-columns:repeat(2,1fr)}}
+/* LOADING / EMPTY */
+.loading-msg{text-align:center;padding:50px 20px;color:var(--sub);font-size:14px}
+.spinner{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--cyan);
+  border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
 
-/* loading */
-.loading{text-align:center;padding:40px;color:#888;font-size:14px}
-
-/* toast */
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:12px 24px;border-radius:12px;font-size:14px;font-weight:700;z-index:999;opacity:0;transition:.3s;pointer-events:none;min-width:240px;text-align:center}
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  background:#1565c0;color:#fff;padding:11px 22px;border-radius:10px;
+  font-size:13px;font-weight:700;z-index:999;opacity:0;transition:.3s;
+  pointer-events:none;white-space:nowrap;min-width:220px;text-align:center}
 .toast.show{opacity:1}
 
 /* PRINT */
 @media print{
-  .header,.tabs,.back-btn,.no-print,.approval-panel,.decision-btns,.confirm-btn,.print-btn{display:none!important}
-  body{background:#fff}
+  .topbar,.tabs,.stat-row,.no-print,.approval-panel,.dec-btns,.confirm-btn,.print-btn{display:none!important}
+  body{background:#fff;color:#000}
   .req-detail{display:block!important}
-  .print-only{display:block!important}
-  .print-header{display:block!important}
   .req-card{box-shadow:none;border:1px solid #ccc;page-break-inside:avoid}
   .list-wrap{padding:0}
+  .print-header{display:block!important}
 }
-.print-header{display:none;text-align:center;margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid var(--blue)}
-.print-header h2{font-size:18px;color:var(--blue);font-weight:900}
+.print-header{display:none;text-align:center;margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid #0a2e5c}
+.print-header h2{font-size:18px;color:#0a2e5c;font-weight:900}
 .print-header p{font-size:12px;color:#555;margin-top:4px}
+
+@media(max-width:600px){
+  .stat-row{grid-template-columns:1fr 1fr;padding:12px}
+  .list-wrap{padding:10px 12px}
+  .topbar{padding:8px 12px}
+  .info-grid{grid-template-columns:1fr}
+  .info-row.full{grid-column:span 1}
+  .dec-btns{flex-direction:column}
+}
 </style>
 </head>
 <body>
 
-<div class="header no-print">
-  <div>
-    <div style="font-size:10px;opacity:.7">CMMS KFMC — AL MAJAL AL ARABI GROUP</div>
-    <h1>👷‍♂️ Engineer Material Approval — اعتماد المهندس</h1>
+<!-- TOP BAR -->
+<div class="topbar no-print">
+  <div class="topbar-left">
+    <div class="topbar-logo">🏥</div>
+    <div>
+      <div class="topbar-title">King Faisal Medical Complex — AL MAJAL AL ARABI GROUP</div>
+      <div class="topbar-sub">Engineer Material Approval — اعتماد المهندس</div>
+    </div>
   </div>
-  <div id="notifBell" style="background:#c62828;color:#fff;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;display:none;animation:bell .5s infinite alternate;cursor:pointer" onclick="filterRequests('Pending')">
-    🔔 <span id="notifCount">0</span> طلب جديد
+  <div class="topbar-right">
+    <button class="notif-bell" id="notifBell" onclick="filterRequests('Pending')">
+      <span>🔔</span><span id="notifCount">0</span> طلب جديد
+    </button>
+    <div class="user-chip">
+      <div class="user-avatar" id="userAvatar">E</div>
+      <span class="user-name" id="userNameChip">Engineer</span>
+    </div>
+    <button class="back-btn no-print" onclick="goBack()">&#8592; خروج</button>
   </div>
-  <span class="user-badge" id="userBadge">—</span>
-  <button class="back-btn" onclick="goBack()">← خروج</button>
 </div>
-<style>
-@keyframes bell{from{transform:scale(1)}to{transform:scale(1.05)}}
-.approved-result .warehouse-info{background:#e3f2fd;border-radius:8px;padding:10px;margin-top:10px;font-size:12px;color:#1565c0;font-weight:700}
-</style>
 
+<!-- STAT CARDS -->
+<div class="stat-row no-print">
+  <div class="stat-card sc-pending" onclick="filterRequests('Pending')">
+    <div class="stat-num" id="sc-pending">0</div>
+    <div class="stat-lbl">⏳ Pending</div>
+  </div>
+  <div class="stat-card sc-approved" onclick="filterRequests('Approved')">
+    <div class="stat-num" id="sc-approved">0</div>
+    <div class="stat-lbl">✅ Approved</div>
+  </div>
+  <div class="stat-card sc-rejected" onclick="filterRequests('Rejected')">
+    <div class="stat-num" id="sc-rejected">0</div>
+    <div class="stat-lbl">⊘ Rejected</div>
+  </div>
+  <div class="stat-card sc-issued" onclick="filterRequests('Issued')">
+    <div class="stat-num" id="sc-issued">0</div>
+    <div class="stat-lbl">📦 Issued</div>
+  </div>
+</div>
+
+<!-- TABS -->
 <div class="tabs no-print">
-  <div class="tab active" onclick="filterRequests('All')" id="tab-all">📋 All</div>
-  <div class="tab" onclick="filterRequests('Pending')" id="tab-pending">⏳ Pending <span class="cnt" id="cntPending">0</span></div>
-  <div class="tab" onclick="filterRequests('Approved')" id="tab-approved">✅ Approved <span class="cnt" style="background:var(--green)" id="cntApproved">0</span></div>
-  <div class="tab" onclick="filterRequests('Rejected')" id="tab-rejected">❌ Rejected <span class="cnt" style="background:#555" id="cntRejected">0</span></div>
-  <div class="tab" onclick="filterRequests('Issued')" id="tab-issued">📦 Issued <span class="cnt" style="background:#6a1fa8" id="cntIssued">0</span></div>
+  <div class="tab active" id="tab-All"     onclick="filterRequests('All')">📋 All</div>
+  <div class="tab"        id="tab-Pending" onclick="filterRequests('Pending')">⏳ Pending <span class="tab-cnt" id="cnt-Pending">0</span></div>
+  <div class="tab"        id="tab-Approved"onclick="filterRequests('Approved')">✅ Approved <span class="tab-cnt green" id="cnt-Approved">0</span></div>
+  <div class="tab"        id="tab-Rejected"onclick="filterRequests('Rejected')">❌ Rejected <span class="tab-cnt grey" id="cnt-Rejected">0</span></div>
+  <div class="tab"        id="tab-Issued"  onclick="filterRequests('Issued')">📦 Issued <span class="tab-cnt purple" id="cnt-Issued">0</span></div>
 </div>
 
-<div class="stat-cards no-print">
-  <div class="stat-card pending" onclick="filterRequests('Pending')">
-    <div class="sc-count" id="sc-pending">0</div>
-    <div class="sc-label">⏳ Pending</div>
-  </div>
-  <div class="stat-card approved" onclick="filterRequests('Approved')">
-    <div class="sc-count" id="sc-approved">0</div>
-    <div class="sc-label">✅ Approved</div>
-  </div>
-  <div class="stat-card rejected" onclick="filterRequests('Rejected')">
-    <div class="sc-count" id="sc-rejected">0</div>
-    <div class="sc-label">⊘ Rejected</div>
-  </div>
-  <div class="stat-card issued" onclick="filterRequests('Issued')">
-    <div class="sc-count" id="sc-issued">0</div>
-    <div class="sc-label">⊙ Issued</div>
-  </div>
-</div>
-
+<!-- LIST -->
 <div class="list-wrap" id="listWrap">
-  <div class="loading">⏳ Loading requests...</div>
+  <div class="loading-msg"><div class="spinner"></div>Loading requests…</div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-// ═══════════════ FIREBASE ═══════════════
-const firebaseConfig={
-  apiKey:"AIzaSyDr9meYf-fKn7i-3NeQxfSnXNTs-4HGJyE",
-  authDomain:"hvac-ppm.firebaseapp.com",
-  projectId:"hvac-ppm",
-  storageBucket:"hvac-ppm.firebasestorage.app",
-  messagingSenderId:"429823910983",
-  appId:"1:429823910983:web:1836576203d10cbc9c3d62"
+// ══════════════════════════════════════
+//  FIREBASE
+// ══════════════════════════════════════
+var firebaseConfig = {
+  apiKey: "AIzaSyDr9meYf-fKn7i-3NeQxfSnXNTs-4HGJyE",
+  authDomain: "hvac-ppm.firebaseapp.com",
+  projectId: "hvac-ppm",
+  storageBucket: "hvac-ppm.firebasestorage.app",
+  messagingSenderId: "429823910983",
+  appId: "1:429823910983:web:1836576203d10cbc9c3d62"
 };
-if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-const COL = 'material_requests';
+if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+var db  = firebase.firestore();
+var COL = 'material_requests';
 
-// ═══════════════ STATE ═══════════════
-var loggedUser = null;
-var allRequests = [];
-var currentFilter = 'All';
-var sigPads = {};
-var selectedDecision = {};
+// ══════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════
+var loggedUser      = null;
+var allRequests     = [];
+var currentFilter   = 'All';
+var sigCanvases     = {};   // id -> canvas element
+var decisions       = {};   // id -> 'Approved'|'Partial'|'Rejected'
 
-function getUser(){
-  var raw=sessionStorage.getItem('cmms_user')||localStorage.getItem('cmms_user');
-  if(!raw)return null;
-  try{return JSON.parse(raw);}catch(e){return null;}
+// ══════════════════════════════════════
+//  SESSION
+// ══════════════════════════════════════
+function getUser() {
+  var raw = sessionStorage.getItem('cmms_user') || localStorage.getItem('cmms_user');
+  if (!raw) return null;
+  try { return JSON.parse(raw); } catch(e) { return null; }
 }
-window.addEventListener('message',function(e){
-  if(e.data&&e.data.type==='CMMS_USER'){
-    try{var u=JSON.parse(e.data.data);if(u&&u.name){sessionStorage.setItem('cmms_user',e.data.data);init();}}catch(err){}
+function applyUser(u) {
+  if (!u) return;
+  loggedUser = u;
+  var initials = (u.name||'E').split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2);
+  document.getElementById('userAvatar').textContent    = initials;
+  document.getElementById('userNameChip').textContent  = (u.role==='engineer'?'Eng. ':'')+u.name;
+}
+// Accept user data pushed from parent iframe
+window.addEventListener('message', function(e) {
+  if (e.data && e.data.type === 'CMMS_USER') {
+    try {
+      var u = JSON.parse(e.data.data);
+      if (u && u.name) { sessionStorage.setItem('cmms_user', e.data.data); applyUser(u); }
+    } catch(err) {}
   }
 });
 
-// ═══════════════ INIT ═══════════════
-function init(){
-  loggedUser=getUser();
-  if(loggedUser&&loggedUser.name){
-    document.getElementById('userBadge').textContent=(loggedUser.role==='engineer'?'👷‍♂️ Eng. ':'👷 ')+loggedUser.name;
-  }
+// ══════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════
+function init() {
+  loggedUser = getUser();
+  applyUser(loggedUser);
   listenRequests();
 }
 
-// ═══════════════ REALTIME LISTENER ═══════════════
-function listenRequests(){
-  db.collection(COL).onSnapshot(function(snap){
-    allRequests=[];
-    snap.forEach(function(doc){
-      allRequests.push(Object.assign({_id:doc.id},doc.data()));
+// ══════════════════════════════════════
+//  FIRESTORE LISTENER
+// ══════════════════════════════════════
+function listenRequests() {
+  // No orderBy — avoids composite index error; sort client-side
+  db.collection(COL).onSnapshot(function(snap) {
+    allRequests = [];
+    snap.forEach(function(doc) {
+      allRequests.push(Object.assign({ _id: doc.id }, doc.data()));
     });
-    // Sort newest first client-side (avoids Firestore composite index requirement)
-    allRequests.sort(function(a,b){
+    allRequests.sort(function(a, b) {
       var ta = a.createdAt && a.createdAt.toDate ? a.createdAt.toDate().getTime() : new Date(a.date||0).getTime();
       var tb = b.createdAt && b.createdAt.toDate ? b.createdAt.toDate().getTime() : new Date(b.date||0).getTime();
       return tb - ta;
     });
     updateCounts();
     renderList();
-  },function(err){
-    document.getElementById('listWrap').innerHTML='<div class="loading">❌ Error loading: '+err.message+'</div>';
+  }, function(err) {
+    document.getElementById('listWrap').innerHTML =
+      '<div class="loading-msg">❌ Error: ' + esc(err.message) + '</div>';
   });
 }
-function updateCounts(){
-  var p=allRequests.filter(function(r){return r.status==='Pending';}).length;
-  var a=allRequests.filter(function(r){return r.status==='Approved'||r.status==='Partial';}).length;
-  var rj=allRequests.filter(function(r){return r.status==='Rejected';}).length;
-  var is=allRequests.filter(function(r){return r.status==='Issued'||r.status==='Dispensed';}).length;
-  document.getElementById('cntPending').textContent=p;
-  document.getElementById('cntApproved').textContent=a;
-  document.getElementById('cntRejected').textContent=rj;
-  document.getElementById('cntIssued').textContent=is;
-  document.getElementById('sc-pending').textContent=p;
-  document.getElementById('sc-approved').textContent=a;
-  document.getElementById('sc-rejected').textContent=rj;
-  document.getElementById('sc-issued').textContent=is;
-  // notification bell
-  var bell=document.getElementById('notifBell');
-  if(bell){bell.style.display=p>0?'inline-block':'none';document.getElementById('notifCount').textContent=p;}
-}
 
-// ═══════════════ FILTER ═══════════════
-function filterRequests(f){
-  currentFilter=f;
-  ['Pending','Approved','Rejected','All','Issued'].forEach(function(t){
-    var el=document.getElementById('tab-'+t.toLowerCase());
-    if(el) el.classList.toggle('active',t===f);
+// ══════════════════════════════════════
+//  COUNTS
+// ══════════════════════════════════════
+function updateCounts() {
+  var p  = allRequests.filter(function(r){ return r.status==='Pending'; }).length;
+  var a  = allRequests.filter(function(r){ return r.status==='Approved'||r.status==='Partial'; }).length;
+  var rj = allRequests.filter(function(r){ return r.status==='Rejected'; }).length;
+  var is = allRequests.filter(function(r){ return r.status==='Issued'||r.status==='Dispensed'; }).length;
+
+  ['Pending','Approved','Rejected'].forEach(function(k,i){ setEl('cnt-'+k, [p,a,rj][i]); setEl('sc-'+k.toLowerCase(), [p,a,rj][i]); });
+  setEl('cnt-Issued', is); setEl('sc-issued', is);
+  setEl('cnt-Pending', p); setEl('sc-pending', p);
+  setEl('cnt-Approved', a); setEl('sc-approved', a);
+  setEl('cnt-Rejected', rj); setEl('sc-rejected', rj);
+
+  var bell = document.getElementById('notifBell');
+  if (bell) {
+    bell.className = 'notif-bell' + (p > 0 ? ' has-notif' : '');
+    setEl('notifCount', p);
+  }
+}
+function setEl(id, val) { var el=document.getElementById(id); if(el) el.textContent=val; }
+
+// ══════════════════════════════════════
+//  FILTER
+// ══════════════════════════════════════
+function filterRequests(f) {
+  currentFilter = f;
+  ['All','Pending','Approved','Rejected','Issued'].forEach(function(t) {
+    var el = document.getElementById('tab-'+t);
+    if (el) el.classList.toggle('active', t===f);
   });
   renderList();
 }
+function matchesFilter(r) {
+  if (currentFilter==='All')      return true;
+  if (currentFilter==='Issued')   return r.status==='Issued'||r.status==='Dispensed';
+  if (currentFilter==='Approved') return r.status==='Approved'||r.status==='Partial';
+  return r.status === currentFilter;
+}
 
-// ═══════════════ RENDER LIST ═══════════════
-function renderList(){
-  var filtered = allRequests.filter(function(r){
-    if(currentFilter==='All') return true;
-    if(currentFilter==='Issued') return r.status==='Issued'||r.status==='Dispensed';
-    if(currentFilter==='Approved') return r.status==='Approved'||r.status==='Partial';
-    return r.status===currentFilter;
-  });
-  var wrap=document.getElementById('listWrap');
-  if(!filtered.length){
-    wrap.innerHTML='<div class="loading">No '+currentFilter+' requests found.</div>';
+// ══════════════════════════════════════
+//  RENDER LIST
+// ══════════════════════════════════════
+function renderList() {
+  var filtered = allRequests.filter(matchesFilter);
+  var wrap = document.getElementById('listWrap');
+  wrap.innerHTML = '';
+
+  if (!filtered.length) {
+    wrap.innerHTML = '<div class="loading-msg">No ' + currentFilter + ' requests found.</div>';
     return;
   }
-  wrap.innerHTML='';
-  filtered.forEach(function(req){
+
+  // Reset sig canvas registry (cards are being rebuilt)
+  sigCanvases = {};
+
+  filtered.forEach(function(req) {
     wrap.appendChild(buildCard(req));
   });
-  // Re-init sig pads for any open panels
-  Object.keys(sigPads).forEach(function(k){delete sigPads[k];});
 }
 
-function buildCard(req){
-  var card=document.createElement('div');
-  card.className='req-card'+(req.status==='Approved'?' approved':req.status==='Rejected'?' rejected':'');
-  card.id='card-'+req._id;
+// ══════════════════════════════════════
+//  BUILD CARD  (uses DOM, not innerHTML)
+// ══════════════════════════════════════
+function buildCard(req) {
+  var status   = req.status || 'Pending';
+  var priority = req.priority || 'Normal';
 
-  var dateStr='';
-  if(req.date){try{dateStr=new Date(req.date).toLocaleString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});}catch(e){dateStr=req.date;}}
+  var cardEl = document.createElement('div');
+  cardEl.className = 'req-card ' + statusCardClass(status);
+  cardEl.id = 'card-' + req._id;
 
-  var statusBadge='<span class="badge badge-pending">⏳ Pending</span>';
-  if(req.status==='Approved') statusBadge='<span class="badge badge-approved">✅ Approved</span>';
-  if(req.status==='Rejected') statusBadge='<span class="badge badge-rejected">❌ Rejected</span>';
-  if(req.status==='Partial') statusBadge='<span class="badge badge-partial">⚠️ Partial</span>';
-  if(req.status==='Issued'||req.status==='Dispensed') statusBadge='<span class="badge badge-issued">📦 Issued</span>';
+  // ── HEAD ──
+  var head = document.createElement('div');
+  head.className = 'req-head';
+  head.addEventListener('click', function(){ toggleDetail(req._id); });
 
-  var prioBadge='';
-  if(req.priority==='Urgent') prioBadge='<span class="badge badge-urgent">🟠 Urgent</span>';
-  if(req.priority==='Critical') prioBadge='<span class="badge badge-critical">🔴 Critical</span>';
+  var headLeft = document.createElement('div');
+  headLeft.style.flex = '1';
+  headLeft.style.minWidth = '0';
 
-  card.innerHTML=
-    '<div class="req-head" onclick="toggleDetail(\''+req._id+'\')">'+
-      '<div>'+
-        '<div class="req-number">'+req.reqNo+'</div>'+
-        '<div class="req-meta">'+dateStr+' | '+req.techName+' | '+req.building+'</div>'+
-      '</div>'+
-      '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">'+
-        prioBadge+statusBadge+
-        '<span style="font-size:18px;transition:.2s" id="arr-'+req._id+'">▼</span>'+
-      '</div>'+
-    '</div>'+
-    '<div class="req-detail" id="det-'+req._id+'">'+
-      buildDetail(req)+
-    '</div>';
-  return card;
+  var numEl = document.createElement('div');
+  numEl.className = 'req-num';
+  numEl.textContent = req.reqNo || '—';
+
+  var metaEl = document.createElement('div');
+  metaEl.className = 'req-meta';
+  var dateStr = '';
+  if (req.date) { try { dateStr = new Date(req.date).toLocaleString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}); } catch(e){} }
+  metaEl.textContent = [dateStr, req.techName, req.building].filter(Boolean).join(' | ');
+
+  headLeft.appendChild(numEl);
+  headLeft.appendChild(metaEl);
+
+  var headRight = document.createElement('div');
+  headRight.style.cssText = 'display:flex;gap:6px;align-items:center;flex-wrap:wrap;flex-shrink:0';
+
+  if (priority==='Urgent')   headRight.appendChild(makeBadge('b-urgent',   '&#128992; Urgent'));
+  if (priority==='Critical') headRight.appendChild(makeBadge('b-critical', '&#128308; Critical'));
+  headRight.appendChild(statusBadgeEl(status));
+
+  var arrow = document.createElement('span');
+  arrow.className = 'req-arrow';
+  arrow.id = 'arr-' + req._id;
+  arrow.innerHTML = '&#9660;';
+  headRight.appendChild(arrow);
+
+  head.appendChild(headLeft);
+  head.appendChild(headRight);
+
+  // ── DETAIL ──
+  var detail = document.createElement('div');
+  detail.className = 'req-detail';
+  detail.id = 'det-' + req._id;
+  buildDetailInto(detail, req);
+
+  cardEl.appendChild(head);
+  cardEl.appendChild(detail);
+  return cardEl;
 }
 
-function buildDetail(req){
-  var itemsHtml='<table class="items-tbl"><thead><tr><th>#</th><th>Material</th><th>Qty</th><th>Unit</th><th>In Stock</th></tr></thead><tbody>';
-  if(req.items&&req.items.length){
-    req.items.forEach(function(it,i){
-      var cls=it.inStock<=0?'stock-zero':it.inStock<=3?'stock-warn':'';
-      itemsHtml+='<tr class="'+cls+'"><td>'+(i+1)+'</td><td>'+it.matName+'</td><td><b>'+it.qty+'</b></td><td>'+it.unit+'</td><td style="font-weight:700;color:'+(it.inStock<=0?'#c62828':it.inStock<=3?'#e65100':'#2e7d32')+'">'+it.inStock+'</td></tr>';
+function statusCardClass(s) {
+  return {Approved:'approved',Partial:'partial',Rejected:'rejected',Issued:'issued',Dispensed:'issued'}[s]||'';
+}
+
+function makeBadge(cls, html) {
+  var el = document.createElement('span');
+  el.className = 'badge ' + cls;
+  el.innerHTML = html;
+  return el;
+}
+
+function statusBadgeEl(status) {
+  var map = {
+    Pending:   ['b-pending',  '&#9203; Pending'],
+    Approved:  ['b-approved', '&#9989; Approved'],
+    Partial:   ['b-partial',  '&#9888;&#65039; Partial'],
+    Rejected:  ['b-rejected', '&#10060; Rejected'],
+    Issued:    ['b-issued',   '&#128230; Issued'],
+    Dispensed: ['b-issued',   '&#128230; Issued']
+  };
+  var info = map[status] || ['b-pending', esc(status)];
+  return makeBadge(info[0], info[1]);
+}
+
+// ══════════════════════════════════════
+//  BUILD DETAIL  (DOM-based)
+// ══════════════════════════════════════
+function buildDetailInto(container, req) {
+  // Print header
+  var ph = document.createElement('div');
+  ph.className = 'print-header';
+  ph.innerHTML = '<h2>KING FAISAL MEDICAL COMPLEX — KFMC</h2>' +
+    '<p>AL MAJAL AL ARABI GROUP — Mechanical Maintenance</p>' +
+    '<h3 style="margin-top:6px;font-size:15px">MATERIAL REQUEST FORM</h3>';
+  container.appendChild(ph);
+
+  // Request info
+  var infoSec = makeSec('Request Info — بيانات الطلب');
+  var grid = document.createElement('div');
+  grid.className = 'info-grid';
+  var fields = [
+    ['Request No', req.reqNo||'—'], ['Date', req.date?new Date(req.date).toLocaleDateString('en-GB'):'—'],
+    ['Technician', req.techName||'—'], ['ID / Iqama', req.techId||'—'],
+    ['Building', req.building||'—'], ['Priority', req.priority||'—'],
+    ['Work Order', req.workOrder||'—', true], ['Reason', req.reason||'—', true]
+  ];
+  fields.forEach(function(f) {
+    var row = document.createElement('div');
+    row.className = 'info-row' + (f[2]?' full':'');
+    row.innerHTML = esc(f[0])+': <b>'+esc(f[1])+'</b>';
+    grid.appendChild(row);
+  });
+  infoSec.appendChild(grid);
+  container.appendChild(infoSec);
+
+  // Materials table
+  var matSec = makeSec('Requested Materials — القطع المطلوبة');
+  var tbl = document.createElement('table');
+  tbl.className = 'items-tbl';
+  tbl.innerHTML = '<thead><tr><th>#</th><th>Material</th><th>Qty</th><th>Unit</th><th>In Stock</th></tr></thead>';
+  var tbody = document.createElement('tbody');
+  if (req.items && req.items.length) {
+    req.items.forEach(function(it, i) {
+      var tr = document.createElement('tr');
+      var inStock = Number(it.inStock) || 0;
+      if (inStock <= 0) tr.className = 'stock-zero';
+      else if (inStock <= 3) tr.className = 'stock-warn';
+      var stockColor = inStock<=0 ? '#ef5350' : inStock<=3 ? '#ffa726' : '#66bb6a';
+      tr.innerHTML = '<td>'+(i+1)+'</td><td>'+esc(it.matName||'—')+'</td>' +
+        '<td><b>'+esc(String(it.qty))+'</b></td><td>'+esc(it.unit||'pcs')+'</td>' +
+        '<td style="font-weight:700;color:'+stockColor+'">'+esc(String(inStock))+'</td>';
+      tbody.appendChild(tr);
     });
-  }
-  itemsHtml+='</tbody></table>';
-
-  var techSigHtml='';
-  if(req.techSig&&req.techSig.length>100){
-    techSigHtml='<div class="sig-preview"><img src="'+req.techSig+'"><p>Technician: '+req.techName+'</p></div>';
-  }
-
-  var engResultHtml='';
-  if(req.status==='Approved'){
-    var eDate='';
-    if(req.engDate){try{eDate=new Date(req.engDate).toLocaleString('en-GB');}catch(e){eDate=req.engDate;}}
-    var engSigHtml='';
-    if(req.engSig&&req.engSig.length>100) engSigHtml='<div class="sig-preview" style="margin-top:8px"><img src="'+req.engSig+'"><p>Engineer: '+req.engName+'</p></div>';
-    engResultHtml='<div class="approved-result">'+
-      '<b style="color:var(--green)">✅ APPROVED</b> by '+req.engName+' — '+eDate+'<br>'+
-      (req.engNotes?'<i>Notes: '+req.engNotes+'</i>':'')+
-      engSigHtml+
-      '<button class="print-btn no-print" onclick="printRequest(\''+req._id+'\')">🖨️ Print</button>'+
-    '</div>';
-  } else if(req.status==='Rejected'){
-    engResultHtml='<div class="rejected-result">'+
-      '<b style="color:var(--red)">❌ REJECTED</b> by '+req.engName+'<br>'+
-      '<i>Reason: '+(req.engNotes||'—')+'</i>'+
-    '</div>';
-  } else if(req.status==='Partial'){
-    var eDate2='';
-    if(req.engDate){try{eDate2=new Date(req.engDate).toLocaleString('en-GB');}catch(e){eDate2=req.engDate;}}
-    var engSigHtml2='';
-    if(req.engSig&&req.engSig.length>100) engSigHtml2='<div class="sig-preview" style="margin-top:8px"><img src="'+req.engSig+'"><p>Engineer: '+req.engName+'</p></div>';
-    engResultHtml='<div class="approved-result">'+
-      '<b style="color:var(--blue2)">⚠️ PARTIAL APPROVAL</b> by '+(req.engName||'—')+' — '+eDate2+'<br>'+
-      (req.engNotes?'<i>Notes: '+req.engNotes+'</i>':'')+
-      engSigHtml2+
-      '<button class="print-btn no-print" onclick="printRequest(\''+req._id+'\')">🖨️ Print</button>'+
-    '</div>';
-  } else if(req.status==='Issued'||req.status==='Dispensed'){
-    engResultHtml='<div class="approved-result">'+
-      '<b style="color:#6a1fa8">📦 ISSUED / DISPENSED</b><br>'+
-      '<small style="color:#555">Materials have been dispensed from warehouse.</small>'+
-    '</div>';
   } else {
-    // Pending — show approval panel
-    engResultHtml=buildApprovalPanel(req);
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--sub)">No items listed</td></tr>';
   }
+  tbl.appendChild(tbody);
+  matSec.appendChild(tbl);
+  container.appendChild(matSec);
 
-  return '<div class="print-header">'+
-    '<h2>KING FAISAL MEDICAL COMPLEX — KFMC</h2>'+
-    '<p>AL MAJAL AL ARABI GROUP — Mechanical Maintenance</p>'+
-    '<h3 style="margin-top:6px;font-size:15px">MATERIAL REQUEST FORM</h3>'+
-  '</div>'+
-  '<div class="detail-section"><h4>Request Info</h4>'+
-  '<div class="info-grid">'+
-    '<div class="info-row">Request No: <span>'+req.reqNo+'</span></div>'+
-    '<div class="info-row">Date: <span>'+(req.date?new Date(req.date).toLocaleDateString('en-GB'):'—')+'</span></div>'+
-    '<div class="info-row">Technician: <span>'+req.techName+'</span></div>'+
-    '<div class="info-row">ID / Iqama: <span>'+(req.techId||'—')+'</span></div>'+
-    '<div class="info-row">Building: <span>'+req.building+'</span></div>'+
-    '<div class="info-row">Priority: <span>'+req.priority+'</span></div>'+
-    '<div class="info-row" style="grid-column:span 2">Work Order: <span>'+req.workOrder+'</span></div>'+
-    '<div class="info-row" style="grid-column:span 2">Reason: <span>'+(req.reason||'—')+'</span></div>'+
-  '</div></div>'+
-  '<div class="detail-section"><h4>Requested Materials</h4>'+itemsHtml+'</div>'+
-  '<div class="detail-section"><h4>Technician Signature</h4>'+techSigHtml+'</div>'+
-  '<div class="detail-section"><h4>Engineer Decision</h4>'+engResultHtml+'</div>';
+  // Technician signature
+  var sigSec = makeSec('Technician Signature — توقيع الفني');
+  if (req.techSig && req.techSig.length > 100) {
+    var sigDiv = document.createElement('div');
+    sigDiv.className = 'sig-preview';
+    sigDiv.innerHTML = '<img src="'+req.techSig+'"><p>'+esc(req.techName||'Technician')+'</p>';
+    sigSec.appendChild(sigDiv);
+  } else {
+    var noSig = document.createElement('div');
+    noSig.style.cssText = 'font-size:12px;color:var(--sub)';
+    noSig.textContent = 'No signature provided';
+    sigSec.appendChild(noSig);
+  }
+  container.appendChild(sigSec);
+
+  // Engineer decision
+  var decSec = makeSec('Engineer Decision — قرار المهندس');
+  var status = req.status || 'Pending';
+
+  if (status === 'Pending') {
+    decSec.appendChild(buildApprovalPanel(req._id));
+  } else if (status === 'Approved' || status === 'Partial') {
+    decSec.appendChild(buildResultPanel(req, status));
+  } else if (status === 'Rejected') {
+    decSec.appendChild(buildRejectedPanel(req));
+  } else {
+    // Issued / Dispensed
+    var issuedDiv = document.createElement('div');
+    issuedDiv.className = 'result-issued';
+    issuedDiv.innerHTML = '<b style="color:#ce93d8">&#128230; ISSUED / DISPENSED</b><br>' +
+      '<span style="font-size:12px;color:var(--sub)">Materials have been dispensed from warehouse.</span>';
+    decSec.appendChild(issuedDiv);
+  }
+  container.appendChild(decSec);
 }
 
-function buildApprovalPanel(req){
-  return '<div class="approval-panel" id="apanel-'+req._id+'">'+
-    '<h4>👷‍♂️ Engineer Decision — قرار المهندس</h4>'+
-    '<div class="decision-btns">'+
-      '<button class="dec-btn approve" onclick="selectDecision(\''+req._id+'\',\'Approved\',this)">✅ Approve اعتماد</button>'+
-      '<button class="dec-btn partial" onclick="selectDecision(\''+req._id+'\',\'Partial\',this)">⚠️ Partial جزئي</button>'+
-      '<button class="dec-btn reject" onclick="selectDecision(\''+req._id+'\',\'Rejected\',this)">❌ Reject رفض</button>'+
-    '</div>'+
-    '<div class="form-row">'+
-      '<label>Engineer Notes / Rejection Reason ملاحظات المهندس</label>'+
-      '<textarea id="engNotes-'+req._id+'" rows="2" placeholder="Notes or reason for rejection..."></textarea>'+
-    '</div>'+
-    '<div class="form-row">'+
-      '<label>Engineer Signature توقيع المهندس</label>'+
-      '<div class="sig-wrap" id="engSigWrap-'+req._id+'">'+
-        '<div class="sig-label">Sign here</div>'+
-        '<canvas id="engSig-'+req._id+'" height="110"></canvas>'+
-        '<button class="sig-clear" onclick="clearEngSig(\''+req._id+'\')">Clear</button>'+
-      '</div>'+
-    '</div>'+
-    '<button class="confirm-btn no-print" id="confirmBtn-'+req._id+'" onclick="confirmDecision(\''+req._id+'\')" disabled>'+
-      '⏳ Select a decision first'+
-    '</button>'+
-  '</div>';
+function makeSec(title) {
+  var sec = document.createElement('div');
+  sec.className = 'det-section';
+  var h4 = document.createElement('h4');
+  h4.textContent = title;
+  sec.appendChild(h4);
+  return sec;
 }
 
-// ═══════════════ TOGGLE DETAIL ═══════════════
-function toggleDetail(id){
-  var det=document.getElementById('det-'+id);
-  var arr=document.getElementById('arr-'+id);
-  var isOpen=det.classList.contains('open');
-  det.classList.toggle('open',!isOpen);
-  if(arr) arr.style.transform=isOpen?'':'rotate(180deg)';
-  if(!isOpen){
-    // init eng sig pad
-    setTimeout(function(){
-      var canvas=document.getElementById('engSig-'+id);
-      if(canvas&&!sigPads['eng-'+id]) initEngSig(id);
-    },50);
+function buildResultPanel(req, status) {
+  var div = document.createElement('div');
+  div.className = status==='Partial' ? 'result-partial' : 'result-approved';
+  var eDate = '';
+  if (req.engDate) { try { eDate = new Date(req.engDate).toLocaleString('en-GB'); } catch(e){} }
+  var icon  = status==='Partial' ? '&#9888;&#65039; PARTIAL APPROVAL' : '&#9989; APPROVED';
+  var color = status==='Partial' ? '#90caf9' : '#4caf50';
+  div.innerHTML = '<b style="color:'+color+'">'+icon+'</b> by <b>'+esc(req.engName||'—')+'</b> — '+esc(eDate)+'<br>'+
+    (req.engNotes ? '<i style="font-size:12px;color:var(--sub)">Notes: '+esc(req.engNotes)+'</i>' : '');
+  if (req.engSig && req.engSig.length > 100) {
+    var sp = document.createElement('div');
+    sp.className = 'sig-preview';
+    sp.innerHTML = '<img src="'+req.engSig+'"><p>'+esc(req.engName||'Engineer')+'</p>';
+    div.appendChild(sp);
+  }
+  var wNote = document.createElement('div');
+  wNote.className = 'warehouse-note';
+  wNote.innerHTML = '&#127981; Forwarded to warehouse — يمكن لمسؤول المستودع الآن صرف القطع<br>' +
+    '<a href="warehouse.html">&#128230; Open Warehouse — فتح المستودع</a>';
+  div.appendChild(wNote);
+  var pBtn = document.createElement('button');
+  pBtn.className = 'print-btn no-print';
+  pBtn.textContent = '🖨️ Print';
+  pBtn.addEventListener('click', function(){ printRequest(req._id); });
+  div.appendChild(pBtn);
+  return div;
+}
+
+function buildRejectedPanel(req) {
+  var div = document.createElement('div');
+  div.className = 'result-rejected';
+  div.innerHTML = '<b style="color:#ef5350">&#10060; REJECTED</b> by <b>'+esc(req.engName||'—')+'</b><br>' +
+    '<i style="font-size:12px;color:var(--sub)">Reason: '+esc(req.engNotes||'—')+'</i>';
+  return div;
+}
+
+// ══════════════════════════════════════
+//  APPROVAL PANEL
+// ══════════════════════════════════════
+function buildApprovalPanel(id) {
+  var panel = document.createElement('div');
+  panel.className = 'approval-panel';
+  panel.id = 'apanel-' + id;
+
+  var h4 = document.createElement('h4');
+  h4.textContent = 'Engineer Decision — قرار المهندس';
+  panel.appendChild(h4);
+
+  // Decision buttons
+  var btnRow = document.createElement('div');
+  btnRow.className = 'dec-btns';
+  var btns = [
+    ['approve',  'Approved', '✅ Approve — اعتماد'],
+    ['partial',  'Partial',  '⚠️ Partial — جزئي'],
+    ['reject',   'Rejected', '❌ Reject — رفض']
+  ];
+  btns.forEach(function(b) {
+    var btn = document.createElement('button');
+    btn.className = 'dec-btn ' + b[0];
+    btn.textContent = b[2];
+    btn.addEventListener('click', function(){ selectDecision(id, b[1], btn, btnRow); });
+    btnRow.appendChild(btn);
+  });
+  panel.appendChild(btnRow);
+
+  // Notes
+  var notesGrp = document.createElement('div');
+  notesGrp.className = 'form-grp';
+  var notesLbl = document.createElement('label');
+  notesLbl.textContent = 'Engineer Notes / Rejection Reason — ملاحظات المهندس';
+  var notesTA = document.createElement('textarea');
+  notesTA.id = 'engNotes-' + id;
+  notesTA.placeholder = 'Notes or reason for rejection…';
+  notesTA.rows = 2;
+  notesGrp.appendChild(notesLbl);
+  notesGrp.appendChild(notesTA);
+  panel.appendChild(notesGrp);
+
+  // Signature
+  var sigGrp = document.createElement('div');
+  sigGrp.className = 'form-grp';
+  var sigLbl = document.createElement('label');
+  sigLbl.textContent = 'Engineer Signature — توقيع المهندس';
+  var sigWrap = document.createElement('div');
+  sigWrap.className = 'sig-wrap';
+  sigWrap.id = 'sigWrap-' + id;
+  var sigLabel = document.createElement('div');
+  sigLabel.className = 'sig-lbl';
+  sigLabel.textContent = 'Sign here — وقّع هنا';
+  var canvas = document.createElement('canvas');
+  canvas.id = 'engSig-' + id;
+  canvas.height = 110;
+  var clearBtn = document.createElement('button');
+  clearBtn.className = 'sig-clear-btn no-print';
+  clearBtn.textContent = 'Clear مسح';
+  clearBtn.addEventListener('click', function(){ clearSig(id); });
+  sigWrap.appendChild(sigLabel);
+  sigWrap.appendChild(canvas);
+  sigWrap.appendChild(clearBtn);
+  sigGrp.appendChild(sigLbl);
+  sigGrp.appendChild(sigWrap);
+  panel.appendChild(sigGrp);
+
+  // Confirm button
+  var confirmBtn = document.createElement('button');
+  confirmBtn.className = 'confirm-btn no-print';
+  confirmBtn.id = 'confirmBtn-' + id;
+  confirmBtn.disabled = true;
+  confirmBtn.textContent = '⏳ Select a decision first';
+  confirmBtn.addEventListener('click', function(){ confirmDecision(id); });
+  panel.appendChild(confirmBtn);
+
+  return panel;
+}
+
+// ══════════════════════════════════════
+//  TOGGLE DETAIL
+// ══════════════════════════════════════
+function toggleDetail(id) {
+  var det  = document.getElementById('det-' + id);
+  var arr  = document.getElementById('arr-' + id);
+  if (!det) return;
+  var isOpen = det.classList.contains('open');
+  det.classList.toggle('open', !isOpen);
+  if (arr) arr.classList.toggle('open', !isOpen);
+  if (!isOpen) {
+    // Init signature canvas after layout is done
+    setTimeout(function(){ initSig(id); }, 80);
   }
 }
 
-// ═══════════════ SIG PADS ═══════════════
-function initEngSig(id){
-  var canvas=document.getElementById('engSig-'+id);
-  if(!canvas)return;
-  var ctx=canvas.getContext('2d');
-  var wrap=canvas.parentElement;
-  function resize(){canvas.width=wrap.offsetWidth;ctx.strokeStyle='#0a2e5c';ctx.lineWidth=2.5;ctx.lineCap='round';}
-  resize();
-  window.addEventListener('resize',resize);
-  var drawing=false,lx=0,ly=0;
-  function pos(e){var r=canvas.getBoundingClientRect();var sc=canvas.width/r.width;var src=e.touches?e.touches[0]:e;return{x:(src.clientX-r.left)*sc,y:(src.clientY-r.top)*sc};}
-  canvas.addEventListener('mousedown',function(e){drawing=true;var p=pos(e);lx=p.x;ly=p.y;});
-  canvas.addEventListener('mousemove',function(e){if(!drawing)return;var p=pos(e);ctx.beginPath();ctx.moveTo(lx,ly);ctx.lineTo(p.x,p.y);ctx.stroke();lx=p.x;ly=p.y;});
-  canvas.addEventListener('mouseup',function(){drawing=false;});
-  canvas.addEventListener('touchstart',function(e){e.preventDefault();drawing=true;var p=pos(e);lx=p.x;ly=p.y;},{passive:false});
-  canvas.addEventListener('touchmove',function(e){e.preventDefault();if(!drawing)return;var p=pos(e);ctx.beginPath();ctx.moveTo(lx,ly);ctx.lineTo(p.x,p.y);ctx.stroke();lx=p.x;ly=p.y;},{passive:false});
-  canvas.addEventListener('touchend',function(){drawing=false;});
-  sigPads['eng-'+id]=canvas;
+// ══════════════════════════════════════
+//  SIGNATURE PAD
+// ══════════════════════════════════════
+function initSig(id) {
+  var canvas = document.getElementById('engSig-' + id);
+  if (!canvas || sigCanvases[id]) return;   // already initialised
+  var wrap = document.getElementById('sigWrap-' + id);
+  if (!wrap) return;
+  canvas.width = wrap.offsetWidth || 400;
+  var ctx = canvas.getContext('2d');
+  ctx.strokeStyle = '#4fc3f7';
+  ctx.lineWidth   = 2.2;
+  ctx.lineCap     = 'round';
+
+  var drawing = false, lx = 0, ly = 0;
+  function pos(e) {
+    var r = canvas.getBoundingClientRect();
+    var sc = canvas.width / r.width;
+    var src = e.touches ? e.touches[0] : e;
+    return { x: (src.clientX-r.left)*sc, y: (src.clientY-r.top)*sc };
+  }
+  canvas.addEventListener('mousedown',  function(e){ drawing=true; var p=pos(e); lx=p.x; ly=p.y; });
+  canvas.addEventListener('mousemove',  function(e){ if(!drawing)return; var p=pos(e); ctx.beginPath(); ctx.moveTo(lx,ly); ctx.lineTo(p.x,p.y); ctx.stroke(); lx=p.x; ly=p.y; });
+  canvas.addEventListener('mouseup',    function(){ drawing=false; });
+  canvas.addEventListener('mouseleave', function(){ drawing=false; });
+  canvas.addEventListener('touchstart', function(e){ e.preventDefault(); drawing=true; var p=pos(e); lx=p.x; ly=p.y; }, {passive:false});
+  canvas.addEventListener('touchmove',  function(e){ e.preventDefault(); if(!drawing)return; var p=pos(e); ctx.beginPath(); ctx.moveTo(lx,ly); ctx.lineTo(p.x,p.y); ctx.stroke(); lx=p.x; ly=p.y; }, {passive:false});
+  canvas.addEventListener('touchend',   function(){ drawing=false; });
+
+  sigCanvases[id] = canvas;
 }
-function clearEngSig(id){
-  var c=sigPads['eng-'+id];
-  if(c)c.getContext('2d').clearRect(0,0,c.width,c.height);
+
+function clearSig(id) {
+  var c = sigCanvases[id];
+  if (c) c.getContext('2d').clearRect(0, 0, c.width, c.height);
 }
-function isSigEmpty(canvas){
-  if(!canvas)return true;
-  var d=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data;
-  for(var i=3;i<d.length;i+=4){if(d[i]>10)return false;}
+
+function isSigEmpty(id) {
+  var c = sigCanvases[id];
+  if (!c) return true;
+  var d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+  for (var i = 3; i < d.length; i += 4) { if (d[i] > 10) return false; }
   return true;
 }
 
-// ═══════════════ DECISION ═══════════════
-function selectDecision(id,decision,btn){
-  selectedDecision[id]=decision;
-  var panel=document.getElementById('apanel-'+id);
-  if(!panel)return;
-  panel.querySelectorAll('.dec-btn').forEach(function(b){b.classList.remove('selected');});
-  btn.classList.add('selected');
-  var confirmBtn=document.getElementById('confirmBtn-'+id);
-  if(confirmBtn){
-    confirmBtn.disabled=false;
-    var labels={Approved:'✅ Confirm Approval — اعتماد',Partial:'⚠️ Confirm Partial — جزئي',Rejected:'❌ Confirm Rejection — رفض'};
-    confirmBtn.textContent=labels[decision]||'Confirm';
-    confirmBtn.style.background=decision==='Approved'?'var(--green)':decision==='Rejected'?'var(--red)':'var(--blue2)';
+// ══════════════════════════════════════
+//  DECISION SELECTION
+// ══════════════════════════════════════
+function selectDecision(id, decision, clickedBtn, btnRow) {
+  decisions[id] = decision;
+  btnRow.querySelectorAll('.dec-btn').forEach(function(b){ b.classList.remove('sel'); });
+  clickedBtn.classList.add('sel');
+  var confirmBtn = document.getElementById('confirmBtn-' + id);
+  if (confirmBtn) {
+    confirmBtn.disabled = false;
+    var labels = {
+      Approved: '✅ Confirm Approval — اعتماد',
+      Partial:  '⚠️ Confirm Partial — جزئي',
+      Rejected: '❌ Confirm Rejection — رفض'
+    };
+    confirmBtn.textContent = labels[decision] || 'Confirm';
+    var bgMap = { Approved:'#2e7d32', Partial:'#1565c0', Rejected:'#c62828' };
+    confirmBtn.style.background = bgMap[decision] || '#1565c0';
   }
 }
 
-function confirmDecision(id){
-  var decision=selectedDecision[id];
-  if(!decision){showToast('⚠️ Select a decision first');return;}
-  var notes=document.getElementById('engNotes-'+id);
-  var notesVal=notes?notes.value.trim():'';
-  if(decision==='Rejected'&&!notesVal){showToast('⚠️ Rejection reason is required');return;}
-  var canvas=sigPads['eng-'+id];
-  if(isSigEmpty(canvas)){showToast('⚠️ Engineer signature required');return;}
-  var engName=loggedUser&&loggedUser.name?loggedUser.name:'Engineer';
-  var engSigData=canvas.toDataURL('image/png');
-  var confirmBtn=document.getElementById('confirmBtn-'+id);
-  if(confirmBtn){confirmBtn.disabled=true;confirmBtn.textContent='⏳ Saving...';}
+// ══════════════════════════════════════
+//  CONFIRM DECISION
+// ══════════════════════════════════════
+function confirmDecision(id) {
+  var decision = decisions[id];
+  if (!decision) { showToast('⚠️ Select a decision first'); return; }
 
-  var req=allRequests.find(function(r){return r._id===id;});
-  var updates={
-    status:decision,
-    engName:engName,
-    engDecision:decision,
-    engNotes:notesVal,
-    engSig:engSigData,
-    engDate:new Date().toISOString()
-  };
+  var notesEl  = document.getElementById('engNotes-' + id);
+  var notesVal = notesEl ? notesEl.value.trim() : '';
+  if (decision === 'Rejected' && !notesVal) { showToast('⚠️ Rejection reason is required'); return; }
+  if (isSigEmpty(id)) { showToast('⚠️ Engineer signature is required'); return; }
 
-  db.collection(COL).doc(id).update(updates)
-    .then(function(){
-      var msg = decision==='Approved'?'✅ تم الاعتماد — الطلب أُرسل للمستودع':
-                decision==='Rejected'?'❌ رُفض الطلب':
-                '⚠️ اعتماد جزئي — الطلب أُرسل للمستودع';
-      showToast(msg);
-      // The onSnapshot listener will auto-refresh the card
-      delete selectedDecision[id];
-    })
-    .catch(function(err){
-      showToast('❌ Error: '+err.message);
-      if(confirmBtn){confirmBtn.disabled=false;confirmBtn.textContent='Retry';}
-    });
+  var engName    = loggedUser && loggedUser.name ? loggedUser.name : 'Engineer';
+  var canvas     = sigCanvases[id];
+  var engSigData = canvas ? canvas.toDataURL('image/png') : '';
+
+  var confirmBtn = document.getElementById('confirmBtn-' + id);
+  if (confirmBtn) { confirmBtn.disabled = true; confirmBtn.textContent = '⏳ Saving…'; }
+
+  db.collection(COL).doc(id).update({
+    status:      decision,
+    engName:     engName,
+    engDecision: decision,
+    engNotes:    notesVal,
+    engSig:      engSigData,
+    engDate:     new Date().toISOString()
+  })
+  .then(function() {
+    var msg = decision==='Approved' ? '✅ تم الاعتماد — الطلب أُرسل للمستودع' :
+              decision==='Rejected' ? '❌ رُفض الطلب' :
+              '⚠️ اعتماد جزئي — الطلب أُرسل للمستودع';
+    showToast(msg);
+    delete decisions[id];
+    delete sigCanvases[id];
+    // onSnapshot auto-refreshes the list
+  })
+  .catch(function(err) {
+    showToast('❌ Error: ' + err.message);
+    if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.textContent = 'Retry'; }
+  });
 }
 
-// Note: Stock deduction now happens only when warehouse dispenses (in warehouse.html)
-// This prevents double-deduction and ensures accurate inventory
-
-// ═══════════════ BUILD APPROVED RESULT ═══════════════
-function buildApprovedResult(req){
-  var decision = req.status;
-  var label = decision==='Approved'?'✅ اعتمد المهندس':decision==='Partial'?'⚠️ اعتماد جزئي':'❌ رُفض';
-  var cls = decision==='Approved'||decision==='Partial'?'approved-result':'rejected-result';
-  var html = '<div class="'+cls+'">';
-  html += '<b>'+label+'</b><br>';
-  html += '<small style="color:#555">المهندس: '+req.engName+' · '+new Date(req.engDate).toLocaleString('ar-SA')+'</small>';
-  if(req.engNotes) html += '<br><small>ملاحظات: '+req.engNotes+'</small>';
-  if(decision==='Approved'||decision==='Partial'){
-    html += '<div class="warehouse-info">🏭 الطلب أُرسل تلقائياً للمستودع — يمكن لمسؤول المستودع الآن صرف القطع<br><a href="warehouse.html" style="color:#0a2e5c;font-weight:900">📦 فتح المستودع</a></div>';
-  }
-  html += '<button class="print-btn no-print" onclick="printRequest(''+req._id+'')" >🖨️ طباعة</button>';
-  html += '</div>';
-  return html;
-}
-
-// ═══════════════ PRINT ═══════════════
-function printRequest(id){
-  // Close all other details
-  allRequests.forEach(function(r){
-    if(r._id!==id){
-      var d=document.getElementById('det-'+r._id);
-      if(d)d.classList.remove('open');
+// ══════════════════════════════════════
+//  PRINT
+// ══════════════════════════════════════
+function printRequest(id) {
+  allRequests.forEach(function(r) {
+    if (r._id !== id) {
+      var d = document.getElementById('det-' + r._id);
+      if (d) d.classList.remove('open');
     }
   });
-  var det=document.getElementById('det-'+id);
-  if(det)det.classList.add('open');
-  setTimeout(function(){window.print();},200);
+  var det = document.getElementById('det-' + id);
+  if (det) det.classList.add('open');
+  setTimeout(function(){ window.print(); }, 200);
 }
 
-// ═══════════════ TOAST ═══════════════
-function showToast(msg){
-  var t=document.getElementById('toast');
-  t.textContent=msg;t.classList.add('show');
-  setTimeout(function(){t.classList.remove('show');},3500);
+// ══════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 3500);
+}
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function goBack() {
+  if (window.parent && window.parent !== window) window.parent.postMessage({ type:'BACK' }, '*');
+  else window.location.href = 'index.html';
 }
 
-function goBack(){
-  if(window.parent&&window.parent!==window) window.parent.postMessage({type:'BACK'},'*');
-  else window.location.href='index.html';
-}
-
-// ═══════════════ START ═══════════════
+// ══════════════════════════════════════
+//  START
+// ══════════════════════════════════════
 init();
 </script>
 </body>
