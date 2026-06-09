@@ -472,11 +472,6 @@ function confirmDecision(id){
     engDate:new Date().toISOString()
   };
 
-  // If approved or partial: deduct from warehouse localStorage
-  if((decision==='Approved'||decision==='Partial')&&req&&req.items){
-    deductWarehouse(req.items);
-  }
-
   db.collection(COL).doc(id).update(updates)
     .then(function(){
       var msg = decision==='Approved'?'✅ تم الاعتماد — الطلب أُرسل للمستودع':
@@ -493,27 +488,8 @@ function confirmDecision(id){
     });
 }
 
-function deductWarehouse(items){
-  try{
-    var raw=localStorage.getItem('wh_items');
-    if(!raw)return;
-    var wh=JSON.parse(raw);
-    items.forEach(function(it){
-      var found=wh.find(function(w){return w.id===it.matId;});
-      if(found){
-        found.nett=Math.max(0,found.nett-it.qty);
-      }
-    });
-    localStorage.setItem('wh_items',JSON.stringify(wh));
-    // Also save transaction
-    var txRaw=localStorage.getItem('wh_tx');
-    var tx=txRaw?JSON.parse(txRaw):[];
-    items.forEach(function(it){
-      tx.push({type:'out',itemId:it.matId,itemName:it.matName,qty:it.qty,unit:it.unit,tech:loggedUser&&loggedUser.name?loggedUser.name:'Approved',note:'Approved request',ts:Date.now()});
-    });
-    localStorage.setItem('wh_tx',JSON.stringify(tx));
-  }catch(e){}
-}
+// Note: Stock deduction now happens only when warehouse dispenses (in warehouse.html)
+// This prevents double-deduction and ensures accurate inventory
 
 // ═══════════════ BUILD APPROVED RESULT ═══════════════
 function buildApprovedResult(req){
@@ -525,7 +501,7 @@ function buildApprovedResult(req){
   html += '<small style="color:#555">المهندس: '+req.engName+' · '+new Date(req.engDate).toLocaleString('ar-SA')+'</small>';
   if(req.engNotes) html += '<br><small>ملاحظات: '+req.engNotes+'</small>';
   if(decision==='Approved'||decision==='Partial'){
-    html += '<div class="warehouse-info">🏭 الطلب أُرسل تلقائياً للمستودع — يمكن لمسؤول المستودع الآن صرف القطع</div>';
+    html += '<div class="warehouse-info">🏭 الطلب أُرسل تلقائياً للمستودع — يمكن لمسؤول المستودع الآن صرف القطع<br><a href='warehouse.html' style='color:#0a2e5c;font-weight:900'>📦 فتح المستودع</a></div>';
   }
   html += '<button class="print-btn no-print" onclick="printRequest(''+req._id+'')">🖨️ طباعة</button>';
   html += '</div>';
