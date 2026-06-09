@@ -480,6 +480,7 @@ function updateStats() {
   allRequests.forEach(function(r) {
     var s = r.status || 'Pending';
     if (s === 'Partial') s = 'Approved';
+    if (s === 'Issued') s = 'Dispensed';
     if (counts[s] !== undefined) counts[s]++;
   });
   document.getElementById('countPending').textContent  = counts.Pending;
@@ -510,7 +511,8 @@ function renderList() {
     var s = r.status || 'Pending';
     var statusMatch = activeFilter === 'all'
       || s === activeFilter
-      || (activeFilter === 'Approved' && s === 'Partial');
+      || (activeFilter === 'Approved' && s === 'Partial')
+      || (activeFilter === 'Dispensed' && s === 'Issued');
     var searchMatch = !q
       || (r.reqNo      && r.reqNo.toLowerCase().indexOf(q)      !== -1)
       || (r.workOrder  && r.workOrder.toLowerCase().indexOf(q)  !== -1)
