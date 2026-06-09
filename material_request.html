@@ -745,7 +745,7 @@ function filterMats(input, rowId) {
   dd.innerHTML = filtered.map(function(w) {
     var sClass = w.stock <= 0 ? 'out' : w.stock <= w.minStock ? 'low' : 'ok';
     var sLabel = w.stock <= 0 ? '❌ نفد' : w.stock + ' ' + (w.unit||'pcs');
-    return '<div class="mat-opt" onclick="selectMat(' + w.id + ','' + rowId + '')">' +
+    return '<div class="mat-opt" onclick="selectMat(' + w.id + ',\'' + rowId + '\')">' +
       '<span>' + escHtml(w.name) + (w.code ? ' <small style="color:#5a7a9a">(' + w.code + ')</small>' : '') + '</span>' +
       '<span class="mat-opt-stock ' + sClass + '">' + sLabel + '</span>' +
     '</div>';
