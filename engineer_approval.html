@@ -212,10 +212,16 @@ function init(){
 
 // ═══════════════ REALTIME LISTENER ═══════════════
 function listenRequests(){
-  db.collection(COL).orderBy('createdAt','desc').onSnapshot(function(snap){
+  db.collection(COL).onSnapshot(function(snap){
     allRequests=[];
     snap.forEach(function(doc){
       allRequests.push(Object.assign({_id:doc.id},doc.data()));
+    });
+    // Sort newest first client-side (avoids Firestore composite index requirement)
+    allRequests.sort(function(a,b){
+      var ta = a.createdAt && a.createdAt.toDate ? a.createdAt.toDate().getTime() : new Date(a.date||0).getTime();
+      var tb = b.createdAt && b.createdAt.toDate ? b.createdAt.toDate().getTime() : new Date(b.date||0).getTime();
+      return tb - ta;
     });
     updateCounts();
     renderList();
@@ -225,9 +231,9 @@ function listenRequests(){
 }
 function updateCounts(){
   var p=allRequests.filter(function(r){return r.status==='Pending';}).length;
-  var a=allRequests.filter(function(r){return r.status==='Approved';}).length;
+  var a=allRequests.filter(function(r){return r.status==='Approved'||r.status==='Partial';}).length;
   var rj=allRequests.filter(function(r){return r.status==='Rejected';}).length;
-  var is=allRequests.filter(function(r){return r.status==='Issued';}).length;
+  var is=allRequests.filter(function(r){return r.status==='Issued'||r.status==='Dispensed';}).length;
   document.getElementById('cntPending').textContent=p;
   document.getElementById('cntApproved').textContent=a;
   document.getElementById('cntRejected').textContent=rj;
@@ -253,8 +259,12 @@ function filterRequests(f){
 
 // ═══════════════ RENDER LIST ═══════════════
 function renderList(){
-  var filtered = currentFilter==='All' ? allRequests :
-    allRequests.filter(function(r){return r.status===currentFilter;});
+  var filtered = allRequests.filter(function(r){
+    if(currentFilter==='All') return true;
+    if(currentFilter==='Issued') return r.status==='Issued'||r.status==='Dispensed';
+    if(currentFilter==='Approved') return r.status==='Approved'||r.status==='Partial';
+    return r.status===currentFilter;
+  });
   var wrap=document.getElementById('listWrap');
   if(!filtered.length){
     wrap.innerHTML='<div class="loading">No '+currentFilter+' requests found.</div>';
@@ -280,7 +290,7 @@ function buildCard(req){
   if(req.status==='Approved') statusBadge='<span class="badge badge-approved">✅ Approved</span>';
   if(req.status==='Rejected') statusBadge='<span class="badge badge-rejected">❌ Rejected</span>';
   if(req.status==='Partial') statusBadge='<span class="badge badge-partial">⚠️ Partial</span>';
-  if(req.status==='Issued') statusBadge='<span class="badge badge-issued">📦 Issued</span>';
+  if(req.status==='Issued'||req.status==='Dispensed') statusBadge='<span class="badge badge-issued">📦 Issued</span>';
 
   var prioBadge='';
   if(req.priority==='Urgent') prioBadge='<span class="badge badge-urgent">🟠 Urgent</span>';
@@ -335,8 +345,24 @@ function buildDetail(req){
       '<b style="color:var(--red)">❌ REJECTED</b> by '+req.engName+'<br>'+
       '<i>Reason: '+(req.engNotes||'—')+'</i>'+
     '</div>';
+  } else if(req.status==='Partial'){
+    var eDate2='';
+    if(req.engDate){try{eDate2=new Date(req.engDate).toLocaleString('en-GB');}catch(e){eDate2=req.engDate;}}
+    var engSigHtml2='';
+    if(req.engSig&&req.engSig.length>100) engSigHtml2='<div class="sig-preview" style="margin-top:8px"><img src="'+req.engSig+'"><p>Engineer: '+req.engName+'</p></div>';
+    engResultHtml='<div class="approved-result">'+
+      '<b style="color:var(--blue2)">⚠️ PARTIAL APPROVAL</b> by '+(req.engName||'—')+' — '+eDate2+'<br>'+
+      (req.engNotes?'<i>Notes: '+req.engNotes+'</i>':'')+
+      engSigHtml2+
+      '<button class="print-btn no-print" onclick="printRequest(\''+req._id+'\')">🖨️ Print</button>'+
+    '</div>';
+  } else if(req.status==='Issued'||req.status==='Dispensed'){
+    engResultHtml='<div class="approved-result">'+
+      '<b style="color:#6a1fa8">📦 ISSUED / DISPENSED</b><br>'+
+      '<small style="color:#555">Materials have been dispensed from warehouse.</small>'+
+    '</div>';
   } else {
-    // Show approval panel for engineer
+    // Pending — show approval panel
     engResultHtml=buildApprovalPanel(req);
   }
 
@@ -478,9 +504,8 @@ function confirmDecision(id){
                 decision==='Rejected'?'❌ رُفض الطلب':
                 '⚠️ اعتماد جزئي — الطلب أُرسل للمستودع';
       showToast(msg);
-      // Re-render the card to show approved state
-      var card = document.getElementById('det-'+id);
-      if(card) card.querySelector('.approval-panel') && card.querySelector('.approval-panel').remove && null;
+      // The onSnapshot listener will auto-refresh the card
+      delete selectedDecision[id];
     })
     .catch(function(err){
       showToast('❌ Error: '+err.message);
@@ -501,9 +526,9 @@ function buildApprovedResult(req){
   html += '<small style="color:#555">المهندس: '+req.engName+' · '+new Date(req.engDate).toLocaleString('ar-SA')+'</small>';
   if(req.engNotes) html += '<br><small>ملاحظات: '+req.engNotes+'</small>';
   if(decision==='Approved'||decision==='Partial'){
-    html += '<div class="warehouse-info">🏭 الطلب أُرسل تلقائياً للمستودع — يمكن لمسؤول المستودع الآن صرف القطع<br><a href='warehouse.html' style='color:#0a2e5c;font-weight:900'>📦 فتح المستودع</a></div>';
+    html += '<div class="warehouse-info">🏭 الطلب أُرسل تلقائياً للمستودع — يمكن لمسؤول المستودع الآن صرف القطع<br><a href="warehouse.html" style="color:#0a2e5c;font-weight:900">📦 فتح المستودع</a></div>';
   }
-  html += '<button class="print-btn no-print" onclick="printRequest(''+req._id+'')">🖨️ طباعة</button>';
+  html += '<button class="print-btn no-print" onclick="printRequest(''+req._id+'')" >🖨️ طباعة</button>';
   html += '</div>';
   return html;
 }
