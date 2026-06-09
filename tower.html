@@ -640,6 +640,289 @@ body{background:#f0f2f5;color:#0d1b2a}
 /* CSS filter for tabs */
 #rec-list[data-filter="unit"] .ri-zone{display:none!important}
 #rec-list[data-filter="zone"] .ri-unit{display:none!important}
+
+/* ============================================================
+   DARK MODE THEME — KFMC HVAC CMMS
+   ============================================================ */
+html, body {
+  color-scheme: dark;
+}
+body, body.app-mode {
+  background: #0d1117 !important;
+  color: #e2e8f0 !important;
+}
+
+/* App shell */
+.app {
+  background: #161b22 !important;
+  box-shadow: 0 0 40px rgba(0,0,0,.6) !important;
+}
+
+/* Header stays dark-blue — already looks good, slight tweak */
+.hdr, .app-hdr {
+  background: #0a1628 !important;
+  border-bottom: .5px solid rgba(255,255,255,.08) !important;
+}
+
+/* Tabs bar */
+.tabs {
+  background: #0a1628 !important;
+  border-top: .5px solid rgba(255,255,255,.06) !important;
+}
+.tab {
+  color: rgba(255,255,255,.35) !important;
+}
+.tab.active {
+  color: #7dd3fc !important;
+  border-bottom-color: #7dd3fc !important;
+  border-top-color: #7dd3fc !important;
+}
+
+/* Search box */
+.search-box {
+  background: #1e2530 !important;
+  border-color: #2d3748 !important;
+}
+.search-box input {
+  color: #e2e8f0 !important;
+  background: transparent !important;
+}
+.search-box input::placeholder {
+  color: #4a5568 !important;
+}
+
+/* Zone header bar */
+.zone-hdr {
+  background: #1a2744 !important;
+  color: #7dd3fc !important;
+  border: .5px solid rgba(125,211,252,.15) !important;
+}
+
+/* Unit/zone buttons (uzb) */
+.uzb {
+  background: #1e2530 !important;
+  border-color: #2d3748 !important;
+  color: #cbd5e1 !important;
+}
+.uzb .uzb-icon {
+  background: #0d1b2e !important;
+}
+.uzb .uzb-id {
+  color: #93c5fd !important;
+}
+.uzb .uzb-cnt {
+  color: #4a5568 !important;
+}
+.uzb:nth-child(1) { background: #111827 !important; border-color: #1e3a5f !important; }
+.uzb:nth-child(2) { background: #111827 !important; border-color: #1e3a6e !important; }
+.uzb:nth-child(3) { background: #0e1e24 !important; border-color: #164e63 !important; }
+.uzb:nth-child(4) { background: #0e1a14 !important; border-color: #14532d !important; }
+.uzb:nth-child(5) { background: #1c1507 !important; border-color: #78350f !important; }
+.uzb:nth-child(6) { background: #160d21 !important; border-color: #4c1d95 !important; }
+.uzb:nth-child(7) { background: #1a0d16 !important; border-color: #831843 !important; }
+.uzb:nth-child(8) { background: #1a0d0d !important; border-color: #7f1d1d !important; }
+.uzb:nth-child(9) { background: #0d1c1a !important; border-color: #134e4a !important; }
+.uzb:nth-child(10) { background: #1c1107 !important; border-color: #78350f !important; }
+.uzb.active { box-shadow: 0 3px 12px rgba(0,0,0,.5) !important; }
+
+/* Units panel */
+.units-panel {
+  background: #1a2030 !important;
+  border-color: #1a5fae !important;
+  box-shadow: 0 0 0 1px rgba(26,95,174,.4) !important;
+}
+.units-panel-hdr-title {
+  color: #7dd3fc !important;
+}
+
+/* Unit cards */
+.ucard {
+  background: #1e2530 !important;
+  border-color: #2d3748 !important;
+  border-left-color: #3b82f6 !important;
+}
+.ucard:active, .ucard.sel {
+  background: #1a2744 !important;
+  border-left-color: #7dd3fc !important;
+}
+.ucard-icon {
+  background: #0d1b2e !important;
+}
+.ucard-icon.done {
+  background: #0d2018 !important;
+}
+.ucard-arrow {
+  color: #4a5568 !important;
+}
+
+/* Text colors */
+.uname, .cilbl, .rname, .qname, .st, .mbox h3,
+.sig-title, .sig-name, .zs-tech-label,
+.units-panel-hdr-count, .rec-ftab-title {
+  color: #e2e8f0 !important;
+}
+.umeta, .rdate, .rtech, .sctitle, .pbar-lbl,
+.slbl, .empty-state, .zs-legend, .unit-lbl,
+.zs-tech-zone, .sig-role, .ss, .qid {
+  color: #64748b !important;
+}
+
+/* Content / page backgrounds */
+.pages, .content, #pg-units, #pg-zones, #pg-zonesheet, #pg-records {
+  background: #0d1117 !important;
+}
+
+/* Scrollable content area */
+.scroll-area, .content-area {
+  background: #0d1117 !important;
+}
+
+/* Section title */
+.sctitle {
+  color: #475569 !important;
+}
+
+/* Record cards */
+.ri, .ri-zone {
+  background: #1e2530 !important;
+  border-color: #2d3748 !important;
+}
+.ri-zone .rname {
+  color: #93c5fd !important;
+}
+
+/* Pills / badges */
+.rp[style*="background:#e8f0ff"] {
+  background: #1e3a5f !important;
+  color: #93c5fd !important;
+}
+.rp[style*="background:#fff3e0"] {
+  background: #1c1507 !important;
+  color: #fbbf24 !important;
+}
+.rp[style*="background:#e8f8f0"] {
+  background: #0d2018 !important;
+  color: #4ade80 !important;
+}
+.rp[style*="background:#fef0f0"] {
+  background: #1a0d0d !important;
+  color: #f87171 !important;
+}
+.rp[style*="background:#EBF4FF"] {
+  background: #1e3a5f !important;
+  color: #7dd3fc !important;
+}
+
+/* Sig pills */
+.sig-pill.done { background: #0d2018 !important; color: #4ade80 !important; }
+.sig-pill.pending { background: #1c1507 !important; color: #fbbf24 !important; }
+
+/* Modal overlays */
+.modal, .mbox, .sig-modal-inner, .inst-modal {
+  background: #1e2530 !important;
+  border: .5px solid #2d3748 !important;
+  color: #e2e8f0 !important;
+}
+
+/* Inputs & selects inside forms */
+input[type="text"], input[type="number"], input[type="date"],
+select, textarea {
+  background: #161b22 !important;
+  color: #e2e8f0 !important;
+  border-color: #2d3748 !important;
+}
+input::placeholder, textarea::placeholder {
+  color: #4a5568 !important;
+}
+
+/* Table rows */
+.zs-table th {
+  background: #0a1628 !important;
+  color: #7dd3fc !important;
+}
+.zs-table tr:nth-child(even) td { background: #161b22 !important; }
+.zs-table tr:nth-child(even) td:first-child { background: #1a2030 !important; }
+.zs-table tr td { background: #1e2530 !important; border-color: #2d3748 !important; }
+
+/* Progress bar track */
+.pbar-track { background: #2d3748 !important; }
+
+/* Status badges b-ok/b-due */
+.b-ok { background: #0d2018 !important; color: #4ade80 !important; }
+.b-due { background: #1c1507 !important; color: #fbbf24 !important; }
+
+/* fin (finish/input buttons) */
+.fin {
+  background: #1e2530 !important;
+  color: #e2e8f0 !important;
+  border-color: #2d3748 !important;
+}
+
+/* Signature canvas area */
+.sig-pad-wrap, #sig-canvas {
+  background: #0d1117 !important;
+  border-color: #2d3748 !important;
+}
+
+/* ZS table first column sticky */
+.zs-table th:first-child {
+  background: #0a1628 !important;
+  color: #7dd3fc !important;
+}
+
+/* Records filter tabs */
+.rec-ftab {
+  background: #1e2530 !important;
+  border-color: #2d3748 !important;
+  color: #94a3b8 !important;
+}
+.rec-ftab.active {
+  background: #1a2744 !important;
+  color: #7dd3fc !important;
+}
+.rec-ftab.active .rec-ftab-count {
+  background: #3b82f6 !important;
+  color: #fff !important;
+}
+
+/* ZS zone tabs */
+.zs-ltab {
+  background: #1e2530 !important;
+  color: #94a3b8 !important;
+  border-color: #2d3748 !important;
+}
+.zs-ltab.active {
+  background: #0a1628 !important;
+  color: #7dd3fc !important;
+}
+
+/* Home page cards (exhaust_fans landing) */
+body.home {
+  background-color: #060d1a !important;
+}
+.card {
+  background: #161b22 !important;
+  border-color: #2d3748 !important;
+}
+.card-title { color: #7dd3fc !important; }
+.card-sub { color: #64748b !important; }
+.card-badge {
+  background: #1e3a5f !important;
+  color: #93c5fd !important;
+}
+#app-shell {
+  background: #0d1117 !important;
+}
+
+/* Install banner */
+.install-banner {
+  background: #0a1628 !important;
+  border-top: .5px solid rgba(255,255,255,.08) !important;
+}
+
+/* Inline style overrides for dynamic content */
+/* These target common inline-style patterns generated by JS */
+
 </style>
   <link rel="apple-touch-icon" href="icon-192.png">
 </head>
