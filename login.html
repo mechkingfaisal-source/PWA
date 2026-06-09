@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<script>if(!localStorage.getItem("cmms_user") && !sessionStorage.getItem("cmms_user")){window.location.replace("login.html");}</script>
+
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <title>CMMS — King Faisal Medical Complex</title>
 <meta name="description" content="CMMS dashboard for King Faisal Medical Complex — HVAC, inventory, approvals." />
@@ -366,7 +366,7 @@
   window.openDelete = () => document.getElementById('deleteDlg').classList.remove('hidden');
   window.closeDelete = () => { document.getElementById('deleteDlg').classList.add('hidden'); document.getElementById('delInput').value=''; document.getElementById('delBtn').disabled=true; };
   window.confirmLogout = () => document.getElementById('logoutDlg').classList.remove('hidden');
-  window.doLogout = () => { try { localStorage.removeItem('cmms_user'); sessionStorage.removeItem('cmms_user'); } catch(e){} location.reload(); };
+  window.doLogout = () => { try { localStorage.removeItem('cmms_user'); localStorage.removeItem('cmms_session'); sessionStorage.removeItem('cmms_user'); sessionStorage.removeItem('cmms_session'); } catch(e){} window.location.replace('login.html'); };
 
   renderSidebar(); renderTabs(); navigate('dashboard');
 </script>
