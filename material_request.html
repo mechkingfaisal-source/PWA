@@ -131,6 +131,88 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#0d1b2e;min-height:100vh
 @media(max-width:380px){
   .stat-num{font-size:22px}
 }
+
+/* ── NEW REQUEST MODAL ── */
+.modal-overlay{
+  position:fixed;inset:0;background:#000a;z-index:500;
+  display:flex;align-items:flex-start;justify-content:center;
+  overflow-y:auto;padding:16px;
+}
+.modal-overlay.hidden{display:none}
+.modal-box{
+  background:#0f2237;border:1px solid #1e3a5f;border-radius:16px;
+  width:100%;max-width:680px;margin:auto;
+  box-shadow:0 20px 60px #000a;
+  animation:modalIn .2s ease;
+}
+@keyframes modalIn{from{opacity:0;transform:translateY(-16px)}to{opacity:1;transform:none}}
+.modal-header{
+  padding:16px 20px;border-bottom:1px solid #1e3a5f;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.modal-title{font-size:16px;font-weight:900;color:#e0efff}
+.modal-close{background:none;border:none;color:#7a9abf;font-size:22px;cursor:pointer;line-height:1;padding:2px 6px;border-radius:6px}
+.modal-close:hover{background:#1e3a5f;color:#fff}
+.modal-body{padding:20px}
+.modal-section{margin-bottom:18px}
+.modal-section-title{font-size:11px;font-weight:900;color:#4fc3f7;text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid #1e3a5f}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.form-row.full{grid-template-columns:1fr}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-label{font-size:11px;font-weight:700;color:#7a9abf;text-transform:uppercase;letter-spacing:.4px}
+.form-input,.form-select,.form-textarea{
+  background:#0a1628;border:1.5px solid #1e3a5f;color:#d0e4f7;
+  padding:9px 12px;border-radius:8px;font-size:13px;font-family:inherit;
+  outline:none;transition:.15s;width:100%;
+}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:#1565c0;background:#0d1e35}
+.form-input::placeholder{color:#3a5a7a}
+.form-select option{background:#0f2237}
+.form-textarea{resize:vertical;min-height:60px}
+.items-table{width:100%;border-collapse:collapse;margin-bottom:10px}
+.items-table th{background:#0a1628;color:#7a9abf;font-size:11px;font-weight:700;text-transform:uppercase;padding:7px 10px;text-align:left;border-bottom:1px solid #1e3a5f}
+.items-table td{padding:7px 10px;border-bottom:1px solid #152a45;vertical-align:middle}
+.items-table tr:last-child td{border-bottom:none}
+.del-item-btn{background:none;border:none;color:#ef5350;cursor:pointer;font-size:16px;padding:2px 6px;border-radius:4px}
+.del-item-btn:hover{background:#3a0a0a}
+.add-item-btn{
+  background:#122040;border:1.5px dashed #1e3a5f;color:#4fc3f7;
+  padding:9px;border-radius:8px;font-size:13px;font-weight:700;
+  cursor:pointer;width:100%;transition:.15s;
+}
+.add-item-btn:hover{background:#162a45;border-color:#1565c0}
+.mat-search-wrap{position:relative}
+.mat-dropdown{
+  position:fixed;background:#0f2237;border:1.5px solid #1e3a5f;border-radius:8px;
+  max-height:200px;overflow-y:auto;z-index:700;
+  box-shadow:0 8px 24px #000a;min-width:260px;
+}
+.mat-dropdown.hidden{display:none}
+.mat-opt{
+  padding:9px 12px;cursor:pointer;font-size:13px;color:#c8dff5;
+  display:flex;justify-content:space-between;align-items:center;gap:8px;
+}
+.mat-opt:hover{background:#162a45}
+.mat-opt-stock{font-size:11px;font-weight:700;white-space:nowrap}
+.mat-opt-stock.ok{color:#66bb6a}
+.mat-opt-stock.low{color:#ffa726}
+.mat-opt-stock.out{color:#ef5350}
+.sig-wrap{border:2px dashed #1e3a5f;border-radius:10px;background:#080f1e;position:relative;overflow:hidden}
+.sig-canvas{display:block;width:100%;touch-action:none;cursor:crosshair}
+.sig-label{font-size:11px;color:#3a5a7a;padding:6px;text-align:center;font-weight:700}
+.sig-clear-btn{position:absolute;top:6px;right:8px;background:#3a0a0a;color:#ef5350;border:none;border-radius:6px;padding:3px 9px;cursor:pointer;font-size:11px;font-weight:700}
+.modal-footer{padding:16px 20px;border-top:1px solid #1e3a5f;display:flex;gap:10px;justify-content:flex-end}
+.btn-cancel{background:#122040;border:1px solid #1e3a5f;color:#7a9abf;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer}
+.btn-cancel:hover{background:#1e3a5f}
+.btn-submit{background:linear-gradient(135deg,#1565c0,#0d47a1);color:#fff;border:none;padding:10px 24px;border-radius:8px;font-size:13px;font-weight:900;cursor:pointer;display:flex;align-items:center;gap:6px}
+.btn-submit:hover{opacity:.9}
+.btn-submit:disabled{opacity:.5;cursor:not-allowed}
+@media(max-width:500px){
+  .form-row{grid-template-columns:1fr}
+  .modal-footer{flex-direction:column}
+  .btn-cancel,.btn-submit{width:100%;justify-content:center}
+}
+
 </style>
 </head>
 <body>
@@ -208,6 +290,110 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#0d1b2e;min-height:100vh
 
 </div>
 
+
+<!-- ═══════ NEW REQUEST MODAL ═══════ -->
+<div class="modal-overlay hidden" id="newReqModal" onclick="onModalOverlayClick(event)">
+ <div class="modal-box" onclick="event.stopPropagation()">
+  <div class="modal-header">
+    <span class="modal-title">📋 طلب قطعة جديدة — New Material Request</span>
+    <button class="modal-close" onclick="closeNewRequest()">✕</button>
+  </div>
+  <div class="modal-body">
+
+    <!-- Request Info -->
+    <div class="modal-section">
+      <div class="modal-section-title">بيانات الطلب — Request Info</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">اسم الفني — Technician Name *</label>
+          <input class="form-input" id="nr-techName" placeholder="Full name…">
+        </div>
+        <div class="form-group">
+          <label class="form-label">رقم الهوية — ID / Iqama</label>
+          <input class="form-input" id="nr-techId" placeholder="ID number…">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">المبنى — Building *</label>
+          <select class="form-select" id="nr-building">
+            <option value="">Select building…</option>
+            <option>Main Building A</option>
+            <option>Main Building B</option>
+            <option>OPD Building</option>
+            <option>Emergency Block</option>
+            <option>ICU Tower</option>
+            <option>Lab & Pharmacy</option>
+            <option>Radiology Block</option>
+            <option>Admin Block</option>
+            <option>External Clinics</option>
+            <option>Utility Block</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">الأولوية — Priority</label>
+          <select class="form-select" id="nr-priority">
+            <option value="Normal">Normal عادي</option>
+            <option value="Medium">Medium متوسط</option>
+            <option value="Urgent">Urgent عاجل</option>
+            <option value="Critical">Critical حرج</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row full">
+        <div class="form-group">
+          <label class="form-label">أمر العمل — Work Order</label>
+          <input class="form-input" id="nr-workOrder" placeholder="WO number or description…">
+        </div>
+      </div>
+      <div class="form-row full">
+        <div class="form-group">
+          <label class="form-label">سبب الطلب — Reason</label>
+          <textarea class="form-textarea" id="nr-reason" placeholder="Describe the issue or reason for the request…"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Items -->
+    <div class="modal-section">
+      <div class="modal-section-title">القطع المطلوبة — Requested Materials</div>
+      <table class="items-table" id="nr-items-table">
+        <thead>
+          <tr>
+            <th style="width:40%">المادة — Material</th>
+            <th style="width:20%;text-align:center">الكمية — Qty</th>
+            <th style="width:15%;text-align:center">الوحدة</th>
+            <th style="width:15%;text-align:center">الرصيد</th>
+            <th style="width:10%"></th>
+          </tr>
+        </thead>
+        <tbody id="nr-items-body">
+          <!-- rows added dynamically -->
+        </tbody>
+      </table>
+      <button class="add-item-btn" onclick="addItemRow()">＋ إضافة قطعة — Add Material</button>
+    </div>
+
+    <!-- Signature -->
+    <div class="modal-section">
+      <div class="modal-section-title">توقيع الفني — Technician Signature *</div>
+      <div class="sig-wrap" id="nr-sig-wrap">
+        <div class="sig-label">وقّع هنا — Sign here</div>
+        <canvas class="sig-canvas" id="nr-sig-canvas" height="120"></canvas>
+        <button class="sig-clear-btn" onclick="clearSig()">مسح</button>
+      </div>
+    </div>
+
+  </div>
+  <div class="modal-footer">
+    <button class="btn-cancel" onclick="closeNewRequest()">إلغاء — Cancel</button>
+    <button class="btn-submit" id="nr-submit-btn" onclick="submitNewRequest()">
+      📤 إرسال الطلب — Submit Request
+    </button>
+  </div>
+ </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -251,15 +437,7 @@ function applyUser(u) {
 }
 
 // ═══════════════ NEW REQUEST ═══════════════
-function openNewRequest() {
-  // Try parent frame first (when embedded in index shell)
-  if (window.parent && window.parent !== window) {
-    window.parent.postMessage({ type: 'NAVIGATE', url: 'material_request.html' }, '*');
-    return;
-  }
-  // Direct navigation — works when opened standalone
-  window.location.href = 'material_request.html';
-}
+// openNewRequest() defined below with modal logic
 
 // ═══════════════ OPEN EXISTING REQUEST ═══════════════
 function openRequest(docId) {
@@ -403,6 +581,297 @@ function showToast(msg) {
   var t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
   setTimeout(function(){ t.classList.remove('show'); }, 3000);
+}
+
+
+// ═══════════════ WAREHOUSE ITEMS ═══════════════
+var whItems = [];
+function loadWhItems() {
+  try {
+    var raw = localStorage.getItem('kfmc-warehouse-v1');
+    if (raw) {
+      var parsed = JSON.parse(raw);
+      if (parsed && parsed.items && parsed.items.length) {
+        whItems = parsed.items;
+        return;
+      }
+    }
+  } catch(e) {}
+  // Fallback: try old key
+  try {
+    var raw2 = localStorage.getItem('wh_items');
+    if (raw2) { whItems = JSON.parse(raw2); return; }
+  } catch(e) {}
+  whItems = [];
+}
+
+// ═══════════════ REQUEST NUMBER GENERATOR ═══════════════
+function genReqNo() {
+  var now = new Date();
+  var yy = String(now.getFullYear()).slice(2);
+  var mm = String(now.getMonth()+1).padStart(2,'0');
+  var seq = String(allRequests.length + 1).padStart(3,'0');
+  return 'MR-' + yy + mm + '-' + seq;
+}
+
+// ═══════════════ MODAL OPEN / CLOSE ═══════════════
+function openNewRequest() {
+  loadWhItems();
+  document.getElementById('newReqModal').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+  // Pre-fill technician from session
+  if (loggedUser && loggedUser.name) {
+    document.getElementById('nr-techName').value = loggedUser.name;
+    document.getElementById('nr-techId').value   = loggedUser.fileNo || loggedUser.iqama || '';
+  }
+  // Start with one empty item row
+  document.getElementById('nr-items-body').innerHTML = '';
+  addItemRow();
+  // Init signature pad
+  setTimeout(initSig, 100);
+}
+
+function closeNewRequest() {
+  document.getElementById('newReqModal').classList.add('hidden');
+  document.body.style.overflow = '';
+  clearSig();
+}
+
+function onModalOverlayClick(e) {
+  if (e.target === document.getElementById('newReqModal')) closeNewRequest();
+}
+
+// ═══════════════ ITEM ROWS ═══════════════
+var itemRowCounter = 0;
+var activeDropdownRow = null;
+
+function addItemRow() {
+  var rowId = 'irow-' + (++itemRowCounter);
+  var tbody = document.getElementById('nr-items-body');
+  var tr = document.createElement('tr');
+  tr.id = rowId;
+  tr.setAttribute('data-mat-id', '');
+  tr.setAttribute('data-mat-code', '');
+  tr.setAttribute('data-in-stock', '');
+  tr.innerHTML =
+    '<td>' +
+      '<div class="mat-search-wrap">' +
+        '<input class="form-input" placeholder="ابحث عن قطعة… Search…" ' +
+          'oninput="filterMats(this,'' + rowId + '')" ' +
+          'onfocus="filterMats(this,'' + rowId + '')" ' +
+          'autocomplete="off" style="font-size:12px">' +
+        '<div class="mat-dropdown hidden" id="dd-' + rowId + '"></div>' +
+      '</div>' +
+    '</td>' +
+    '<td style="text-align:center">' +
+      '<input class="form-input" type="number" min="1" value="1" style="width:70px;text-align:center;font-size:13px" ' +
+        'oninput="updateStockBadge('' + rowId + '')">' +
+    '</td>' +
+    '<td style="text-align:center;font-size:12px;color:#7a9abf" id="unit-' + rowId + '">—</td>' +
+    '<td style="text-align:center" id="stock-' + rowId + '"><span style="color:#3a5a7a;font-size:12px">—</span></td>' +
+    '<td><button class="del-item-btn" onclick="delItemRow('' + rowId + '')">🗑</button></td>';
+  tbody.appendChild(tr);
+}
+
+function delItemRow(rowId) {
+  var rows = document.querySelectorAll('#nr-items-body tr');
+  if (rows.length <= 1) { showToast('⚠️ يجب إضافة قطعة واحدة على الأقل'); return; }
+  var el = document.getElementById(rowId);
+  if (el) el.remove();
+}
+
+function filterMats(input, rowId) {
+  var q = input.value.toLowerCase().trim();
+  var dd = document.getElementById('dd-' + rowId);
+  if (!dd) return;
+
+  // Position dropdown under input
+  var rect = input.getBoundingClientRect();
+  dd.style.top  = (rect.bottom + window.scrollY + 2) + 'px';
+  dd.style.left = rect.left + 'px';
+  dd.style.width = rect.width + 'px';
+
+  var filtered = whItems.length
+    ? whItems.filter(function(w) {
+        return !q
+          || w.name.toLowerCase().indexOf(q) !== -1
+          || (w.code && w.code.toLowerCase().indexOf(q) !== -1);
+      }).slice(0, 30)
+    : [];
+
+  if (!filtered.length) {
+    dd.classList.add('hidden');
+    return;
+  }
+
+  dd.innerHTML = filtered.map(function(w) {
+    var sClass = w.stock <= 0 ? 'out' : w.stock <= w.minStock ? 'low' : 'ok';
+    var sLabel = w.stock <= 0 ? '❌ نفد' : w.stock + ' ' + (w.unit||'pcs');
+    return '<div class="mat-opt" onclick="selectMat(' + w.id + ','' + rowId + '')">' +
+      '<span>' + escHtml(w.name) + (w.code ? ' <small style="color:#5a7a9a">(' + w.code + ')</small>' : '') + '</span>' +
+      '<span class="mat-opt-stock ' + sClass + '">' + sLabel + '</span>' +
+    '</div>';
+  }).join('');
+
+  dd.classList.remove('hidden');
+  activeDropdownRow = rowId;
+
+  // Close on outside click
+  setTimeout(function() {
+    document.addEventListener('click', closeDropdowns, { once: true, capture: true });
+  }, 0);
+}
+
+function closeDropdowns() {
+  document.querySelectorAll('.mat-dropdown').forEach(function(d){ d.classList.add('hidden'); });
+}
+
+function selectMat(matId, rowId) {
+  var item = whItems.find(function(w){ return w.id === matId; });
+  if (!item) return;
+  var tr = document.getElementById(rowId);
+  if (!tr) return;
+
+  tr.setAttribute('data-mat-id', matId);
+  tr.setAttribute('data-mat-code', item.code || '');
+  tr.setAttribute('data-in-stock', item.stock);
+
+  // Set input value
+  var inp = tr.querySelector('input[type="text"]');
+  if (!inp) inp = tr.querySelector('input:not([type="number"])');
+  if (inp) inp.value = item.name;
+
+  // Unit cell
+  var unitCell = document.getElementById('unit-' + rowId);
+  if (unitCell) unitCell.textContent = item.unit || 'pcs';
+
+  // Stock badge
+  updateStockBadge(rowId);
+
+  // Close dropdown
+  var dd = document.getElementById('dd-' + rowId);
+  if (dd) dd.classList.add('hidden');
+}
+
+function updateStockBadge(rowId) {
+  var tr = document.getElementById(rowId);
+  if (!tr) return;
+  var inStock = parseInt(tr.getAttribute('data-in-stock'));
+  if (isNaN(inStock)) return;
+  var qtyInp = tr.querySelector('input[type="number"]');
+  var qty = qtyInp ? parseInt(qtyInp.value) || 1 : 1;
+  var cell = document.getElementById('stock-' + rowId);
+  if (!cell) return;
+  var cls = inStock <= 0 ? 'stock-out' : inStock < qty ? 'stock-low' : 'stock-ok';
+  var label = inStock <= 0 ? '❌ نفد' : inStock + '';
+  cell.innerHTML = '<span style="font-size:12px;font-weight:700;padding:2px 7px;border-radius:8px" class="' + cls + '">' + label + '</span>';
+}
+
+// ═══════════════ SIGNATURE ═══════════════
+var sigCtx = null, sigDrawing = false, sigLastX = 0, sigLastY = 0;
+
+function initSig() {
+  var canvas = document.getElementById('nr-sig-canvas');
+  if (!canvas) return;
+  var wrap = canvas.parentElement;
+  canvas.width = wrap.offsetWidth || 400;
+  sigCtx = canvas.getContext('2d');
+  sigCtx.strokeStyle = '#4fc3f7';
+  sigCtx.lineWidth   = 2.2;
+  sigCtx.lineCap     = 'round';
+
+  function pos(e) {
+    var r = canvas.getBoundingClientRect();
+    var sc = canvas.width / r.width;
+    var src = e.touches ? e.touches[0] : e;
+    return { x: (src.clientX - r.left) * sc, y: (src.clientY - r.top) * sc };
+  }
+  canvas.onmousedown  = function(e){ sigDrawing=true; var p=pos(e); sigLastX=p.x; sigLastY=p.y; };
+  canvas.onmousemove  = function(e){ if(!sigDrawing) return; var p=pos(e); sigCtx.beginPath(); sigCtx.moveTo(sigLastX,sigLastY); sigCtx.lineTo(p.x,p.y); sigCtx.stroke(); sigLastX=p.x; sigLastY=p.y; };
+  canvas.onmouseup    = function(){ sigDrawing=false; };
+  canvas.onmouseleave = function(){ sigDrawing=false; };
+  canvas.ontouchstart = function(e){ e.preventDefault(); sigDrawing=true; var p=pos(e); sigLastX=p.x; sigLastY=p.y; };
+  canvas.ontouchmove  = function(e){ e.preventDefault(); if(!sigDrawing) return; var p=pos(e); sigCtx.beginPath(); sigCtx.moveTo(sigLastX,sigLastY); sigCtx.lineTo(p.x,p.y); sigCtx.stroke(); sigLastX=p.x; sigLastY=p.y; };
+  canvas.ontouchend   = function(){ sigDrawing=false; };
+}
+
+function clearSig() {
+  var canvas = document.getElementById('nr-sig-canvas');
+  if (canvas && sigCtx) sigCtx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+function isSigEmpty() {
+  var canvas = document.getElementById('nr-sig-canvas');
+  if (!canvas || !sigCtx) return true;
+  var d = sigCtx.getImageData(0, 0, canvas.width, canvas.height).data;
+  for (var i = 3; i < d.length; i += 4) { if (d[i] > 10) return false; }
+  return true;
+}
+
+// ═══════════════ SUBMIT ═══════════════
+function submitNewRequest() {
+  var techName  = document.getElementById('nr-techName').value.trim();
+  var techId    = document.getElementById('nr-techId').value.trim();
+  var building  = document.getElementById('nr-building').value;
+  var priority  = document.getElementById('nr-priority').value;
+  var workOrder = document.getElementById('nr-workOrder').value.trim();
+  var reason    = document.getElementById('nr-reason').value.trim();
+
+  if (!techName)  { showToast('⚠️ أدخل اسم الفني'); return; }
+  if (!building)  { showToast('⚠️ اختر المبنى'); return; }
+
+  // Collect items
+  var rows   = document.querySelectorAll('#nr-items-body tr');
+  var items  = [];
+  var hasErr = false;
+  rows.forEach(function(tr) {
+    var matId   = parseInt(tr.getAttribute('data-mat-id')) || 0;
+    var matCode = tr.getAttribute('data-mat-code') || '';
+    var inStock = parseInt(tr.getAttribute('data-in-stock')) || 0;
+    var inp     = tr.querySelector('input:not([type="number"])');
+    var qtyInp  = tr.querySelector('input[type="number"]');
+    var matName = inp ? inp.value.trim() : '';
+    var qty     = qtyInp ? parseInt(qtyInp.value) || 0 : 0;
+    var unitCell= tr.querySelector('td:nth-child(3)');
+    var unit    = unitCell ? unitCell.textContent.trim() : 'pcs';
+    if (!matName) { hasErr = true; return; }
+    if (qty <= 0) { hasErr = true; return; }
+    items.push({ matId: matId, matCode: matCode, matName: matName, qty: qty, unit: unit, inStock: inStock });
+  });
+
+  if (hasErr || !items.length) { showToast('⚠️ أضف قطعة واحدة على الأقل بكمية صحيحة'); return; }
+  if (isSigEmpty())            { showToast('⚠️ التوقيع مطلوب'); return; }
+
+  var techSig = document.getElementById('nr-sig-canvas').toDataURL('image/png');
+  var reqNo   = genReqNo();
+
+  var submitBtn = document.getElementById('nr-submit-btn');
+  submitBtn.disabled = true;
+  submitBtn.textContent = '⏳ جاري الإرسال…';
+
+  db.collection(COL).add({
+    reqNo:     reqNo,
+    status:    'Pending',
+    priority:  priority,
+    techName:  techName,
+    techId:    techId,
+    building:  building,
+    workOrder: workOrder,
+    reason:    reason,
+    items:     items,
+    techSig:   techSig,
+    date:      new Date().toISOString(),
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  }).then(function() {
+    showToast('✅ تم إرسال الطلب ' + reqNo + ' — بانتظار اعتماد المهندس');
+    closeNewRequest();
+    submitBtn.disabled = false;
+    submitBtn.textContent = '📤 إرسال الطلب — Submit Request';
+  }).catch(function(err) {
+    showToast('❌ خطأ: ' + err.message);
+    submitBtn.disabled = false;
+    submitBtn.textContent = '📤 إرسال الطلب — Submit Request';
+  });
 }
 
 // ═══════════════ INIT ═══════════════
