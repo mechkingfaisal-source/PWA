@@ -1177,12 +1177,38 @@ function renderFolder() {
     <span class="bc-sep">›</span>
     <span class="bc-item bc-active">${f.icon} ${f.name}</span>
   </div>`;
-  f.subfolders.forEach(sf => {
+
+  /* ── Horizontal zone icon grid (mirrors Zone Sheet zs-zbtn style) ── */
+  html += `<div style="display:grid;grid-template-columns:repeat(${Math.min(f.subfolders.length,5)},1fr);gap:6px;margin-bottom:14px">`;
+  f.subfolders.forEach((sf, idx) => {
+    const icon = ZONE_ICONS[sf.id] || '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>';
+    const doneCount = sf.units.filter(u=>records.some(r=>r.unitId===u.id)).length;
+    const allDone = doneCount === sf.units.length && sf.units.length > 0;
+    const badge = doneCount > 0
+      ? `<span style="position:absolute;top:3px;right:3px;width:14px;height:14px;background:${allDone?'#4ade80':'#f87171'};border-radius:50%;font-size:7px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;line-height:1">${allDone?'✓':doneCount}</span>`
+      : '';
+    html += `<button class="zs-zbtn" style="position:relative" data-zone="${sf.id}" onclick="openSubfolder('${sf.id}')">
+      ${badge}
+      <span class="zb-icon">${icon}</span>
+      <span class="zb-id">${sf.id}</span>
+      <span class="zb-en">${sf.units.length} units</span>
+    </button>`;
+  });
+  html += `</div>`;
+
+  /* ── Subfolder cards below ── */
+  f.subfolders.forEach((sf, idx) => {
     const doneCount = sf.units.filter(u=>records.some(r=>r.unitId===u.id)).length;
     const pct = sf.units.length ? Math.round(doneCount/sf.units.length*100) : 0;
-    html += `<div class="folder-card" onclick="openSubfolder('${sf.id}')" style="border-left:4px solid ${f.color}">
+    const icon = ZONE_ICONS[sf.id] || '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>';
+    /* build a small zs-zbtn-style icon for the card row */
+    const cardIcon = `<span class="zs-zbtn" data-zone="${sf.id}" style="pointer-events:none;width:46px;min-width:46px;height:52px;padding:5px 3px 4px;flex-shrink:0">
+      <span class="zb-icon">${icon}</span>
+      <span class="zb-id" style="font-size:9px">${sf.id}</span>
+    </span>`;
+    html += `<div class="folder-card" id="sf-card-${sf.id}" onclick="openSubfolder('${sf.id}')" style="border-left:4px solid ${f.color}">
       <div class="fc-row">
-        ${zoneBadge(sf,f)}
+        ${cardIcon}
         <div class="fc-info">
           <div class="fc-name">${sf.name}</div>
           <div class="fc-sub">${sf.en} · ${sf.units.length} units</div>
@@ -1730,19 +1756,19 @@ var zsTechPerZone = {};
 
 // Professional zone icons (SVG paths)
 var ZONE_ICONS = {
-  'Z1': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><text x="12" y="16" text-anchor="middle" font-size="10" stroke="none" fill="currentColor">1</text></svg>',
-  'Z2': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><text x="12" y="16" text-anchor="middle" font-size="10" stroke="none" fill="currentColor">2</text></svg>',
-  'Z3': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><text x="12" y="16" text-anchor="middle" font-size="10" stroke="none" fill="currentColor">3</text></svg>',
-  'Z4': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><text x="12" y="16" text-anchor="middle" font-size="10" stroke="none" fill="currentColor">4</text></svg>',
-  'Z5': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><text x="12" y="16" text-anchor="middle" font-size="10" stroke="none" fill="currentColor">5</text></svg>',
-  'Z6': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><text x="12" y="16" text-anchor="middle" font-size="10" stroke="none" fill="currentColor">6</text></svg>',
-  'Z7': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><text x="12" y="16" text-anchor="middle" font-size="10" stroke="none" fill="currentColor">7</text></svg>',
-  'Z8': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><text x="12" y="16" text-anchor="middle" font-size="10" stroke="none" fill="currentColor">8</text></svg>',
-  'Z9': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><text x="12" y="16" text-anchor="middle" font-size="10" stroke="none" fill="currentColor">9</text></svg>',
-  'SB1': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-6 9 6v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',
-  'SB2': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>',
-  'MT3': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2"/><path d="M2 10h20M2 15h20M7 2v20"/></svg>',
-  'MT6': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 22V12l8-9 8 9v10"/><path d="M4 12h16"/><rect x="9" y="16" width="6" height="6"/></svg>',
+  'Z1':  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>',
+  'Z2':  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/></svg>',
+  'Z3':  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-6 9 6v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',
+  'Z4':  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22V12l8-9 8 9v10"/><path d="M4 12h16"/><rect x="9" y="16" width="6" height="6"/></svg>',
+  'Z5':  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>',
+  'Z6':  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>',
+  'Z7':  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
+  'Z8':  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>',
+  'Z9':  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
+  'SB1': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="14" width="20" height="8" rx="2"/><path d="M6 14V8"/><path d="M18 14V8"/><path d="M2 10h20"/><circle cx="12" cy="5" r="3"/></svg>',
+  'SB2': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="16" rx="2"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/><line x1="12" y1="10" x2="12" y2="18"/><line x1="8" y1="14" x2="16" y2="14"/></svg>',
+  'MT3': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M12 3v18"/></svg>',
+  'MT6': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2"/><path d="M2 9h20M2 16h20M8 2v7M8 16v6M16 2v7M16 16v6"/></svg>',
 };
 
 // Returns zones filtered to the currently open folder (or all if none selected)
