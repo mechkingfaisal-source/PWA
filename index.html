@@ -275,7 +275,20 @@ html,body{margin:0;padding:0;background:#030712;color:#fff;font-family:'Inter',s
   window.closeSidebar=()=>{if(window.innerWidth<1024){document.getElementById('sidebar').classList.add('-translate-x-full');document.getElementById('overlay').classList.add('hidden');}};
   window.toggleNotif=()=>document.getElementById('notifPanel').classList.toggle('hidden');
   window.confirmLogout=()=>{closeSystem();closeSidebar();document.getElementById('logoutDlg').classList.remove('hidden');};
-  window.doLogout=()=>{try{localStorage.clear();sessionStorage.clear();}catch(e){}const base=window.location.href.substring(0,window.location.href.lastIndexOf('/')+1);window.location.replace(base+'login.html');};
+  window.doLogout=()=>{
+    try{
+      // Clear session data
+      localStorage.removeItem('cmms_user');
+      localStorage.removeItem('cmms_session');
+      sessionStorage.removeItem('cmms_user');
+      sessionStorage.removeItem('cmms_session');
+      // Clear remember-me so login form doesn't auto-fill after logout
+      localStorage.removeItem('cmms_remember');
+      localStorage.removeItem('cmms_iqama');
+      localStorage.removeItem('cmms_fileno');
+    }catch(e){}
+    window.location.replace('login.html');
+  };
 
   renderSidebar();renderTabs();navigate('dashboard');
 </script>
