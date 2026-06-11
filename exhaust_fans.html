@@ -82,9 +82,9 @@ body.app-mode{overflow:hidden;background:#f0f2f5}
 .tabs{display:flex;background:#fff;border-top:.5px solid #e2e8f0;flex-shrink:0;
   padding-bottom:env(safe-area-inset-bottom,0)}
 .tab{flex:1;padding:9px 4px 8px;font-size:10px;text-align:center;cursor:pointer;color:#8a94a6;
-  border-top:2px solid transparent;transition:all .2s}
-.tab-icon{font-size:15px;display:block;margin-bottom:2px}
-.tab.active{color:#0a2e5c;border-top-color:#0a2e5c;font-weight:600}
+  border-bottom:2px solid transparent;transition:all .2s}
+.tab-icon{display:flex;align-items:center;justify-content:center;height:18px;margin-bottom:2px}
+.tab.active{color:#0a2e5c;border-bottom-color:#00b4d8;font-weight:800}
 .pages{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;background:#f4f7fb}
 .pg{display:none;padding:12px}
 .pg.active{display:block}
@@ -115,12 +115,15 @@ body.app-mode{overflow:hidden;background:#f0f2f5}
 .sf-hdr{border-radius:10px;padding:8px 12px;margin:8px 0 5px;font-size:12px;font-weight:700;
   display:flex;justify-content:space-between;align-items:center;color:#fff}
 .zone-cnt{font-size:10px;opacity:.65;font-weight:400}
-.ucard{border:.5px solid #e2e8f0;border-radius:11px;padding:10px 12px;margin-bottom:7px;
-  cursor:pointer;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.05);transition:all .12s}
-.ucard:active,.ucard.sel{transform:scale(.98);border-color:#0a2e5c;background:#f0f6ff}
-.urow{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px}
-.uname{font-weight:900;font-size:13px;color:#0a2e5c;font-family:Arial,monospace;letter-spacing:.02em}
-.bdg{font-size:9px;padding:2px 8px;border-radius:20px;font-weight:600}
+.ucard{border:.5px solid #e2e8f0;border-radius:11px;padding:10px 12px 9px;cursor:pointer;background:#fff;transition:transform .18s cubic-bezier(.34,1.56,.64,1),box-shadow .18s,background .15s;box-shadow:0 2px 6px rgba(0,0,0,.06);border-left:3px solid #0a2e5c;display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.ucard:active,.ucard.sel{transform:translateY(-1px) scale(.99);border-color:#0a2e5c;border-left-color:#00b4d8;background:#f0f6ff;box-shadow:0 5px 18px rgba(10,46,92,.14)}
+.ucard-icon{width:34px;height:34px;border-radius:9px;background:#f0f6ff;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ucard-icon.done{background:#e8f8f0}
+.ucard-body{flex:1;min-width:0}
+.ucard-arrow{color:#b0bec5;font-size:13px;flex-shrink:0}
+.urow{display:flex;justify-content:space-between;align-items:center;margin-bottom:2px}
+.uname{font-weight:900;font-size:13px;color:#0a2e5c;font-family:Arial,monospace;letter-spacing:.02em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bdg{font-size:9px;padding:2px 8px;border-radius:20px;font-weight:600;flex-shrink:0;margin-left:4px}
 .b-ok{background:#e8f8f0;color:#1a7a4a}
 .b-due{background:#fff3e0;color:#a05c00}
 .umeta{font-size:10px;color:#8a94a6}
@@ -380,6 +383,79 @@ body.app-mode{overflow:hidden;background:#f0f2f5}
 
 
 /* ============================================================
+   ZONE BUTTONS (uzb) — Redesigned cards with progress & colors
+   ============================================================ */
+.unit-zone-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:12px}
+.uzb{padding:8px 4px 7px;border-radius:10px;border:1.5px solid #d1d8e0;background:#fff;font-size:9px;font-weight:700;color:#0a2e5c;cursor:pointer;font-family:Arial,sans-serif;transition:all .2s cubic-bezier(.34,1.56,.64,1);text-align:center;line-height:1.3;box-shadow:0 1px 4px rgba(0,0,0,.07);position:relative;display:flex;flex-direction:column;align-items:center}
+.uzb:active{transform:scale(.94)}
+.uzb-status-dot{position:absolute;top:4px;right:4px;width:7px;height:7px;border-radius:50%;border:1.5px solid rgba(255,255,255,.8);box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.uzb .uzb-icon{display:flex;align-items:center;justify-content:center;width:28px;height:28px;background:#f0f6ff;border-radius:7px;margin:0 auto 4px}
+.uzb .uzb-icon svg{width:13px;height:13px}
+.uzb .uzb-id{font-size:10px;font-weight:900;color:#0a2e5c;letter-spacing:.03em;display:block}
+.uzb .uzb-cnt{font-size:8px;font-weight:500;color:#8a94a6;display:block;margin-top:1px}
+.uzb-progress-row{display:flex;align-items:center;gap:3px;width:100%;margin-top:4px;padding:0 2px}
+.uzb-prog-bar{flex:1;height:3px;background:rgba(0,0,0,.1);border-radius:2px;overflow:hidden}
+.uzb-prog-fill{height:100%;border-radius:2px;transition:width .5s ease}
+.uzb-pct{font-size:7px;font-weight:700;color:#8a94a6;white-space:nowrap;min-width:16px;text-align:right}
+.uzb.active{background:#0a2e5c;color:#fff;border-color:#0a2e5c;box-shadow:0 4px 14px rgba(10,46,92,.35);transform:translateY(-1px)}
+.uzb.active .uzb-icon{background:rgba(255,255,255,.18)}
+.uzb.active .uzb-icon svg{stroke:#fff}
+.uzb.active .uzb-id,.uzb.active .uzb-cnt,.uzb.active .uzb-pct{color:#fff!important}
+.uzb.active .uzb-prog-bar{background:rgba(255,255,255,.2)}
+/* Per-zone color accents (light mode) */
+.uzb:nth-child(1){border-color:#0a2e5c;color:#0a2e5c;background:#f0f6ff}
+.uzb:nth-child(1) .uzb-icon{background:#e0eaff}
+.uzb:nth-child(1).active{background:#0a2e5c}
+.uzb:nth-child(2){border-color:#1a5fae;color:#1a5fae;background:#e8f0ff}
+.uzb:nth-child(2) .uzb-icon{background:#d0e4ff}
+.uzb:nth-child(2).active{background:#1a5fae;border-color:#1a5fae}
+.uzb:nth-child(3){border-color:#0e7490;color:#0e7490;background:#ecfeff}
+.uzb:nth-child(3) .uzb-icon{background:#cffafe}
+.uzb:nth-child(3).active{background:#0e7490;border-color:#0e7490}
+.uzb:nth-child(4){border-color:#15803d;color:#15803d;background:#f0fdf4}
+.uzb:nth-child(4) .uzb-icon{background:#dcfce7}
+.uzb:nth-child(4).active{background:#15803d;border-color:#15803d}
+.uzb:nth-child(5){border-color:#b45309;color:#b45309;background:#fffbeb}
+.uzb:nth-child(5) .uzb-icon{background:#fef3c7}
+.uzb:nth-child(5).active{background:#b45309;border-color:#b45309}
+.uzb:nth-child(6){border-color:#7c3aed;color:#7c3aed;background:#faf5ff}
+.uzb:nth-child(6) .uzb-icon{background:#ede9fe}
+.uzb:nth-child(6).active{background:#7c3aed;border-color:#7c3aed}
+.uzb:nth-child(7){border-color:#be185d;color:#be185d;background:#fdf2f8}
+.uzb:nth-child(7) .uzb-icon{background:#fce7f3}
+.uzb:nth-child(7).active{background:#be185d;border-color:#be185d}
+.uzb:nth-child(8){border-color:#c0392b;color:#c0392b;background:#fff0f0}
+.uzb:nth-child(8) .uzb-icon{background:#fde8e8}
+.uzb:nth-child(8).active{background:#c0392b;border-color:#c0392b}
+.uzb:nth-child(9){border-color:#0f766e;color:#0f766e;background:#f0fdfa}
+.uzb:nth-child(9) .uzb-icon{background:#ccfbf1}
+.uzb:nth-child(9).active{background:#0f766e;border-color:#0f766e}
+.uzb:nth-child(10){border-color:#92400e;color:#92400e;background:#fdf6ec}
+.uzb:nth-child(10) .uzb-icon{background:#fde8c8}
+.uzb:nth-child(10).active{background:#92400e;border-color:#92400e}
+.uzb:nth-child(11){border-color:#1d4ed8;color:#1d4ed8;background:#eff6ff}
+.uzb:nth-child(11) .uzb-icon{background:#dbeafe}
+.uzb:nth-child(11).active{background:#1d4ed8;border-color:#1d4ed8}
+.uzb:nth-child(12){border-color:#047857;color:#047857;background:#ecfdf5}
+.uzb:nth-child(12) .uzb-icon{background:#d1fae5}
+.uzb:nth-child(12).active{background:#047857;border-color:#047857}
+.uzb:nth-child(13){border-color:#6d28d9;color:#6d28d9;background:#f5f3ff}
+.uzb:nth-child(13) .uzb-icon{background:#ede9fe}
+.uzb:nth-child(13).active{background:#6d28d9;border-color:#6d28d9}
+.uzb.active .uzb-id,.uzb.active .uzb-cnt{color:#fff!important}
+/* Units panel slide */
+.units-panel{animation:fadeIn .18s ease;background:#f4f7fb;border:1.5px solid #d1d8e0;border-radius:13px;padding:10px 10px 6px;margin-top:2px}
+.units-panel-hdr{display:flex;align-items:center;gap:8px;margin-bottom:9px;padding:0 2px}
+.units-panel-hdr-bar{width:4px;height:20px;border-radius:3px;background:linear-gradient(180deg,#0a2e5c,#00b4d8);flex-shrink:0}
+.units-panel-hdr-title{font-size:11px;font-weight:900;color:#0a2e5c;letter-spacing:.04em;text-transform:uppercase;font-family:Arial,sans-serif;flex:1}
+.units-panel-hdr-count{font-size:10px;font-weight:700;color:#fff;background:#0a2e5c;border-radius:20px;padding:2px 9px}
+.units-panel-hdr-done{font-size:10px;font-weight:700;color:#1a7a4a;background:#e8f8f0;border-radius:20px;padding:2px 8px;border:.5px solid #a3d9be}
+.units-grid{display:flex;flex-direction:column;gap:5px}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.uzb-badge{position:absolute;top:3px;right:3px;width:14px;height:14px;background:#4ade80;border-radius:50%;font-size:7px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;line-height:1}
+.uzb-badge.pending{background:#f87171}
+
+/* ============================================================
    DARK MODE THEME — KFMC HVAC CMMS
    ============================================================ */
 html, body {
@@ -413,7 +489,6 @@ body, body.app-mode {
 .tab.active {
   color: #7dd3fc !important;
   border-bottom-color: #7dd3fc !important;
-  border-top-color: #7dd3fc !important;
 }
 
 /* Search box */
@@ -461,7 +536,14 @@ body, body.app-mode {
 .uzb:nth-child(8) { background: #1a0d0d !important; border-color: #7f1d1d !important; }
 .uzb:nth-child(9) { background: #0d1c1a !important; border-color: #134e4a !important; }
 .uzb:nth-child(10) { background: #1c1107 !important; border-color: #78350f !important; }
+.uzb:nth-child(11) { background: #0e1224 !important; border-color: #1e3a8a !important; }
+.uzb:nth-child(12) { background: #0a1a12 !important; border-color: #065f46 !important; }
+.uzb:nth-child(13) { background: #150d26 !important; border-color: #4c1d95 !important; }
 .uzb.active { box-shadow: 0 3px 12px rgba(0,0,0,.5) !important; }
+.uzb-status-dot{border-color:rgba(255,255,255,.5) !important}
+.uzb-prog-bar{background:rgba(255,255,255,.12) !important}
+.uzb.active .uzb-pct{color:#fff!important}
+.uzb.active .uzb-prog-bar{background:rgba(255,255,255,.2) !important}
 
 /* Units panel */
 .units-panel {
@@ -633,6 +715,42 @@ input::placeholder, textarea::placeholder {
   background: #0a1628 !important;
   color: #7dd3fc !important;
 }
+/* Zone sheet zone buttons (zs-zbtn) dark mode */
+.zs-zbtn {
+  background: #1e2530 !important;
+  border-color: #2d3748 !important;
+  color: #cbd5e1 !important;
+}
+.zs-zbtn .zb-icon {
+  background: #0d1b2e !important;
+}
+.zs-zbtn .zb-icon svg {
+  stroke: #93c5fd !important;
+}
+.zs-zbtn .zb-id {
+  color: #93c5fd !important;
+}
+.zs-zbtn .zb-en {
+  color: #4a5568 !important;
+}
+.zs-zbtn.active {
+  box-shadow: 0 4px 14px rgba(0,0,0,.5) !important;
+}
+.zs-zbtn.active .zb-en {
+  color: rgba(255,255,255,.7) !important;
+}
+/* Tech card dark mode */
+.zs-tech-card {
+  background: linear-gradient(135deg,#1a2744,#131d2e) !important;
+  border-color: #2d3748 !important;
+}
+.zs-tech-label { color: #7dd3fc !important; }
+.zs-tech-zone { color: #93c5fd !important; }
+.zs-tech-input {
+  background: #161b22 !important;
+  color: #e2e8f0 !important;
+  border-color: #2d3748 !important;
+}
 
 /* Home page cards (exhaust_fans landing) */
 body.home {
@@ -660,6 +778,32 @@ body.home {
 
 /* Inline style overrides for dynamic content */
 /* These target common inline-style patterns generated by JS */
+
+/* Folder cards (3-level nav) dark mode */
+.folder-card {
+  background: #1e2530 !important;
+  border-color: #2d3748 !important;
+}
+.fc-name { color: #e2e8f0 !important; }
+.fc-sub { color: #64748b !important; }
+.fc-prog-bar { background: #2d3748 !important; }
+
+/* Breadcrumb dark mode */
+.bc-item { color: #94a3b8 !important; }
+.bc-active { color: #7dd3fc !important; }
+.bc-link { color: #7dd3fc !important; }
+
+/* Subfolder/sf header in dark mode */
+/* (these use inline color styles so no override needed) */
+
+/* fc-pill dark mode */
+.fc-pill {
+  background: rgba(255,255,255,.07) !important;
+  border-color: rgba(255,255,255,.15) !important;
+  color: #94a3b8 !important;
+}
+.uname { color: #e2e8f0 !important; }
+.umeta { color: #64748b !important; }
 
 </style>
 </head>
@@ -706,7 +850,7 @@ body.home {
 
 <div id="app-shell">
   <div class="app-hdr" id="app-hdr" style="background:#0a2e5c">
-    <button class="hdr-back" onclick="backToHome()">&#8249;</button>
+    <button class="hdr-back" onclick="backToHome()" title="Home"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z"/><polyline points="9 21 9 12 15 12 15 21"/></svg></button>
     <div class="hdr-info">
       <h1 id="hdr-title">EX Fans PPM</h1>
       <p id="hdr-sub">AL MAJAL &mdash; King Faisal Medical Complex</p>
@@ -714,11 +858,26 @@ body.home {
     <div class="offl-badge"><div class="offl-dot"></div>Offline</div>
   </div>
   <div class="tabs">
-    <div class="tab active" onclick="go('units')"><span class="tab-icon">💨</span>Units</div>
-    <div class="tab" onclick="go('form')"><span class="tab-icon">📋</span>Form</div>
-    <div class="tab" onclick="go('records')"><span class="tab-icon">📁</span>Records</div>
-    <div class="tab" onclick="go('qr')"><span class="tab-icon">📲</span>QR</div>
-    <div class="tab" onclick="go('zonesheet')"><span class="tab-icon">📊</span>Zone Sheet</div>
+    <div class="tab active" onclick="go('units')">
+      <span class="tab-icon">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></svg>
+      </span>Units</div>
+    <div class="tab" onclick="go('form')">
+      <span class="tab-icon">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="15" y2="16"/></svg>
+      </span>Form</div>
+    <div class="tab" onclick="go('zonesheet')">
+      <span class="tab-icon">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+      </span>Zone Sheet</div>
+    <div class="tab" onclick="go('records')">
+      <span class="tab-icon">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+      </span>Records</div>
+    <div class="tab" onclick="go('qr')">
+      <span class="tab-icon">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="5" y="5" width="3" height="3" fill="currentColor" stroke="none"/><rect x="16" y="5" width="3" height="3" fill="currentColor" stroke="none"/><rect x="5" y="16" width="3" height="3" fill="currentColor" stroke="none"/><line x1="14" y1="14" x2="14" y2="14"/><line x1="17" y1="14" x2="17" y2="17"/><line x1="20" y1="14" x2="20" y2="14"/><line x1="14" y1="17" x2="14" y2="20"/><line x1="17" y1="20" x2="20" y2="20"/><line x1="20" y1="17" x2="20" y2="17"/></svg>
+      </span>QR Codes</div>
   </div>
   <div class="pages">
     <div class="pg active" id="pg-units">
@@ -726,6 +885,7 @@ body.home {
         <span style="font-size:15px;color:#8a94a6">&#128269;</span>
         <input id="search-input" placeholder="Search EX FAN unit..." oninput="filterUnits(this.value)">
       </div>
+      <div id="unit-zone-grid" class="unit-zone-grid" style="display:none"></div>
       <div id="units-list"></div>
     </div>
     <div class="pg" id="pg-form">
@@ -1166,8 +1326,41 @@ function renderRoot() {
 
 function openFolder(fid) {
   selFolder = FOLDERS.find(f=>f.id===fid);
+  selSub = null;          // clear any previously selected zone
   navLevel = 'folder';
   renderFolder();
+}
+
+/* ── helper: build a rich unit card (matches main.html buildUnitCard) ── */
+function buildUnitCard(uid, sfName) {
+  const u = ALL_UNITS[uid]; if(!u) return '';
+  const lr = records.find(r=>r.unitId===uid && !r._zoneRecord);
+  const isSel = (selUnit && selUnit.id===uid);
+  const statusColor = lr ? '#22C55E' : '#F59E0B';
+  const iconSvg = lr
+    ? '<svg viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="20 6 9 17 4 12"/></svg>'
+    : '<svg viewBox="0 0 24 24" fill="none" stroke="#1a5fae" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/><circle cx="12" cy="12" r="3"/></svg>';
+  const locSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="#8a94a6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="10" height="10" style="vertical-align:middle;margin-right:2px"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>';
+  return `<div class="ucard${isSel?' sel':''}" onclick="pickUnit('${uid}')" style="border-left-color:${statusColor}">
+    <div class="ucard-icon${lr?' done':''}">` + iconSvg + `</div>
+    <div class="ucard-body">
+      <div class="urow"><span class="uname">${u.name||uid}</span><span class="bdg ${lr?'b-ok':'b-due'}">${lr?'✓ Done':'Due'}</span></div>
+      <div class="umeta">${locSvg}${sfName||''}${lr?' · '+lr.date:''}</div>
+    </div><span class="ucard-arrow">›</span></div>`;
+}
+
+/* ── selectSubfolder: toggle inline units panel (like main.html selectZone) ── */
+function selectSubfolder(sfid) {
+  // toggle off if already selected
+  selSub = (selSub && selSub.id === sfid) ? null : selFolder.subfolders.find(sf=>sf.id===sfid);
+  renderFolder();
+  // scroll to the inline panel smoothly
+  if(selSub){
+    setTimeout(()=>{
+      const panel = document.getElementById('inline-units-panel');
+      if(panel) panel.scrollIntoView({behavior:'smooth', block:'nearest'});
+    }, 60);
+  }
 }
 
 function renderFolder() {
@@ -1178,53 +1371,49 @@ function renderFolder() {
     <span class="bc-item bc-active">${f.icon} ${f.name}</span>
   </div>`;
 
-  /* ── Horizontal zone icon grid (mirrors Zone Sheet zs-zbtn style) ── */
-  html += `<div style="display:grid;grid-template-columns:repeat(${Math.min(f.subfolders.length,5)},1fr);gap:6px;margin-bottom:14px">`;
-  f.subfolders.forEach((sf, idx) => {
+  /* ── Zone icon grid — click toggles inline units panel ── */
+  html += `<div class="unit-zone-grid" style="margin-bottom:12px">`;
+  f.subfolders.forEach((sf) => {
     const icon = ZONE_ICONS[sf.id] || '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>';
-    const doneCount = sf.units.filter(u=>records.some(r=>r.unitId===u.id)).length;
-    const allDone = doneCount === sf.units.length && sf.units.length > 0;
-    const badge = doneCount > 0
-      ? `<span style="position:absolute;top:3px;right:3px;width:14px;height:14px;background:${allDone?'#4ade80':'#f87171'};border-radius:50%;font-size:7px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;line-height:1">${allDone?'✓':doneCount}</span>`
-      : '';
-    html += `<button class="zs-zbtn" style="position:relative" data-zone="${sf.id}" onclick="openSubfolder('${sf.id}')">
-      ${badge}
-      <span class="zb-icon">${icon}</span>
-      <span class="zb-id">${sf.id}</span>
-      <span class="zb-en">${sf.units.length} units</span>
-    </button>`;
+    const total = sf.units.length;
+    const done  = sf.units.filter(u=>records.some(r=>r.unitId===u.id)).length;
+    const pct   = total ? Math.round(done/total*100) : 0;
+    const allDone = done===total && total>0;
+    const hasSome = done>0 && !allDone;
+    const statusColor = allDone ? '#22C55E' : hasSome ? '#F59E0B' : '#EF4444';
+    const isActive = selSub && selSub.id === sf.id;
+    html += `<button class="uzb${isActive?' active':''}" data-zone="${sf.id}" onclick="selectSubfolder('${sf.id}')">` +
+      `<div class="uzb-status-dot" style="background:${statusColor}"></div>` +
+      `<span class="uzb-icon">${icon}</span>` +
+      `<span class="uzb-id">${sf.id}</span>` +
+      `<span class="uzb-cnt">${total} units</span>` +
+      `<span class="uzb-progress-row">` +
+      `<span class="uzb-prog-bar"><span class="uzb-prog-fill" style="width:${pct}%;background:${statusColor}"></span></span>` +
+      `<span class="uzb-pct">${done}/${total}</span>` +
+      `</span></button>`;
   });
   html += `</div>`;
 
-  /* ── Subfolder cards below ── */
-  f.subfolders.forEach((sf, idx) => {
+  /* ── Inline units panel (appears when a zone is selected) ── */
+  if(selSub){
+    const sf = selSub;
     const doneCount = sf.units.filter(u=>records.some(r=>r.unitId===u.id)).length;
-    const pct = sf.units.length ? Math.round(doneCount/sf.units.length*100) : 0;
-    const icon = ZONE_ICONS[sf.id] || '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>';
-    /* build a small zs-zbtn-style icon for the card row */
-    const cardIcon = `<span class="zs-zbtn" data-zone="${sf.id}" style="pointer-events:none;width:46px;min-width:46px;height:52px;padding:5px 3px 4px;flex-shrink:0">
-      <span class="zb-icon">${icon}</span>
-      <span class="zb-id" style="font-size:9px">${sf.id}</span>
-    </span>`;
-    html += `<div class="folder-card" id="sf-card-${sf.id}" onclick="openSubfolder('${sf.id}')" style="border-left:4px solid ${f.color}">
-      <div class="fc-row">
-        ${cardIcon}
-        <div class="fc-info">
-          <div class="fc-name">${sf.name}</div>
-          <div class="fc-sub">${sf.en} · ${sf.units.length} units</div>
-        </div>
-        <div class="fc-right">
-          <div class="fc-stat" style="color:${f.color}">${pct}%<span class="fc-stat-lbl">done</span></div>
-          <span class="fc-arrow">›</span>
-        </div>
+    html += `<div class="units-panel" id="inline-units-panel">
+      <div class="units-panel-hdr">
+        <div class="units-panel-hdr-bar"></div>
+        <div class="units-panel-hdr-title">${sf.name}</div>
+        <span class="units-panel-hdr-done">${doneCount}/${sf.units.length} done</span>
+        <span class="units-panel-hdr-count">${sf.units.length} units</span>
       </div>
-      <div style="margin-top:7px">
-        <div style="height:3px;background:#e2e8f0;border-radius:2px;overflow:hidden">
-          <div style="width:${pct}%;height:100%;background:${f.color};border-radius:2px;transition:width .3s"></div>
-        </div>
-      </div>
+      <div class="units-grid">`;
+    sf.units.forEach(u => { html += buildUnitCard(u.id, sf.name); });
+    html += `</div></div>`;
+  } else {
+    html += `<div style="text-align:center;padding:10px 16px 4px;color:#8a94a6;font-size:11px">
+      <span style="opacity:.5">👆</span> Tap a zone icon to view its units
     </div>`;
-  });
+  }
+
   document.getElementById('units-list').innerHTML = html;
 }
 
@@ -2376,7 +2565,7 @@ function printAllQR(){
 // NAVIGATION
 //---
 function go(tab){
-  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['units','form','records','qr','zonesheet'][i]===tab));
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['units','form','zonesheet','records','qr'][i]===tab));
   document.querySelectorAll('.pg').forEach(p=>p.classList.remove('active'));
   document.getElementById('pg-'+tab).classList.add('active');
   if(tab==='records') renderRecs();
