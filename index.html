@@ -73,8 +73,8 @@ body.light-mode footer{color:#94a3b8;border-color:#e2e8f0}
       <div class="flex items-center gap-2 px-3 py-2 rounded-xl border bg-cyan-500/20 text-cyan-300 border-cyan-400/30">
         <span>🔧</span>
         <div class="min-w-0">
-          <p class="text-xs font-semibold truncate">Maintenance Team</p>
-          <p class="text-xs opacity-70">technician</p>
+          <p id="sidebarUserName" class="text-xs font-semibold truncate">Maintenance Team</p>
+          <p id="sidebarUserRole" class="text-xs opacity-70">technician</p>
         </div>
       </div>
     </div>
@@ -333,6 +333,20 @@ body.light-mode footer{color:#94a3b8;border-color:#e2e8f0}
   };
 
   renderSidebar();renderTabs();navigate('dashboard');
+
+  // ── Populate user name & position from login session ──────────
+  (function loadUserInfo(){
+    try{
+      var raw = sessionStorage.getItem('cmms_user') || localStorage.getItem('cmms_user');
+      if(!raw) raw = sessionStorage.getItem('cmms_session') || localStorage.getItem('cmms_session');
+      if(!raw) return;
+      var u = JSON.parse(raw);
+      var name = u.name || u.fullName || u.userName || u.username || '';
+      var role = u.role || u.position || u.jobTitle || u.type || '';
+      if(name) document.getElementById('sidebarUserName').textContent = name;
+      if(role) document.getElementById('sidebarUserRole').textContent = role;
+    }catch(e){}
+  })();
 
   // ── Theme toggle ──────────────────────────────────────────
   (function initTheme(){
