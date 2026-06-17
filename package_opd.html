@@ -2260,11 +2260,42 @@ function _drawSavedSigOnCanvas(canvas, cb){
 }
 
 function useMySignature(){
-  var canvas=document.getElementById('sig-canvas');
-  if(!canvas){alert('Signature pad not ready');return;}
-  _drawSavedSigOnCanvas(canvas, function(){
-    if(typeof saveSig==='function'){ saveSig(); }
-  });
+  var sess=(function(){try{return JSON.parse(sessionStorage.getItem('cmms_user')||localStorage.getItem('cmms_user')||'null');}catch(e){return null;}})();
+  var sigName = sess && sess.name ? sess.name : '';
+  var sigRole = sess && sess.role ? sess.role : '';
+  var tabMap = {tech:0, eng:1, admin:2, 'head':2, 'assist':2, 'store':2};
+  var targetTab = tabMap[sigRole] !== undefined ? tabMap[sigRole] : (sigRole ? 2 : _sigTab);
+  if(typeof switchSigTab === 'function') switchSigTab(targetTab);
+  var canvas = document.getElementById('sig-canvas');
+  if(!canvas){ alert('Signature pad not ready'); return; }
+  var ctx = canvas.getContext('2d');
+  var w = canvas.width || 400, h = canvas.height || 130;
+  ctx.clearRect(0, 0, w, h);
+  if(sigName){
+    var fontSize = Math.min(48, Math.floor(w / (sigName.length * 0.6 + 2)));
+    fontSize = Math.max(28, Math.min(fontSize, 52));
+    ctx.save();
+    ctx.font = 'italic bold ' + fontSize + 'px "Brush Script MT", "Dancing Script", cursive, Georgia, serif';
+    ctx.fillStyle = '#0a2e5c';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.translate(w/2, h/2 + 8);
+    ctx.rotate(-0.04);
+    ctx.fillText(sigName, 0, 0);
+    var metrics = ctx.measureText(sigName);
+    var lineW = Math.min(metrics.width * 1.15, w * 0.9);
+    ctx.beginPath();
+    ctx.moveTo(-lineW/2, fontSize*0.45);
+    ctx.lineTo(lineW/2, fontSize*0.45);
+    ctx.strokeStyle = '#0a2e5c';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.restore();
+  } else {
+    alert('Please sign manually — no name found in login session.');
+    return;
+  }
+  if(typeof saveSig === 'function') saveSig();
 }
 
 function clearSig(){ _clearCanvas(); }
