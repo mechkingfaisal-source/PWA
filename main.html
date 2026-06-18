@@ -2637,5 +2637,43 @@ if(document.readyState==='loading'){
 }
 </script>
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+
+<script>
+// ── Role-based restriction: Technicians cannot Print / Save PDF / Delete records ──
+(function(){
+  function _getRole(){
+    try{
+      var raw = sessionStorage.getItem('cmms_user') || localStorage.getItem('cmms_user');
+      if(!raw) return null;
+      var u = JSON.parse(raw);
+      return u && u.role;
+    }catch(e){ return null; }
+  }
+  if(_getRole() !== 'tech') return; // only Technicians are restricted
+
+  var BLOCKED = /^(printZoneRec|printReport|printR|shareAsPDF|shareAsPDFZone|shareZoneRec|shareReport|deleteRec)\s*\(/;
+
+  function applyRestrictions(container){
+    if(!container) return;
+    var btns = container.querySelectorAll('button[onclick]');
+    for(var i=0;i<btns.length;i++){
+      var oc = btns[i].getAttribute('onclick') || '';
+      if(BLOCKED.test(oc)) btns[i].style.display = 'none';
+    }
+  }
+
+  function init(){
+    var list = document.getElementById('rec-list');
+    if(!list) return;
+    applyRestrictions(list);
+    var mo = new MutationObserver(function(){ applyRestrictions(list); });
+    mo.observe(list, { childList: true, subtree: true });
+  }
+
+  if(document.getElementById('rec-list')) init();
+  else document.addEventListener('DOMContentLoaded', init);
+})();
+</script>
+
 </body>
 </html>
