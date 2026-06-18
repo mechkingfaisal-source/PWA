@@ -165,6 +165,7 @@
       margin-bottom: 24px;
       animation: cardIn .8s .3s both;
     }
+    .role-toggle.cols-4 { grid-template-columns: repeat(4, 1fr); column-gap: 4px; }
     .role-btn {
       display: flex; align-items: center; justify-content: center; gap: 7px;
       padding: 10px; border: none; background: transparent;
@@ -172,6 +173,15 @@
       font-family: 'Inter', sans-serif;
       font-size: 13px; font-weight: 600;
       cursor: pointer; transition: all .25s;
+      white-space: nowrap;
+    }
+    .role-toggle.cols-4 .role-btn {
+      flex-direction: column; gap: 3px;
+      font-size: 10.5px; padding: 8px 2px;
+    }
+    .role-toggle.cols-4 .role-icon { font-size: 15px; }
+    @media (max-width: 420px) {
+      .role-toggle.cols-4 { grid-template-columns: repeat(2, 1fr); row-gap: 6px; }
     }
     .role-btn.active {
       background: linear-gradient(135deg, var(--accent), #0ea5e9);
@@ -433,12 +443,15 @@
 
     <!-- Role Toggle -->
     <div class="role-label">Select Access Role</div>
-    <div class="role-toggle" style="grid-template-columns:1fr 1fr 1fr">
+    <div class="role-toggle cols-4">
       <button class="role-btn active" id="btnTech" onclick="setRole('tech')">
         <span class="role-icon">🔧</span> Technician
       </button>
       <button class="role-btn" id="btnEng" onclick="setRole('eng')">
         <span class="role-icon">👷</span> Engineer
+      </button>
+      <button class="role-btn" id="btnWarehouse" onclick="setRole('warehouse')">
+        <span class="role-icon">📦</span> Warehouse
       </button>
       <button class="role-btn" id="btnAdmin" onclick="setRole('admin')">
         <span class="role-icon">🛡️</span> Admin
@@ -550,6 +563,7 @@
     currentRole = r;
     document.getElementById('btnTech').classList.toggle('active', r === 'tech');
     document.getElementById('btnEng').classList.toggle('active', r === 'eng');
+    document.getElementById('btnWarehouse').classList.toggle('active', r === 'warehouse');
     document.getElementById('btnAdmin').classList.toggle('active', r === 'admin');
   }
 
@@ -594,6 +608,15 @@
     '2222': { fileNumber: '2222', name: 'RAKAN ELSHEBY', role: 'admin' },
     '142364': { fileNumber: '142364', name: 'AZHAR', role: 'tech' },
     '2358072466': { fileNumber: '123310', name: 'AHMED GWEELY', role: 'eng' },
+    '2550104583': { fileNumber: '123174', name: 'MD ABDULRAHMAN', role: 'warehouse' },
+  };
+
+  // ── Role display labels (for messages) ──
+  const ROLE_LABELS = {
+    tech: 'Technician',
+    eng: 'Engineer',
+    warehouse: 'Warehouse',
+    admin: 'Admin'
   };
 
   function doLogin() {
@@ -647,7 +670,7 @@
         // Credentials correct but wrong role selected
         alertEl.className = 'alert error';
         alertEl.innerHTML = '⚠ Incorrect role selected. Please choose <strong>'
-          + (user.role === 'eng' ? 'Engineer' : 'Technician') + '</strong>.';
+          + (ROLE_LABELS[user.role] || user.role) + '</strong>.';
       } else {
         // Wrong iqama or file number
         alertEl.className = 'alert error';
