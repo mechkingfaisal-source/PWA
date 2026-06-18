@@ -608,7 +608,7 @@
     '2222': { fileNumber: '2222', name: 'RAKAN ELSHEBY', role: 'admin' },
     '142364': { fileNumber: '142364', name: 'AZHAR', role: 'tech' },
     '2358072466': { fileNumber: '123310', name: 'AHMED GWEELY', role: 'eng' },
-    '2550104583': { fileNumber: '123174', name: 'MD ABDULRAHMAN', role: 'warehouse' },
+    '2550104583': { fileNumber: '123174', name: 'MD ABDULRAHMAN', role: 'tech', appRole: 'warehouse' },
   };
 
   // ── Role display labels (for messages) ──
@@ -653,7 +653,7 @@
         alertEl.innerHTML = '✔ Welcome, ' + user.name + '! Redirecting…';
 
         // Always save to sessionStorage (clears when browser closes)
-        const sessionData = JSON.stringify({ iqama, name: user.name, role: user.role });
+        const sessionData = JSON.stringify({ iqama, name: user.name, role: user.appRole || user.role });
         sessionStorage.setItem('cmms_user', sessionData);
         // Also save to localStorage if "Keep me signed in" is checked
         if (document.getElementById('remember').checked) {
