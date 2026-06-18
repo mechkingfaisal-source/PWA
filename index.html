@@ -178,6 +178,22 @@ body.light-mode footer{color:#94a3b8;border-color:#e2e8f0}
 </script>
 
 <script>
+  // ── Session guard: must be logged in to view this page ─────────
+  const CURRENT_USER = (function(){
+    var raw = sessionStorage.getItem('cmms_user') || localStorage.getItem('cmms_user');
+    if(!raw) raw = sessionStorage.getItem('cmms_session') || localStorage.getItem('cmms_session');
+    if(!raw) return null;
+    try{
+      var u = JSON.parse(raw);
+      if(!u || !u.role) return null;
+      return u;
+    }catch(e){ return null; }
+  })();
+  if(!CURRENT_USER){
+    window.location.replace('login.html');
+    throw new Error('CMMS: no active session — redirecting to login.');
+  }
+
   const I = {
     dashboard:'<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>',
     building:'<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h.01M9 13h.01M9 17h.01M15 9h.01M15 13h.01M15 17h.01"/></svg>',
@@ -214,11 +230,33 @@ body.light-mode footer{color:#94a3b8;border-color:#e2e8f0}
     { id:'engineer-approval', label:'Engineer Approval',  icon:I.check,      badge:'Engineer',    sub:'Approve requests · اعتماد الطلبات',              url:'engineer_approval.html' },
   ];
 
-  const TABS = ['dashboard','main-building','warehouse','material-request'];
+  // ── Role-based access control ───────────────────────────────
+  const PPM_IDS = ['main-building','medical-tower','package-units','chillers','chw-pumps','exhaust-fans'];
+  const WAREHOUSE_IDS = ['warehouse','material-request','engineer-approval'];
+
+  const ROLE_ACCESS = {
+    eng:       SYSTEMS.map(s=>s.id),         // full access
+    admin:     SYSTEMS.map(s=>s.id),         // full access
+    tech:      ['dashboard', ...PPM_IDS],
+    warehouse: ['dashboard', ...WAREHOUSE_IDS],
+  };
+
+  const ROLE_TABS = {
+    eng:       ['dashboard','main-building','warehouse','material-request'],
+    admin:     ['dashboard','main-building','warehouse','material-request'],
+    tech:      ['dashboard','main-building','chillers','exhaust-fans'],
+    warehouse: ['dashboard','warehouse','material-request','engineer-approval'],
+  };
+
+  const ROLE_LABELS = { eng:'Engineer', tech:'Technician', warehouse:'Warehouse', admin:'Admin' };
+
+  const ALLOWED_IDS = ROLE_ACCESS[CURRENT_USER.role] || ['dashboard'];
+  const VISIBLE_SYSTEMS = SYSTEMS.filter(s => ALLOWED_IDS.includes(s.id));
+  const TABS = (ROLE_TABS[CURRENT_USER.role] || ['dashboard']).filter(id => ALLOWED_IDS.includes(id));
   let current = 'dashboard';
 
   function renderSidebar(){
-    document.getElementById('sideNav').innerHTML = SYSTEMS.map(s=>{
+    document.getElementById('sideNav').innerHTML = VISIBLE_SYSTEMS.map(s=>{
       const active = s.id===current;
       return `<a href="#" onclick="event.preventDefault();navigate('${s.id}')"
         class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${active?'bg-cyan-500/20 border border-cyan-400/30 text-cyan-300':'text-white/60 hover:text-white hover:bg-white/5'}">
@@ -240,7 +278,7 @@ body.light-mode footer{color:#94a3b8;border-color:#e2e8f0}
   }
 
   function renderDashboard(){
-    const cards = SYSTEMS.filter(s=>s.id!=='dashboard').map((s,i)=>{
+    const cards = VISIBLE_SYSTEMS.filter(s=>s.id!=='dashboard').map((s,i)=>{
       const hasImg = !!IMG[s.id];
       const imgHtml = hasImg
         ? `<img src="${IMG[s.id]}" class="w-full h-full object-cover object-center" alt="${s.label}" style="display:block">`
@@ -295,6 +333,7 @@ body.light-mode footer{color:#94a3b8;border-color:#e2e8f0}
   }
 
   window.navigate=(id)=>{
+    if(!ALLOWED_IDS.includes(id)) id='dashboard';
     const s=SYSTEMS.find(x=>x.id===id);
     if(s&&s.url&&id!=='dashboard'){openSystem(s.url,s.label);return;}
     current=id;
@@ -309,7 +348,7 @@ body.light-mode footer{color:#94a3b8;border-color:#e2e8f0}
     renderSidebar();renderTabs();closeSidebar();window.scrollTo(0,0);
   };
 
-  window.openCard=(id)=>{const s=SYSTEMS.find(x=>x.id===id);if(s.url)openSystem(s.url,s.label);else navigate(id);};
+  window.openCard=(id)=>{if(!ALLOWED_IDS.includes(id))return;const s=SYSTEMS.find(x=>x.id===id);if(s.url)openSystem(s.url,s.label);else navigate(id);};
   window.openSystem=(url,title)=>{if(!url)return;document.getElementById('systemTitle').textContent=title||'';document.getElementById('systemFrame').src=url;document.getElementById('systemView').classList.remove('hidden');};
   window.closeSystem=()=>{document.getElementById('systemView').classList.add('hidden');document.getElementById('systemFrame').src='about:blank';};
   window.goBack=()=>navigate('dashboard');
@@ -337,12 +376,8 @@ body.light-mode footer{color:#94a3b8;border-color:#e2e8f0}
   // ── Populate user name & position from login session ──────────
   (function loadUserInfo(){
     try{
-      var raw = sessionStorage.getItem('cmms_user') || localStorage.getItem('cmms_user');
-      if(!raw) raw = sessionStorage.getItem('cmms_session') || localStorage.getItem('cmms_session');
-      if(!raw) return;
-      var u = JSON.parse(raw);
-      var name = u.name || u.fullName || u.userName || u.username || '';
-      var role = u.role || u.position || u.jobTitle || u.type || '';
+      var name = CURRENT_USER.name || CURRENT_USER.fullName || CURRENT_USER.userName || CURRENT_USER.username || '';
+      var role = ROLE_LABELS[CURRENT_USER.role] || CURRENT_USER.role || CURRENT_USER.position || CURRENT_USER.jobTitle || CURRENT_USER.type || '';
       if(name) document.getElementById('sidebarUserName').textContent = name;
       if(role) document.getElementById('sidebarUserRole').textContent = role;
     }catch(e){}
