@@ -237,14 +237,14 @@ body.light-mode footer{color:#94a3b8;border-color:#e2e8f0}
   const ROLE_ACCESS = {
     eng:       SYSTEMS.map(s=>s.id),         // full access
     admin:     SYSTEMS.map(s=>s.id),         // full access
-    tech:      ['dashboard', ...PPM_IDS],
+    tech:      ['dashboard', ...PPM_IDS, 'material-request'],
     warehouse: ['dashboard', ...WAREHOUSE_IDS],
   };
 
   const ROLE_TABS = {
     eng:       ['dashboard','main-building','warehouse','material-request'],
     admin:     ['dashboard','main-building','warehouse','material-request'],
-    tech:      ['dashboard','main-building','chillers','exhaust-fans'],
+    tech:      ['dashboard','main-building','chillers','exhaust-fans','material-request'],
     warehouse: ['dashboard','warehouse','material-request','engineer-approval'],
   };
 
