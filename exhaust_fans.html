@@ -2909,41 +2909,12 @@ function _drawSavedSigOnCanvas(canvas, cb){
 }
 
 function sigUseSaved(){
-  var sess=(function(){try{return JSON.parse(sessionStorage.getItem('cmms_user')||localStorage.getItem('cmms_user')||'null');}catch(e){return null;}})();
-  var sigName = sess && sess.name ? sess.name : '';
-  var sigRole = sess && sess.role ? sess.role : '';
-  var tabMap = {tech:0, eng:1, admin:2, 'head':2, 'assist':2, 'store':2};
-  var targetTab = tabMap[sigRole] !== undefined ? tabMap[sigRole] : (_sigTab || 0);
   if(!_sigCanvas){ alert('Signature pad not ready'); return; }
-  var ctx = _sigCanvas.getContext('2d');
-  var w = _sigCanvas.width || 400, h = _sigCanvas.height || 160;
-  ctx.clearRect(0, 0, w, h);
-  if(sigName){
-    var fontSize = Math.min(52, Math.floor(w / (sigName.length * 0.6 + 2)));
-    fontSize = Math.max(28, Math.min(fontSize, 56));
-    ctx.save();
-    ctx.font = 'italic bold ' + fontSize + 'px "Brush Script MT", "Dancing Script", cursive, Georgia, serif';
-    ctx.fillStyle = '#0a2e5c';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.translate(w/2, h/2 + 8);
-    ctx.rotate(-0.04);
-    ctx.fillText(sigName, 0, 0);
-    var metrics = ctx.measureText(sigName);
-    var lineW = Math.min(metrics.width * 1.15, w * 0.9);
-    ctx.beginPath();
-    ctx.moveTo(-lineW/2, fontSize*0.45);
-    ctx.lineTo(lineW/2, fontSize*0.45);
-    ctx.strokeStyle = '#0a2e5c';
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-    ctx.restore();
-    // Jump to correct sig slot and save
-    if(typeof _sigSwitchTab === 'function') _sigSwitchTab(targetTab);
-    if(typeof sigSave === 'function') sigSave();
-  } else {
-    alert('Please sign manually — no name found in login session.');
-  }
+  _drawSavedSigOnCanvas(_sigCanvas, function(){
+    _sigHasDrawn=true;
+    var hint=document.getElementById('sig-empty-hint');
+    if(hint) hint.style.display='none';
+  });
 }
 
 function sigClear(){
@@ -3102,6 +3073,44 @@ function showSuccessWithSigs(rec,signedCount){
 })();
 </script>
 
+
+
+<script>
+// ── Role-based restriction: Technicians cannot Print / Save PDF / Delete records ──
+(function(){
+  function _getRole(){
+    try{
+      var raw = sessionStorage.getItem('cmms_user') || localStorage.getItem('cmms_user');
+      if(!raw) return null;
+      var u = JSON.parse(raw);
+      return u && u.role;
+    }catch(e){ return null; }
+  }
+  if(_getRole() !== 'tech') return; // only Technicians are restricted
+
+  var BLOCKED = /^(printZoneRec|printReport|printR|shareAsPDF|shareAsPDFZone|shareZoneRec|shareReport|deleteRec)\s*\(/;
+
+  function applyRestrictions(container){
+    if(!container) return;
+    var btns = container.querySelectorAll('button[onclick]');
+    for(var i=0;i<btns.length;i++){
+      var oc = btns[i].getAttribute('onclick') || '';
+      if(BLOCKED.test(oc)) btns[i].style.display = 'none';
+    }
+  }
+
+  function init(){
+    var list = document.getElementById('rec-list');
+    if(!list) return;
+    applyRestrictions(list);
+    var mo = new MutationObserver(function(){ applyRestrictions(list); });
+    mo.observe(list, { childList: true, subtree: true });
+  }
+
+  if(document.getElementById('rec-list')) init();
+  else document.addEventListener('DOMContentLoaded', init);
+})();
+</script>
 
 </body>
 </html>
