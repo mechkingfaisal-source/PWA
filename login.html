@@ -166,6 +166,7 @@
       animation: cardIn .8s .3s both;
     }
     .role-toggle.cols-4 { grid-template-columns: repeat(4, 1fr); column-gap: 4px; }
+    .role-toggle.cols-3 { grid-template-columns: repeat(3, 1fr); column-gap: 4px; }
     .role-btn {
       display: flex; align-items: center; justify-content: center; gap: 7px;
       padding: 10px; border: none; background: transparent;
@@ -175,11 +176,11 @@
       cursor: pointer; transition: all .25s;
       white-space: nowrap;
     }
-    .role-toggle.cols-4 .role-btn {
+    .role-toggle.cols-4 .role-btn, .role-toggle.cols-3 .role-btn {
       flex-direction: column; gap: 3px;
       font-size: 10.5px; padding: 8px 2px;
     }
-    .role-toggle.cols-4 .role-icon { font-size: 15px; }
+    .role-toggle.cols-4 .role-icon, .role-toggle.cols-3 .role-icon { font-size: 15px; }
     @media (max-width: 420px) {
       .role-toggle.cols-4 { grid-template-columns: repeat(2, 1fr); row-gap: 6px; }
     }
@@ -443,7 +444,7 @@
 
     <!-- Role Toggle -->
     <div class="role-label">Select Access Role</div>
-    <div class="role-toggle cols-4">
+    <div class="role-toggle cols-3">
       <button class="role-btn active" id="btnTech" onclick="setRole('tech')">
         <span class="role-icon">🔧</span> Technician
       </button>
@@ -452,9 +453,6 @@
       </button>
       <button class="role-btn" id="btnWarehouse" onclick="setRole('warehouse')">
         <span class="role-icon">📦</span> Warehouse
-      </button>
-      <button class="role-btn" id="btnAdmin" onclick="setRole('admin')">
-        <span class="role-icon">🛡️</span> Admin
       </button>
     </div>
 
@@ -564,7 +562,6 @@
     document.getElementById('btnTech').classList.toggle('active', r === 'tech');
     document.getElementById('btnEng').classList.toggle('active', r === 'eng');
     document.getElementById('btnWarehouse').classList.toggle('active', r === 'warehouse');
-    document.getElementById('btnAdmin').classList.toggle('active', r === 'admin');
   }
 
   // ── Validation ──
@@ -603,9 +600,9 @@
     '1107068478': { fileNumber: '122322', name: 'YAZID ELROBEAY', role: 'eng' },
     '2337227264': { fileNumber: '123068', name: 'AHMED MOASAD', role: 'eng' },
     '1106947334': { fileNumber: '128262', name: 'MOHAMED ELTHAQAFY', role: 'eng' },
-    '1111': { fileNumber: '1111', name: 'AHMED ELGHAMDY', role: 'admin' },
+    '1111': { fileNumber: '1111', name: 'AHMED ELGHAMDY', role: 'eng' },
     '146884': { fileNumber: '146884', name: 'FAYZAN ALI', role: 'tech' },
-    '2222': { fileNumber: '2222', name: 'RAKAN ELSHEBY', role: 'admin' },
+    '2222': { fileNumber: '2222', name: 'RAKAN ELSHEBY', role: 'eng' },
     '142364': { fileNumber: '142364', name: 'AZHAR', role: 'tech' },
     '2358072466': { fileNumber: '123310', name: 'AHMED GWEELY', role: 'eng' },
     '2550104583': { fileNumber: '123174', name: 'MD ABDULRAHMAN', role: 'tech', appRole: 'warehouse' },
