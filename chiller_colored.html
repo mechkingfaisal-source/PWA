@@ -311,6 +311,52 @@ body{background:#f0f2f5;color:#0d1b2a}
 .tab{flex:1;padding:8px 4px 9px;font-size:10px;text-align:center;cursor:pointer;color:rgba(255,255,255,.4);border-bottom:2px solid transparent;transition:all .2s}
 .tab-icon{font-size:14px;display:block;margin-bottom:1px}
 .tab.active{color:#fff;border-bottom-color:#00b4d8;font-weight:500}
+
+/* ============ DASHBOARD (Home) ============ */
+.dash-hero{position:relative;background:linear-gradient(135deg,#0a1628 0%,#0a2e5c 50%,#1a5fae 100%);border-radius:14px;padding:18px 16px 16px;margin-bottom:14px;overflow:hidden;display:flex;align-items:center;justify-content:space-between}
+.dash-hero-bg{position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2300b4d8' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='20'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");opacity:.6;pointer-events:none}
+.dash-hero-content{position:relative;z-index:1}
+.dash-date{font-size:9px;font-weight:700;color:rgba(0,180,216,.8);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px}
+.dash-greeting{font-size:15px;font-weight:900;color:#fff;letter-spacing:.02em;margin-bottom:2px}
+.dash-sub{font-size:10px;color:rgba(255,255,255,.55);font-weight:500}
+.dash-hero-icon{position:relative;z-index:1;width:56px;height:56px;background:rgba(0,180,216,.12);border:1px solid rgba(0,180,216,.3);border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;animation:dashPulse 3s ease-in-out infinite}
+@keyframes dashPulse{0%,100%{box-shadow:0 0 0 0 rgba(0,180,216,.3)}50%{box-shadow:0 0 0 8px rgba(0,180,216,0)}}
+.dash-section-title{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:900;color:#0a2e5c;text-transform:uppercase;letter-spacing:.07em;margin:0 0 8px;padding-left:2px}
+.kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.kpi-card{position:relative;background:#fff;border-radius:12px;padding:11px 10px 9px;border:1px solid #e2e8f0;box-shadow:0 2px 8px rgba(10,46,92,.07);overflow:hidden;cursor:default}
+.kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0;background:linear-gradient(90deg,#0a2e5c,#1a5fae)}
+.kpi-active::before{background:linear-gradient(90deg,#16a34a,#22C55E)}
+.kpi-oos::before{background:linear-gradient(90deg,#b91c1c,#EF4444)}
+.kpi-icon-wrap{width:28px;height:28px;border-radius:8px;background:#f0f6ff;display:flex;align-items:center;justify-content:center;margin-bottom:7px;color:#0a2e5c}
+.kpi-active .kpi-icon-wrap{background:#e8f8f0;color:#16a34a}
+.kpi-oos .kpi-icon-wrap{background:#fef2f2;color:#dc2626}
+.kpi-num{font-size:22px;font-weight:900;color:#0a2e5c;line-height:1;margin-bottom:3px;font-family:Arial,monospace}
+.kpi-green{color:#16a34a}
+.kpi-red{color:#dc2626}
+.kpi-lbl{font-size:9px;font-weight:700;color:#8a94a6;text-transform:uppercase;letter-spacing:.04em;line-height:1.2;margin-bottom:6px}
+.kpi-bar{height:3px;background:#f0f2f5;border-radius:2px;overflow:hidden}
+.kpi-bar-fill{height:100%;border-radius:2px;transition:width .6s cubic-bezier(.34,1.56,.64,1);background:linear-gradient(90deg,#0a2e5c,#1a5fae)}
+.kpi-bar-green{background:linear-gradient(90deg,#16a34a,#22C55E)}
+.kpi-bar-red{background:linear-gradient(90deg,#b91c1c,#EF4444)}
+.dash-zone-list{display:flex;flex-direction:column;gap:6px;margin-bottom:6px}
+.dz-card{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:9px 12px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:all .15s;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.dz-card:active{transform:scale(.98);box-shadow:0 3px 10px rgba(10,46,92,.12)}
+.dz-left{display:flex;align-items:center;gap:9px}
+.dz-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;box-shadow:0 0 0 3px rgba(0,0,0,.08)}
+.dz-green{background:#22C55E}
+.dz-yellow{background:#F59E0B}
+.dz-orange{background:#F97316}
+.dz-red{background:#EF4444}
+.dz-info{min-width:0}
+.dz-name{font-size:12px;font-weight:900;color:#0a2e5c;font-family:Arial,sans-serif}
+.dz-meta{font-size:10px;color:#8a94a6;margin-top:1px}
+.dz-right{display:flex;flex-direction:column;align-items:flex-end;gap:3px}
+.dz-badge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px}
+.dz-badge.dz-green{background:#e8f8f0;color:#16a34a;box-shadow:none}
+.dz-badge.dz-yellow{background:#fffbeb;color:#b45309;box-shadow:none}
+.dz-badge.dz-orange{background:#fff7ed;color:#c2410c;box-shadow:none}
+.dz-badge.dz-red{background:#fef2f2;color:#dc2626;box-shadow:none}
+.dz-pct{font-size:10px;font-weight:800;color:#0a2e5c}
 .pages{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
 .pg{display:none;padding:12px}
 .pg.active{display:block}
@@ -427,7 +473,7 @@ body{background:#f0f2f5;color:#0d1b2a}
 .num-in{width:68px;border:.5px solid #e2e8f0;border-radius:6px;padding:4px 7px;font-size:12px;text-align:center;background:#fff;color:#0d1b2a;font-family:monospace}
 .num-in:focus{outline:none;border-color:#0a2e5c}
 .unit-lbl{font-size:9px;color:#8a94a6;font-family:monospace;margin-right:2px}
-.nota{width:100%;border:.5px solid #e2e8f0;border-radius:7px;padding:8px 10px;font-size:12px;min-height:60px;resize:vertical;font-family:system-ui,sans-serif;background:#fff;color:#0d1b2a}
+.nota{width:100%;border:.5px solid #e2e8f0;border-radius:7px;padding:8px 10px;font-size:12px;min-height:60px;resize:vertical;font-family:system-ui,sans-serif;background:#fff;color:#3b82f6}
 .nota:focus{outline:none;border-color:#0a2e5c}
 .sbtn{width:100%;background:#0a2e5c;color:#fff;border:none;border-radius:9px;padding:12px;font-size:14px;font-weight:600;cursor:pointer;margin-top:11px;font-family:system-ui,sans-serif}
 .sbtn:active{opacity:.85}
@@ -655,6 +701,16 @@ body, body.app-mode {
   border-top-color: #7dd3fc !important;
 }
 
+/* Dashboard dark mode */
+.dash-hero{background:linear-gradient(135deg,#060d1a 0%,#0a1628 50%,#0d2040 100%) !important}
+.kpi-card{background:#1e2530 !important;border-color:#2d3748 !important}
+.kpi-icon-wrap{background:#0d1b2e !important;color:#93c5fd !important}
+.kpi-active .kpi-icon-wrap{background:#0d2018 !important;color:#4ade80 !important}
+.kpi-oos .kpi-icon-wrap{background:#1a0d0d !important;color:#f87171 !important}
+.kpi-num{color:#e2e8f0 !important}
+.dz-card{background:#1e2530 !important;border-color:#2d3748 !important}
+.dz-name{color:#e2e8f0 !important}
+
 /* Search box */
 .search-box {
   background: #1e2530 !important;
@@ -745,7 +801,7 @@ body, body.app-mode {
 }
 
 /* Content / page backgrounds */
-.pages, .content, #pg-units, #pg-zones, #pg-zonesheet, #pg-records {
+.pages, .content, #pg-units, #pg-dashboard, #pg-zones, #pg-zonesheet, #pg-records {
   background: #0d1117 !important;
 }
 
@@ -900,6 +956,12 @@ body.home {
 /* Inline style overrides for dynamic content */
 /* These target common inline-style patterns generated by JS */
 
+/* Fullscreen toggle button */
+.fs-btn{width:30px;height:30px;border-radius:8px;background:rgba(255,255,255,.15);border:none;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;color:#fff;margin-left:6px;-webkit-tap-highlight-color:transparent}
+.fs-btn:active{background:rgba(255,255,255,.3)}
+.fs-btn svg{width:16px;height:16px}
+:fullscreen .app,:-webkit-full-screen .app,:-ms-fullscreen .app{max-width:100%}
+:fullscreen body,:-webkit-full-screen body,:-ms-fullscreen body{background:#fff}
 </style>
   <link rel="apple-touch-icon" href="icon-192.png">
 </head>
@@ -925,11 +987,17 @@ body.home {
       <p id="hdrsub">King Faisal Medical Complex</p>
     </div>
     <div class="offl-badge" id="cloud-badge"><div class="offl-dot"></div>Connecting...</div>
+    <button class="fs-btn" id="fsBtn" onclick="toggleFS()" title="Fullscreen" aria-label="Toggle fullscreen">
+      <svg id="fsIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/>
+      </svg>
+    </button>
   </div>
 
   <!-- Tabs -->
   <div class="tabs">
-    <div class="tab active" data-tab="units" onclick="go('units')"><span class="tab-icon">🏢</span>Units</div>
+    <div class="tab active" data-tab="dashboard" onclick="go('dashboard')"><span class="tab-icon">🏠</span>Home</div>
+    <div class="tab" data-tab="units" onclick="go('units')"><span class="tab-icon">🏢</span>Units</div>
     <div class="tab" data-tab="form" onclick="go('form')"><span class="tab-icon">📋</span>Form</div>
     <div class="tab" data-tab="zonesheet" onclick="go('zonesheet')"><span class="tab-icon">📊</span>Zone Sheet</div>
     <div class="tab" data-tab="records" onclick="go('records')"><span class="tab-icon">📁</span>Records</div>
@@ -939,8 +1007,57 @@ body.home {
   <!-- Pages -->
   <div class="pages">
 
+    <!-- DASHBOARD -->
+    <div class="pg active" id="pg-dashboard">
+      <div class="dash-hero">
+        <div class="dash-hero-bg"></div>
+        <div class="dash-hero-content">
+          <div class="dash-date" id="dash-date-label"></div>
+          <div class="dash-greeting">Chiller PPM</div>
+          <div class="dash-sub">King Faisal Medical Complex</div>
+        </div>
+        <div class="dash-hero-icon">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#00B4D8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="2" x2="12" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/>
+            <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/><line x1="19.07" y1="4.93" x2="4.93" y2="19.07"/>
+            <circle cx="12" cy="12" r="3" fill="rgba(0,180,216,.3)" stroke="#00B4D8"/>
+          </svg>
+        </div>
+      </div>
+      <div class="dash-section-title">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#00B4D8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+        Equipment Statistics
+      </div>
+      <div class="kpi-grid">
+        <div class="kpi-card kpi-total">
+          <div class="kpi-icon-wrap"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></div>
+          <div class="kpi-num" id="kpi-total-units">0</div>
+          <div class="kpi-lbl">Total Units</div>
+          <div class="kpi-bar"><div class="kpi-bar-fill" style="width:100%"></div></div>
+        </div>
+        <div class="kpi-card kpi-active">
+          <div class="kpi-icon-wrap"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+          <div class="kpi-num kpi-green" id="kpi-active-units">0</div>
+          <div class="kpi-lbl">Active Units</div>
+          <div class="kpi-bar"><div class="kpi-bar-fill kpi-bar-green" id="kpi-active-bar" style="width:0%"></div></div>
+        </div>
+        <div class="kpi-card kpi-oos">
+          <div class="kpi-icon-wrap"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg></div>
+          <div class="kpi-num kpi-red" id="kpi-oos-units">0</div>
+          <div class="kpi-lbl">Out of Service</div>
+          <div class="kpi-bar"><div class="kpi-bar-fill kpi-bar-red" id="kpi-oos-bar" style="width:0%"></div></div>
+        </div>
+      </div>
+      <div class="dash-section-title">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#00B4D8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
+        Zone Status Overview
+      </div>
+      <div id="dash-zone-overview" class="dash-zone-list"></div>
+      <div style="height:16px"></div>
+    </div>
+
     <!-- UNITS -->
-    <div class="pg active" id="pg-units">
+    <div class="pg" id="pg-units">
       <div class="search-box">
         <span style="font-size:14px;color:#8a94a6">🔍</span>
         <input id="search-input" placeholder="Search unit..." oninput="filterUnits(this.value)">
@@ -2281,6 +2398,7 @@ function go(tab){
   document.querySelectorAll('.tab').forEach((t)=>t.classList.toggle('active',t.getAttribute('data-tab')===tab));
   document.querySelectorAll('.pg').forEach(p=>p.classList.remove('active'));
   document.getElementById('pg-'+tab).classList.add('active');
+  if(tab==='dashboard')renderDashboard();
   if(tab==='units'){renderZoneIcons();renderUnitsList();}
   if(tab==='records')renderRecs();
   if(tab==='qr'){renderQRZoneTabs();renderQR();}
@@ -2312,10 +2430,56 @@ if('serviceWorker' in navigator){
 // =====================================================
 // INIT
 // =====================================================
+function renderDashboard(){
+  var now=new Date();
+  var days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  var months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var lbl=document.getElementById('dash-date-label');
+  if(lbl)lbl.textContent=days[now.getDay()]+', '+months[now.getMonth()]+' '+now.getDate()+' '+now.getFullYear();
+
+  var totalUnits=Object.keys(ALL_UNITS).length;
+  var activeMap={};
+  records.filter(function(r){return !r._zoneRecord;}).forEach(function(r){activeMap[r.unitId]=true;});
+  var activeCount=Object.keys(activeMap).length;
+  var oosCount=Math.max(0,totalUnits-activeCount);
+
+  function setKpi(id,val){var el=document.getElementById(id);if(el)el.textContent=val;}
+  function setBar(id,pct){var el=document.getElementById(id);if(el)el.style.width=Math.min(100,pct)+'%';}
+
+  setKpi('kpi-total-units',totalUnits);
+  setKpi('kpi-active-units',activeCount);
+  setBar('kpi-active-bar',totalUnits?Math.round(activeCount/totalUnits*100):0);
+  setKpi('kpi-oos-units',oosCount);
+  setBar('kpi-oos-bar',totalUnits?Math.round(oosCount/totalUnits*100):0);
+
+  var zov=document.getElementById('dash-zone-overview');
+  if(zov){
+    zov.innerHTML=ZONES.map(function(z){
+      var total=z.units.length;
+      var done=z.units.filter(function(u){var uid=u.id||u;return records.some(function(r){return r.unitId===uid&&!r._zoneRecord;});}).length;
+      var pct=total?Math.round(done/total*100):0;
+      var statusClass=pct===100?'dz-green':pct>=50?'dz-yellow':pct>0?'dz-orange':'dz-red';
+      var statusLabel=pct===100?'Complete':pct>=50?'In Progress':pct>0?'Started':'Pending';
+      return '<div class="dz-card" onclick="go(\'units\');setTimeout(function(){selectZone(\''+z.id+'\')},150)">'
+        +'<div class="dz-left">'
+        +'<div class="dz-dot '+statusClass+'"></div>'
+        +'<div class="dz-info">'
+        +'<div class="dz-name">'+z.name+'</div>'
+        +'<div class="dz-meta">'+total+' units · '+done+' completed</div>'
+        +'</div></div>'
+        +'<div class="dz-right">'
+        +'<div class="dz-badge '+statusClass+'">'+statusLabel+'</div>'
+        +'<div class="dz-pct">'+pct+'%</div>'
+        +'</div></div>';
+    }).join('');
+  }
+}
+
 function _safeInit(){
   try{
     renderUnits();
     renderRecs();
+    renderDashboard();
     startRealtimeListener(); // Firebase real-time sync
   }
   catch(e){ console.error('Init error:',e); }
@@ -2663,5 +2827,31 @@ document.addEventListener('keydown',function(e){if(document.getElementById('phot
 })();
 </script>
 
+<script>
+// Fullscreen toggle
+function isFS(){return !!(document.fullscreenElement||document.webkitFullscreenElement||document.msFullscreenElement);}
+function toggleFS(){
+  var el=document.documentElement;
+  if(!isFS()){
+    var req=el.requestFullscreen||el.webkitRequestFullscreen||el.msRequestFullscreen;
+    if(req){req.call(el);}
+  } else {
+    var ex=document.exitFullscreen||document.webkitExitFullscreen||document.msExitFullscreen;
+    if(ex){ex.call(document);}
+  }
+}
+function updateFSIcon(){
+  var ic=document.getElementById('fsIcon');
+  if(!ic)return;
+  if(isFS()){
+    ic.innerHTML='<path d="M8 3v3a2 2 0 0 1-2 2H3"/><path d="M21 8h-3a2 2 0 0 1-2-2V3"/><path d="M3 16h3a2 2 0 0 1 2 2v3"/><path d="M16 21v-3a2 2 0 0 1 2-2h3"/>';
+  } else {
+    ic.innerHTML='<path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/>';
+  }
+}
+document.addEventListener('fullscreenchange',updateFSIcon);
+document.addEventListener('webkitfullscreenchange',updateFSIcon);
+document.addEventListener('msfullscreenchange',updateFSIcon);
+</script>
 </body>
 </html>
