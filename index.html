@@ -4,6 +4,8 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
 <title>CMMS — King Faisal Medical Complex</title>
+<link rel="manifest" href="/PWA/manifest.json">
+<meta name="theme-color" content="#0a565c">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <script src="https://cdn.tailwindcss.com"></script>
@@ -425,6 +427,20 @@ body.light-mode .app-icon-label{color:#1e293b;text-shadow:none}
     const mode = localStorage.getItem('cmms_theme') || 'dark';
     try{ this.contentWindow.postMessage({cmmsTheme: mode}, '*'); }catch(e){}
   });
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('/PWA/sw.js', { scope: '/PWA/' })
+      .then(function(reg) {
+        console.log('[SW] registered, scope:', reg.scope);
+      })
+      .catch(function(err) {
+        console.error('[SW] registration failed:', err);
+      });
+  });
+}
 </script>
 
 <!-- 
