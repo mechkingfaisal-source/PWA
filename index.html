@@ -71,9 +71,75 @@ body.light-mode footer{color:#94a3b8;border-color:#e2e8f0}
 body.light-mode .app-icon-badge{box-shadow:0 2px 5px rgba(0,0,0,.25),0 0 0 2px #f0f4f8}
 .app-icon-label{font-size:11px;font-weight:600;text-align:center;color:rgba(255,255,255,.88);line-height:1.15;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-shadow:0 1px 2px rgba(0,0,0,.55)}
 body.light-mode .app-icon-label{color:#1e293b;text-shadow:none}
+
+/* ── Focus accessibility ── */
+.app-icon:focus-visible .app-icon-tile,
+button:focus-visible,
+a:focus-visible{outline:2px solid #22d3ee;outline-offset:2px}
+
+/* ── Splash screen ── */
+#splash{position:fixed;inset:0;z-index:999;background:#030712;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;transition:opacity .4s ease,visibility .4s ease}
+#splash.fade-out{opacity:0;visibility:hidden;pointer-events:none}
+#splash .splash-logo{width:72px;height:72px;border-radius:20px;background:linear-gradient(160deg,#22d3ee,#0e7490);display:flex;align-items:center;justify-content:center;font-size:32px;box-shadow:0 10px 30px rgba(34,211,238,.35);animation:splashPulse 1.6s ease-in-out infinite}
+@keyframes splashPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+#splash .splash-title{color:#fff;font-weight:800;font-size:15px;letter-spacing:.02em;text-align:center}
+#splash .splash-sub{color:rgba(255,255,255,.45);font-size:12px;text-align:center}
+#splash .splash-spinner{width:28px;height:28px;border-radius:50%;border:3px solid rgba(255,255,255,.12);border-top-color:#22d3ee;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+body.light-mode #splash{background:#f0f4f8}
+body.light-mode #splash .splash-sub{color:#64748b}
+body.light-mode #splash .splash-title{color:#0f172a}
+
+/* ── Skeleton loaders ── */
+.skel{position:relative;overflow:hidden;background:rgba(255,255,255,.06);border-radius:10px}
+.skel::after{content:'';position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,rgba(255,255,255,.10),transparent);animation:skelShine 1.4s infinite}
+@keyframes skelShine{100%{transform:translateX(100%)}}
+body.light-mode .skel{background:rgba(15,23,42,.06)}
+body.light-mode .skel::after{background:linear-gradient(90deg,transparent,rgba(15,23,42,.08),transparent)}
+
+/* ── Toast notifications ── */
+#toastHost{position:fixed;bottom:calc(1rem + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);z-index:400;display:flex;flex-direction:column;gap:8px;align-items:center;width:max-content;max-width:92vw}
+.toast{display:flex;align-items:center;gap:8px;padding:10px 16px;border-radius:12px;font-size:13px;font-weight:600;color:#fff;box-shadow:0 8px 24px rgba(0,0,0,.35);animation:toastIn .25s ease both;white-space:nowrap}
+.toast.success{background:#0e7490;border:1px solid rgba(34,211,238,.4)}
+.toast.error{background:#b91c1c;border:1px solid rgba(248,113,113,.4)}
+.toast.info{background:#1e293b;border:1px solid rgba(255,255,255,.15)}
+.toast.out{animation:toastOut .25s ease both}
+@keyframes toastIn{from{opacity:0;transform:translateY(10px) scale(.95)}to{opacity:1;transform:none}}
+@keyframes toastOut{to{opacity:0;transform:translateY(6px) scale(.95)}}
+
+/* ── Connection status dot ── */
+#connDot{width:8px;height:8px;border-radius:50%;background:#f59e0b;box-shadow:0 0 0 3px rgba(245,158,11,.18);transition:background .25s,box-shadow .25s}
+#connDot.online{background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.18)}
+#connDot.offline{background:#ef4444;box-shadow:0 0 0 3px rgba(239,68,68,.18)}
+
+/* ── Version badge ── */
+.version-tag{font-size:10px;font-weight:700;color:rgba(255,255,255,.3);letter-spacing:.04em}
+body.light-mode .version-tag{color:#94a3b8}
+
+/* ── Breadcrumb ── */
+.crumb{display:flex;align-items:center;gap:6px;font-size:12px;color:rgba(255,255,255,.4);margin-bottom:10px}
+.crumb button{color:rgba(255,255,255,.4);background:none;border:none;padding:0;cursor:pointer;font-size:12px}
+.crumb button:hover{color:#22d3ee}
+.crumb .crumb-sep{opacity:.4}
+.crumb .crumb-current{color:#22d3ee;font-weight:600}
+body.light-mode .crumb,body.light-mode .crumb button{color:#64748b}
+body.light-mode .crumb .crumb-current{color:#0e7490}
 </style>
 </head>
 <body>
+
+<!-- Splash screen -->
+<div id="splash">
+  <div class="splash-logo">⚙️</div>
+  <div>
+    <p class="splash-title">CMMS — King Faisal Medical Complex</p>
+    <p class="splash-sub">AL MAJAL AL ARABI GROUP</p>
+  </div>
+  <div class="splash-spinner"></div>
+</div>
+
+<!-- Toast host -->
+<div id="toastHost"></div>
 
 <div id="app" class="min-h-screen flex safe-top">
 
@@ -101,6 +167,9 @@ body.light-mode .app-icon-label{color:#1e293b;text-shadow:none}
         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
         <span>Logout</span>
       </button>
+      <div class="flex items-center justify-center pt-2">
+        <span class="version-tag">CMMS v2.5.0</span>
+      </div>
     </div>
   </aside>
 
@@ -117,6 +186,11 @@ body.light-mode .app-icon-label{color:#1e293b;text-shadow:none}
         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
       </button>
       <div class="flex-1 text-sm text-white/50 hidden sm:block truncate">King Faisal Medical Complex — AL MAJAL AL ARABI GROUP</div>
+      <!-- Connection status -->
+      <div class="flex items-center gap-1.5 px-2" title="Connection status">
+        <span id="connDot"></span>
+        <span id="connLabel" class="text-[11px] text-white/40 hidden sm:inline">Connecting…</span>
+      </div>
       <!-- Theme toggle -->
       <button id="themeBtn" onclick="toggleTheme()" title="Toggle light/dark mode" class="relative p-2 rounded-lg hover:bg-white/10 transition-colors">
         <svg id="iconSun" class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
@@ -141,7 +215,16 @@ body.light-mode .app-icon-label{color:#1e293b;text-shadow:none}
         <p class="font-semibold text-sm">Pending Material Requests</p>
         <button onclick="markAllRead()" class="text-xs text-cyan-400 hover:text-cyan-300">Mark all read</button>
       </div>
-      <div id="notifList" class="max-h-80 overflow-y-auto divide-y divide-white/5 text-sm"></div>
+      <div id="notifList" class="max-h-80 overflow-y-auto divide-y divide-white/5 text-sm">
+        <div class="p-3 space-y-2">
+          <div class="skel h-3 w-3/4"></div>
+          <div class="skel h-3 w-1/2"></div>
+        </div>
+        <div class="p-3 space-y-2">
+          <div class="skel h-3 w-2/3"></div>
+          <div class="skel h-3 w-1/3"></div>
+        </div>
+      </div>
     </div>
 
     <main id="page" class="flex-1 overflow-auto p-4 lg:p-6 route-enter" style="padding-bottom:calc(5rem + env(safe-area-inset-bottom))"></main>
@@ -188,10 +271,45 @@ body.light-mode .app-icon-label{color:#1e293b;text-shadow:none}
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
   window._notifs = [];
+
+  // ── Connection status ──────────────────────────────
+  function setConn(state){
+    const dot=document.getElementById('connDot');
+    const label=document.getElementById('connLabel');
+    if(!dot) return;
+    dot.classList.remove('online','offline');
+    if(state==='online'){dot.classList.add('online');if(label)label.textContent='Online';}
+    else if(state==='offline'){dot.classList.add('offline');if(label)label.textContent='Offline';}
+    else{if(label)label.textContent='Connecting…';}
+  }
+  window.addEventListener('online',()=>setConn('online'));
+  window.addEventListener('offline',()=>setConn('offline'));
+  setConn(navigator.onLine===false?'offline':'connecting');
+
   function renderBadge(n){const d=document.getElementById('notifDot');if(n>0){d.textContent=n>99?'99+':n;d.classList.remove('hidden')}else d.classList.add('hidden')}
   function renderList(){const el=document.getElementById('notifList');if(!window._notifs.length){el.innerHTML='<div class="p-6 text-center text-white/40 text-sm">No pending requests</div>';return}el.innerHTML=window._notifs.map(r=>`<div class="p-3 hover:bg-white/5"><div class="flex justify-between gap-2"><p class="font-medium text-white truncate">${r.material||r.title||'Material Request'}</p><span class="text-[10px] text-yellow-300 bg-yellow-500/10 border border-yellow-400/30 rounded px-1.5 py-0.5">Pending</span></div><p class="text-xs text-white/50 mt-1">${r.requestedBy||''} · Qty ${r.quantity??'-'}</p></div>`).join('')}
-  try{const q=query(collection(db,'material_requests'),where('status','==','pending'));onSnapshot(q,snap=>{window._notifs=snap.docs.map(d=>({id:d.id,...d.data()}));renderBadge(window._notifs.length);renderList()},()=>{})}catch(e){console.warn(e)}
-  window.markAllRead=async()=>{try{const snap=await getDocs(query(collection(db,'material_requests'),where('status','==','pending')));await Promise.all(snap.docs.map(d=>updateDoc(doc(db,'material_requests',d.id),{status:'read'})))}catch(e){}};
+  try{
+    const q=query(collection(db,'material_requests'),where('status','==','pending'));
+    onSnapshot(q,
+      snap=>{window._notifs=snap.docs.map(d=>({id:d.id,...d.data()}));renderBadge(window._notifs.length);renderList();setConn('online');},
+      ()=>{setConn('offline');}
+    );
+  }catch(e){console.warn(e);setConn('offline');}
+
+  window.markAllRead=async()=>{
+    const btn = document.activeElement && document.activeElement.tagName==='BUTTON' ? document.activeElement : null;
+    const prevText = btn ? btn.textContent : null;
+    if(btn){btn.disabled=true;btn.textContent='Updating…';}
+    try{
+      const snap=await getDocs(query(collection(db,'material_requests'),where('status','==','pending')));
+      await Promise.all(snap.docs.map(d=>updateDoc(doc(db,'material_requests',d.id),{status:'read'})));
+      window.showToast && window.showToast('All requests marked as read','success');
+    }catch(e){
+      window.showToast && window.showToast('Failed to update requests','error');
+    }finally{
+      if(btn){btn.disabled=false;btn.textContent=prevText||'Mark all read';}
+    }
+  };
 </script>
 
 <script>
@@ -275,6 +393,21 @@ body.light-mode .app-icon-label{color:#1e293b;text-shadow:none}
   const TABS = (ROLE_TABS[CURRENT_USER.role] || ['dashboard']).filter(id => ALLOWED_IDS.includes(id));
   let current = 'dashboard';
 
+  // ── Toast helper ───────────────────────────────────
+  window.showToast = function(message, type){
+    type = type || 'info';
+    const host = document.getElementById('toastHost');
+    if(!host) return;
+    const el = document.createElement('div');
+    el.className = 'toast ' + type;
+    el.textContent = message;
+    host.appendChild(el);
+    setTimeout(()=>{
+      el.classList.add('out');
+      setTimeout(()=>el.remove(), 250);
+    }, 2600);
+  };
+
   function renderSidebar(){
     document.getElementById('sideNav').innerHTML = VISIBLE_SYSTEMS.map(s=>{
       const active = s.id===current;
@@ -303,7 +436,7 @@ body.light-mode .app-icon-label{color:#1e293b;text-shadow:none}
       const imgHtml = hasImg
         ? `<img src="${IMG[s.id]}" class="app-icon-img" alt="${s.label}">`
         : `<div class="app-icon-fallback">${s.icon}</div>`;
-      return `<button onclick="openCard('${s.id}')" class="app-icon" style="animation:fadeUp .3s ease ${i*0.04}s both" title="${s.label}">
+      return `<button onclick="openCard('${s.id}')" class="app-icon" style="animation:fadeUp .3s ease ${i*0.04}s both" title="${s.label}" aria-label="Open ${s.label}">
         <span class="app-icon-tile">
           ${imgHtml}
           <span class="app-icon-gloss"></span>
@@ -330,6 +463,11 @@ body.light-mode .app-icon-label{color:#1e293b;text-shadow:none}
     const hasImg=!!IMG[s.id];
     const imgHtml=hasImg?`<img src="${IMG[s.id]}" class="w-full h-full object-cover" alt="${s.label}">`:s.icon;
     return `<div class="max-w-3xl mx-auto">
+      <div class="crumb">
+        <button onclick="navigate('dashboard')">Dashboard</button>
+        <span class="crumb-sep">/</span>
+        <span class="crumb-current">${s.label}</span>
+      </div>
       <div class="flex items-center gap-3 mb-5">
         <div class="h-12 w-12 rounded-xl overflow-hidden border border-cyan-400/20 flex items-center justify-center bg-cyan-500/10 text-cyan-300">${imgHtml}</div>
         <div><h2 class="text-xl font-semibold">${s.label}</h2><p class="text-sm text-white/50">${s.sub}</p></div>
@@ -381,10 +519,23 @@ body.light-mode .app-icon-label{color:#1e293b;text-shadow:none}
       localStorage.removeItem('cmms_iqama');
       localStorage.removeItem('cmms_fileno');
     }catch(e){}
-    window.location.replace('login.html');
+    if(window.showToast) window.showToast('Signed out successfully','success');
+    setTimeout(()=>window.location.replace('login.html'), 250);
   };
 
   renderSidebar();renderTabs();navigate('dashboard');
+
+  // ── Hide splash screen once first paint is ready ──────────
+  (function hideSplash(){
+    const splash = document.getElementById('splash');
+    if(!splash) return;
+    requestAnimationFrame(()=>{
+      setTimeout(()=>{
+        splash.classList.add('fade-out');
+        setTimeout(()=>splash.remove(), 450);
+      }, 350);
+    });
+  })();
 
   // ── Populate user name & position from login session ──────────
   (function loadUserInfo(){
