@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-title" content="HVAC Maintenance">
 <meta name="description" content="AL MAJAL — HVAC Preventive Maintenance System — King Faisal Medical Complex">
 <title>HVAC Maintenance — King Faisal</title>
-<link rel="manifest" href="manifest.json">
+<link rel="manifest" href="/PWA/manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script>
@@ -470,7 +470,7 @@ body{background:#f0f2f5;color:#0d1b2a}
 .num-in{width:68px;border:.5px solid #e2e8f0;border-radius:6px;padding:4px 7px;font-size:12px;text-align:center;background:#fff;color:#0d1b2a;font-family:monospace}
 .num-in:focus{outline:none;border-color:#0a2e5c}
 .unit-lbl{font-size:9px;color:#8a94a6;font-family:monospace;margin-right:2px}
-.nota{width:100%;border:.5px solid #e2e8f0;border-radius:7px;padding:8px 10px;font-size:12px;min-height:60px;resize:vertical;font-family:system-ui,sans-serif;background:#fff;color:#3b82f6}
+.nota{width:100%;border:.5px solid #b5d4f4;border-radius:7px;padding:8px 10px;font-size:12px;min-height:60px;resize:vertical;font-family:system-ui,sans-serif;background:#eaf4ff;color:#3b82f6}
 .nota:focus{outline:none;border-color:#0a2e5c}
 .sbtn{width:100%;background:#0a2e5c;color:#fff;border:none;border-radius:9px;padding:12px;font-size:14px;font-weight:600;cursor:pointer;margin-top:11px;font-family:system-ui,sans-serif}
 .sbtn:active{opacity:.85}
@@ -2119,7 +2119,7 @@ document.getElementById('install-btn').addEventListener('click',async()=>{
 
 // Service Worker
 if('serviceWorker' in navigator){
- navigator.serviceWorker.register('sw.js').catch(()=>{});
+ navigator.serviceWorker.register('/PWA/sw.js', { scope: '/PWA/' }).catch(()=>{});
 }
 
 // =====================================================
