@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <meta name="theme-color" content="#0a2e5c">
+<link rel="manifest" href="/PWA/manifest.json">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="EX Fans PPM">
 <title>EX Fans PPM &mdash; King Faisal Medical Complex</title>
@@ -212,8 +213,8 @@ body.app-mode{overflow:hidden;background:#f0f2f5}
 .tb:active{transform:scale(.93)}
 .tb.ty{background:#e8f8f0;border-color:#a3d9be;color:#1a7a4a;font-weight:700}
 .tb.tn{background:#fef0f0;border-color:#f5bfc0;color:#c0392b;font-weight:700}
-.nota{width:100%;border:.5px solid #e2e8f0;border-radius:9px;padding:9px 11px;font-size:12px;
-  min-height:64px;resize:vertical;font-family:system-ui,sans-serif;background:#fff;color:#3b82f6;outline:none}
+.nota{width:100%;border:.5px solid #b5d4f4;border-radius:9px;padding:9px 11px;font-size:12px;
+  min-height:64px;resize:vertical;font-family:system-ui,sans-serif;background:#eaf4ff;color:#3b82f6;outline:none}
 .nota:focus{border-color:#0a2e5c}
 .sbtn{width:100%;color:#fff;border:none;border-radius:11px;padding:13px;font-size:14px;font-weight:700;cursor:pointer;margin-top:12px}
 .sbtn:active{opacity:.85}
@@ -3316,6 +3317,29 @@ function updateFSIcon(){
 document.addEventListener('fullscreenchange',updateFSIcon);
 document.addEventListener('webkitfullscreenchange',updateFSIcon);
 document.addEventListener('msfullscreenchange',updateFSIcon);
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('/PWA/sw.js', { scope: '/PWA/' })
+      .then(function(reg) {
+        console.log('[SW] registered, scope:', reg.scope);
+      })
+      .catch(function(err) {
+        console.error('[SW] registration failed:', err);
+      });
+  });
+}
+</script>
+
+<script>
+window.addEventListener('message', function(e){
+  if(e.data && e.data.cmmsTheme){
+    document.body.classList.toggle('light-mode', e.data.cmmsTheme === 'light');
+  }
+});
+(function(){ var t=localStorage.getItem('cmms_theme'); if(t==='light') document.body.classList.add('light-mode'); })();
 </script>
 </body>
 </html>
