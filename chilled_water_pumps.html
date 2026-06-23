@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <meta name="theme-color" content="#0a2e5c">
+<link rel="manifest" href="/PWA/manifest.json">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="CH.W. Pumps PPM">
@@ -221,7 +222,7 @@ body{background:#f0f2f5;color:#0d1b2a}
 .num-in{width:68px;border:.5px solid #e2e8f0;border-radius:6px;padding:4px 7px;font-size:12px;text-align:center;background:#fff;color:#0d1b2a;font-family:monospace}
 .num-in:focus{outline:none;border-color:#0a2e5c}
 .unit-lbl{font-size:9px;color:#8a94a6;font-family:monospace;margin-right:2px}
-.nota{width:100%;border:.5px solid #e2e8f0;border-radius:7px;padding:8px 10px;font-size:12px;min-height:60px;resize:vertical;font-family:system-ui,sans-serif;background:#fff;color:#3b82f6}
+.nota{width:100%;border:.5px solid #b5d4f4;border-radius:7px;padding:8px 10px;font-size:12px;min-height:60px;resize:vertical;font-family:system-ui,sans-serif;background:#eaf4ff;color:#3b82f6}
 .nota:focus{outline:none;border-color:#0a2e5c}
 .sbtn{width:100%;background:#0a2e5c;color:#fff;border:none;border-radius:9px;padding:12px;font-size:14px;font-weight:600;cursor:pointer;margin-top:11px;font-family:system-ui,sans-serif}
 .sbtn:active{opacity:.85}
@@ -1930,6 +1931,29 @@ function updateFSIcon(){
 document.addEventListener('fullscreenchange',updateFSIcon);
 document.addEventListener('webkitfullscreenchange',updateFSIcon);
 document.addEventListener('msfullscreenchange',updateFSIcon);
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('/PWA/sw.js', { scope: '/PWA/' })
+      .then(function(reg) {
+        console.log('[SW] registered, scope:', reg.scope);
+      })
+      .catch(function(err) {
+        console.error('[SW] registration failed:', err);
+      });
+  });
+}
+</script>
+
+<script>
+window.addEventListener('message', function(e){
+  if(e.data && e.data.cmmsTheme){
+    document.body.classList.toggle('light-mode', e.data.cmmsTheme === 'light');
+  }
+});
+(function(){ var t=localStorage.getItem('cmms_theme'); if(t==='light') document.body.classList.add('light-mode'); })();
 </script>
 </body>
 </html>
