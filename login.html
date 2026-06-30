@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="theme-color" content="#0a2540" />
+  <meta name="theme-color" content="#0a2e5c" />
   <link rel="manifest" href="/PWA/manifest.json" />
   <title>CMMS — King Faisal Medical Complex</title>
   <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
@@ -752,7 +752,6 @@ if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() {
     navigator.serviceWorker.register('/PWA/sw.js', { scope: '/PWA/' })
       .then(function(reg) {
-        console.log('[SW] registered, scope:', reg.scope);
       })
       .catch(function(err) {
         console.error('[SW] registration failed:', err);
