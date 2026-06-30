@@ -6,8 +6,8 @@
   "dir": "ltr",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#0a435c",
-  "theme_color": "#0a565c",
+  "background_color": "#0a1628",
+  "theme_color": "#0a2e5c",
   "scope": "/PWA/",
   "start_url": "/PWA/",
   "icons": [
