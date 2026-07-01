@@ -93,6 +93,8 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#0d1b2e;min-height:100vh
 .req-card:hover{background:#162a45;border-color:#1e4d80}
 .req-card-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .mr-number{font-size:13px;font-weight:900;color:#4fc3f7;letter-spacing:.3px}
+.req-del-btn{margin-inline-start:auto;background:#3a0a0a;color:#ef5350;border:none;border-radius:8px;padding:5px 10px;cursor:pointer;font-size:14px;line-height:1;transition:background .15s}
+.req-del-btn:hover{background:#5a0f0f}
 .req-card-bottom{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .req-meta{font-size:11px;color:#5a7a9a;display:flex;align-items:center;gap:4px}
 .req-meta-dot{width:3px;height:3px;border-radius:50%;background:#2a4a6a;flex-shrink:0}
@@ -197,10 +199,6 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#0d1b2e;min-height:100vh
 .mat-opt-stock.ok{color:#66bb6a}
 .mat-opt-stock.low{color:#ffa726}
 .mat-opt-stock.out{color:#ef5350}
-.sig-wrap{border:2px dashed #1e3a5f;border-radius:10px;background:#080f1e;position:relative;overflow:hidden}
-.sig-canvas{display:block;width:100%;touch-action:none;cursor:crosshair}
-.sig-label{font-size:11px;color:#3a5a7a;padding:6px;text-align:center;font-weight:700}
-.sig-clear-btn{position:absolute;top:6px;right:8px;background:#3a0a0a;color:#ef5350;border:none;border-radius:6px;padding:3px 9px;cursor:pointer;font-size:11px;font-weight:700}
 .modal-footer{padding:16px 20px;border-top:1px solid #1e3a5f;display:flex;gap:10px;justify-content:flex-end}
 .btn-cancel{background:#122040;border:1px solid #1e3a5f;color:#7a9abf;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer}
 .btn-cancel:hover{background:#1e3a5f}
@@ -377,15 +375,6 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#0d1b2e;min-height:100vh
       <button class="add-item-btn" onclick="addItemRow()">＋ إضافة قطعة — Add Material</button>
     </div>
 
-    <!-- Signature -->
-    <div class="modal-section">
-      <div class="modal-section-title">توقيع الفني — Technician Signature *</div>
-      <div class="sig-wrap" id="nr-sig-wrap">
-        <div class="sig-label">وقّع هنا — Sign here</div>
-        <canvas class="sig-canvas" id="nr-sig-canvas" height="120"></canvas>
-        <button class="sig-clear-btn" onclick="clearSig()">مسح</button>
-      </div>
-    </div>
 
   </div>
   <div class="modal-footer">
@@ -549,6 +538,7 @@ function renderList() {
       '<div class="req-card-top">' +
         '<span class="mr-number">' + escHtml(r.reqNo || '—') + '</span>' +
         statusBadgeHtml(status) + ' ' + priorityBadgeHtml(priority) +
+        '<button class="req-del-btn" title="حذف الطلب — Delete" onclick="event.stopPropagation();deleteRequest(\'' + safeId + '\',\'' + escHtml(r.reqNo || '') + '\')">🗑</button>' +
       '</div>' +
       '<div style="font-size:14px;font-weight:700;color:#c8dff5">' + escHtml(title) + '</div>' +
       '<div class="req-card-bottom">' +
@@ -562,6 +552,18 @@ function renderList() {
     '</div>';
   }).join('');
 }
+
+function deleteRequest(id, reqNo) {
+  if (!id) return;
+  if (!confirm('حذف الطلب ' + (reqNo || '') + '؟\nDelete this request permanently?')) return;
+  db.collection(COL).doc(id).delete().then(function() {
+    showToast('🗑 تم حذف الطلب ' + (reqNo || ''));
+  }).catch(function(err) {
+    showToast('❌ خطأ: ' + err.message);
+  });
+}
+
+
 
 function statusBadgeHtml(status) {
   var map = {
@@ -638,14 +640,11 @@ function openNewRequest() {
   // Start with one empty item row
   document.getElementById('nr-items-body').innerHTML = '';
   addItemRow();
-  // Init signature pad
-  setTimeout(initSig, 100);
 }
 
 function closeNewRequest() {
   document.getElementById('newReqModal').classList.add('hidden');
   document.body.style.overflow = '';
-  clearSig();
 }
 
 function onModalOverlayClick(e) {
@@ -813,46 +812,7 @@ function updateStockBadge(rowId) {
   cell.innerHTML = '<span style="font-size:12px;font-weight:700;padding:2px 7px;border-radius:8px" class="' + cls + '">' + label + '</span>';
 }
 
-// ═══════════════ SIGNATURE ═══════════════
-var sigCtx = null, sigDrawing = false, sigLastX = 0, sigLastY = 0;
 
-function initSig() {
-  var canvas = document.getElementById('nr-sig-canvas');
-  if (!canvas) return;
-  var wrap = canvas.parentElement;
-  canvas.width = wrap.offsetWidth || 400;
-  sigCtx = canvas.getContext('2d');
-  sigCtx.strokeStyle = '#4fc3f7';
-  sigCtx.lineWidth   = 2.2;
-  sigCtx.lineCap     = 'round';
-
-  function pos(e) {
-    var r = canvas.getBoundingClientRect();
-    var sc = canvas.width / r.width;
-    var src = e.touches ? e.touches[0] : e;
-    return { x: (src.clientX - r.left) * sc, y: (src.clientY - r.top) * sc };
-  }
-  canvas.onmousedown  = function(e){ sigDrawing=true; var p=pos(e); sigLastX=p.x; sigLastY=p.y; };
-  canvas.onmousemove  = function(e){ if(!sigDrawing) return; var p=pos(e); sigCtx.beginPath(); sigCtx.moveTo(sigLastX,sigLastY); sigCtx.lineTo(p.x,p.y); sigCtx.stroke(); sigLastX=p.x; sigLastY=p.y; };
-  canvas.onmouseup    = function(){ sigDrawing=false; };
-  canvas.onmouseleave = function(){ sigDrawing=false; };
-  canvas.ontouchstart = function(e){ e.preventDefault(); sigDrawing=true; var p=pos(e); sigLastX=p.x; sigLastY=p.y; };
-  canvas.ontouchmove  = function(e){ e.preventDefault(); if(!sigDrawing) return; var p=pos(e); sigCtx.beginPath(); sigCtx.moveTo(sigLastX,sigLastY); sigCtx.lineTo(p.x,p.y); sigCtx.stroke(); sigLastX=p.x; sigLastY=p.y; };
-  canvas.ontouchend   = function(){ sigDrawing=false; };
-}
-
-function clearSig() {
-  var canvas = document.getElementById('nr-sig-canvas');
-  if (canvas && sigCtx) sigCtx.clearRect(0, 0, canvas.width, canvas.height);
-}
-
-function isSigEmpty() {
-  var canvas = document.getElementById('nr-sig-canvas');
-  if (!canvas || !sigCtx) return true;
-  var d = sigCtx.getImageData(0, 0, canvas.width, canvas.height).data;
-  for (var i = 3; i < d.length; i += 4) { if (d[i] > 10) return false; }
-  return true;
-}
 
 // ═══════════════ SUBMIT ═══════════════
 function submitNewRequest() {
@@ -886,9 +846,7 @@ function submitNewRequest() {
   });
 
   if (hasErr || !items.length) { showToast('⚠️ أضف قطعة واحدة على الأقل بكمية صحيحة'); return; }
-  if (isSigEmpty())            { showToast('⚠️ التوقيع مطلوب'); return; }
 
-  var techSig = document.getElementById('nr-sig-canvas').toDataURL('image/png');
   var reqNo   = genReqNo();
 
   var submitBtn = document.getElementById('nr-submit-btn');
@@ -905,7 +863,6 @@ function submitNewRequest() {
     workOrder: workOrder,
     reason:    reason,
     items:     items,
-    techSig:   techSig,
     date:      new Date().toISOString(),
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
   }).then(function() {
