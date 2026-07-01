@@ -1408,7 +1408,79 @@ function printZoneRec(rec,sigs){
     +'<tbody>'+rows+'</tbody></table>'
     +sigHtml
     +'<div class="footer"><span>HVAC Maintenance System — CH.W. Pumps PPM</span><span>'+new Date().toLocaleDateString('en-GB')+'</span></div>'
-    +'</body></html>';
+    +'
+<script>
+/* ─────────────────────────────────────────────────────────────
+   ROLE-GATED SIGNATURE PAD (tab flavour — sig-tab / switchSigTab)
+   Injected by CMMS role-gating patch.
+   Roles: tech→tab0, eng→tab1, head/manager/admin→tab2
+   ───────────────────────────────────────────────────────────── */
+(function(){
+  function getRole(){
+    try{
+      var r=sessionStorage.getItem('cmms_user')||localStorage.getItem('cmms_user');
+      if(!r) return null;
+      var u=JSON.parse(r);
+      return u && (u.role||'').toString().toLowerCase();
+    }catch(e){ return null; }
+  }
+  var ROLE_TAB={tech:0,technician:0,eng:1,engineer:1,'hvac_eng':1,head:2,'head_of_dept':2,manager:2,admin:2,supervisor:2};
+  function allowedTab(){ var r=getRole(); return (r && r in ROLE_TAB)?ROLE_TAB[r]:-1; }
+  function lbl(i){ return ['Technician','HVAC Engineer','Head of Dept.'][i]||''; }
+  function cur(){ try{ return (typeof _sigTabIdx!=='undefined')?_sigTabIdx:0; }catch(e){ return 0; } }
+
+  function updateUI(){
+    var t=allowedTab(), c=cur(), locked=(t<0)||(c!==t);
+    var tabs=document.querySelectorAll('#sig-modal .sig-tab');
+    for(var i=0;i<tabs.length;i++){
+      tabs[i].style.opacity=(t>=0 && i!==t)?'0.55':'';
+      tabs[i].title=(t>=0 && i!==t)?('Only '+lbl(i)+' can sign here'):'';
+    }
+    var status=document.getElementById('sig-status');
+    if(status){
+      status.innerHTML = locked
+        ? '🔒 Only <b>'+(t>=0?lbl(t):'authorized users')+'</b> can save a signature on this pad.'
+        : '✅ You may sign this pad as <b>'+lbl(t)+'</b>.';
+    }
+    var doneBtns=document.querySelectorAll('#sig-modal .sig-done');
+    for(var j=0;j<doneBtns.length;j++){ doneBtns[j].disabled=locked; doneBtns[j].style.opacity=locked?0.35:1; }
+    var canvas=document.getElementById('sig-canvas');
+    if(canvas){ canvas.style.pointerEvents=locked?'none':''; canvas.style.filter=locked?'grayscale(1) opacity(.7)':''; }
+  }
+
+  function wrap(fnName, before, after){
+    var orig=window[fnName]; if(typeof orig!=='function') return;
+    window[fnName]=function(){
+      if(before){ var stop=before.apply(this,arguments); if(stop===false) return; }
+      var out=orig.apply(this,arguments);
+      if(after) after.apply(this,arguments);
+      return out;
+    };
+  }
+
+  wrap('openSigModal', null, function(){
+    var t=allowedTab();
+    if(t>=0 && typeof window.switchSigTab==='function'){
+      setTimeout(function(){ try{ window.switchSigTab(t); }catch(e){} updateUI(); },80);
+    } else {
+      setTimeout(updateUI,80);
+    }
+  });
+  wrap('switchSigTab', null, function(){ updateUI(); });
+
+  wrap('saveSig', function(){
+    var t=allowedTab(), c=cur();
+    if(t<0){ alert('Your account role is not allowed to sign any pad.'); return false; }
+    if(c!==t){ alert('Only the '+lbl(t)+' can save a signature here.\nThis pad is for '+lbl(c)+'.'); return false; }
+  });
+  wrap('useMySignature', function(){
+    var t=allowedTab(), c=cur();
+    if(t<0 || c!==t){ alert('Only the '+lbl(t>=0?t:-1)+' can sign this pad.'); return false; }
+  });
+})();
+</script>
+
+</body></html>';
 
   var w=window.open('','_blank');if(!w){alert('Enable pop-ups to print');return;}
   w.document.write(html);w.document.close();setTimeout(function(){w.print();},500);
