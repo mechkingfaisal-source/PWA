@@ -2785,6 +2785,74 @@ function _sigNoMatchMessage(user){
   if(user&&user.name) return 'No saved signature on file for '+user.name+'. Please draw your signature below and tap "Save Signature".';
   return 'Please log in first so your saved signature can be found.';
 }
+var USER_POSITION_DIRECTORY={
+  '2370919900':{name:'AHMED DESHAN',position:'AC TECH'},
+  '2483858839':{name:'MOZAMIL HUSSAIN',position:'AC TECH'},
+  '2568667683':{name:'SAIF ALI',position:'AC TECH'},
+  '2567115932':{name:'MOHAMED SAJED',position:'AC TECH'},
+  '2589322854':{name:'MOHAMED AMJAD',position:'AC TECH'},
+  '2607550189':{name:'NEHALUDIN ANSARY',position:'AC TECH'},
+  '2594107985':{name:'ASGHAR MOHAMED',position:'AC TECH'},
+  '2609421884':{name:'MOHAMED SARFARAZ',position:'AC TECH'},
+  '2609887019':{name:'MD IRSHAD',position:'AC TECH'},
+  '88452':{name:'MD SHAHWNAZ',position:'AC TECH'},
+  '2620093951':{name:'MOHAMED KAMEL',position:'AC TECH'},
+  'I0342021':{name:'MD GULFAM',position:'AC TECH'},
+  '1042337152':{name:'SAMER ELHARTHY',position:'AC TECH'},
+  '1072886821':{name:'ADEL ELTWERQEY',position:'AC TECH'},
+  '1106529801':{name:'MOAZ ELHARTHY',position:'AC TECH'},
+  '1079028823':{name:'YOUSSEF ELSHERBY',position:'AC TECH'},
+  '1103470173':{name:'ABDELAZIZ ELSHERREF',position:'AC TECH'},
+  '123496':{name:'SAJED RAJA',position:'AC TECH'},
+  '2582650780':{name:'IRSHAD EMAM',position:'PUMP TECH'},
+  '2582659807':{name:'MANOJ KUMAR',position:'PUMP TECH'},
+  '2608310591':{name:'MOHAMED GONEID',position:'PUMP TECH'},
+  '2626409904':{name:'MOHAMED DANISH',position:'PUMP TECH'},
+  '1126466844':{name:'MOHAMED ELASMARY',position:'PUMP TECH'},
+  '1109182723':{name:'HAZEM ELBAQAMY',position:'PUMP TECH'},
+  '1107068478':{name:'YAZID ELROBEAY',position:'ENGINEER'},
+  '2337227264':{name:'AHMED MOASAD',position:'ENGINEER'},
+  '1106947334':{name:'MOHAMED ELTHAQAFY',position:'ENGINEER'},
+  '1111':{name:'AHMED ELGHAMDY',position:'HEAD OF DEPT'},
+  '146884':{name:'FAYZAN ALI',position:'AC TECH'},
+  '2222':{name:'RAKAN ELSHEBY',position:'ASSIST MANAGER'},
+  '142364':{name:'AZHAR',position:'AC TECH'},
+  '2358072466':{name:'AHMED GWEELY',position:'ENGINEER'},
+  '2550104583':{name:'MD ABDULRAHMAN',position:'STORE KEEPER'}
+};
+var _SIG_ROLE_INDEX={tech:0,engineer:1,head:2};
+var _SIG_ROLE_LABELS=['Technician','HVAC Engineer','Head of Dept.'];
+function _sigRoleKeyForPosition(position){
+  var p=(position||'').toString().toUpperCase();
+  if(p.indexOf('HEAD')>=0) return 'head';
+  if(p.indexOf('ENGINEER')>=0) return 'engineer';
+  if(p.indexOf('TECH')>=0) return 'tech';
+  return null;
+}
+function _sigMyRoleInfo(user){
+  if(!user) return null;
+  var entry=null;
+  if(user.iqama!=null) entry=USER_POSITION_DIRECTORY[String(user.iqama).trim()];
+  if(!entry){
+    var nm=_sigNormalizeName(user.name);
+    if(nm){
+      for(var k in USER_POSITION_DIRECTORY){
+        if(_sigNormalizeName(USER_POSITION_DIRECTORY[k].name)===nm){ entry=USER_POSITION_DIRECTORY[k]; break; }
+      }
+    }
+  }
+  if(!entry) return null;
+  var roleKey=_sigRoleKeyForPosition(entry.position);
+  return {position:entry.position, roleKey:roleKey, roleIndex:(roleKey?_SIG_ROLE_INDEX[roleKey]:null)};
+}
+function _sigNoPadMessage(info){
+  if(info&&info.position) return 'Your position ('+info.position+') does not have a signature pad on this form.';
+  return 'Please log in first so your role can be verified.';
+}
+function _sigWrongPadMessage(info){
+  var label=(info&&info.roleIndex!=null)?_SIG_ROLE_LABELS[info.roleIndex]:'your';
+  return 'You are logged in as '+(info&&info.position?info.position:'')+'. You can only sign the '+label+' pad.';
+}
 function _drawSavedSigOnCanvas(canvas, cb){
   var user=_sigCurrentUser();
   var entry=_sigLookupForUser(user);
@@ -2808,6 +2876,10 @@ function _drawSavedSigOnCanvas(canvas, cb){
 function useMySignature(){
   var canvas=document.getElementById('sig-canvas');
   if(!canvas){alert('Signature pad not ready');return;}
+  var user=_sigCurrentUser();
+  var info=_sigMyRoleInfo(user);
+  if(!info||info.roleIndex==null){ alert(_sigNoPadMessage(info)); return; }
+  if(_sigTabIdx!==info.roleIndex){ switchSigTab(info.roleIndex); }
   _drawSavedSigOnCanvas(canvas, function(){
     if(typeof saveSig==='function'){ saveSig(); }
   });
@@ -2822,6 +2894,9 @@ function clearSig(){
 
 function saveSig(){
   if(!_sigCanEl)return;
+  var user=_sigCurrentUser();
+  var info=_sigMyRoleInfo(user);
+  if(info&&info.roleIndex!=null&&_sigTabIdx!==info.roleIndex){ alert(_sigWrongPadMessage(info)); return; }
   _sigData[_sigTabIdx]=_sigCanEl.toDataURL('image/png');
   if(_sigRec)_sigRec['_sig'+_sigTabIdx]=_sigData[_sigTabIdx];
   _sigUpdateStatus();
