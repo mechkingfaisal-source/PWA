@@ -1470,6 +1470,8 @@ function submitF(){
   const doneT=togs.filter(c=>fd[c.id]===true).length;
   const notDoneT=togs.filter(c=>fd[c.id]===false).length;
   const rec={unitId:selUnit.id,unit:{...selUnit},lvl:selLvl,tech:fd._tech,date:fd._date,data:{...fd},photos:fd.photos||[],doneT,notDoneT,ts:Date.now()};
+ var _autoSig=_sigAutoAttach();
+ if(_autoSig&&_autoSig.roleIndex!=null){ rec['_sig'+_autoSig.roleIndex]=_autoSig.sig; }
   // حفظ الصور محلياً وإزالتها من السجل الرئيسي (لتجنب حد Firestore 1MB)
   const photos=rec.photos||[];
   const recToSave={...rec, photos:[], _photoCount:photos.length, _source:'hvac-maintenance'};
@@ -2036,6 +2038,8 @@ function zsSaveAll(){
     zsData:    JSON.parse(JSON.stringify(zsData)),
     ts:        Date.now()
   };
+  var _autoSig=_sigAutoAttach();
+  if(_autoSig&&_autoSig.roleIndex!=null){ rec['_sig'+_autoSig.roleIndex]=_autoSig.sig; }
 
   if(typeof fbConnected!=='undefined'&&fbConnected&&db){
     db.collection(COL).add(rec).then(function(docRef){ rec._fbId=docRef.id; }).catch(function(){});
@@ -2384,13 +2388,15 @@ var _sigRec=null, _sigData={0:null,1:null,2:null}, _sigTab=0, _sigDrawing=false,
 function closeSigModal(){document.getElementById('sig-modal').style.display='none';}
 function openSigModal(rec){
   _sigRec=rec;
-  _sigData={0:null,1:null,2:null};
-  _sigTab=0;
+  _sigData={0:rec._sig0||null,1:rec._sig1||null,2:rec._sig2||null};
+  var _startIdx=0;
+  for(var _i=0;_i<3;_i++){ if(!_sigData[_i]){ _startIdx=_i; break; } }
+  _sigTab=_startIdx;
   _sigCanvasReady=false;
   document.getElementById('sig-modal').style.display='flex';
   setTimeout(function(){
     _initSigCanvas();
-    switchSigTab(0);
+    switchSigTab(_startIdx);
     _updateSigStatus();
   },50);
 }
@@ -2439,6 +2445,14 @@ function switchSigTab(n){
   var lbl=document.getElementById('sig-pad-lbl');
   if(lbl) lbl.textContent=labels[n];
   _clearCanvas();
+  if(_sigData[n]){
+    var c=document.getElementById('sig-canvas');
+    if(c){
+      var img=new Image();
+      img.onload=function(){ c.getContext('2d').drawImage(img,0,0,c.width,c.height); };
+      img.src=_sigData[n];
+    }
+  }
 }
 
 
@@ -2558,6 +2572,31 @@ function _sigWrongPadMessage(info){
   var label=(info&&info.roleIndex!=null)?_SIG_ROLE_LABELS[info.roleIndex]:'your';
   return 'You are logged in as '+(info&&info.position?info.position:'')+'. You can only sign the '+label+' pad.';
 }
+function _sigAutoAttach(){
+  var user=_sigCurrentUser();
+  var info=_sigMyRoleInfo(user);
+  if(!info||!info.roleKey) return null;
+  var entry=_sigLookupForUser(user);
+  if(!entry) return null;
+  return {roleKey:info.roleKey, roleIndex:info.roleIndex, sig:entry.sig};
+}
+function _sigPersistRecord(rec){
+  if(!rec) return;
+  try{
+    if(typeof records!=='undefined'){
+      localStorage.setItem('hvac_kfmc', JSON.stringify(records.slice(0,500)));
+    }
+  }catch(e){}
+  try{
+    if(rec._fbId && typeof fbConnected!=='undefined' && fbConnected && typeof db!=='undefined' && typeof COL!=='undefined'){
+      var patch={};
+      ['_sig0','_sig1','_sig2','_signatures','signatures'].forEach(function(k){
+        if(rec[k]!==undefined) patch[k]=rec[k];
+      });
+      db.collection(COL).doc(rec._fbId).set(patch,{merge:true}).catch(function(e){console.warn('Signature sync error',e);});
+    }
+  }catch(e){}
+}
 function _drawSavedSigOnCanvas(canvas, cb){
   var user=_sigCurrentUser();
   var entry=_sigLookupForUser(user);
@@ -2604,6 +2643,7 @@ function saveSig(){
   var c=document.getElementById('sig-canvas');
   if(!c) return;
   _sigData[_sigTab]=c.toDataURL();
+  if(_sigRec){ _sigRec['_sig'+_sigTab]=_sigData[_sigTab]; _sigPersistRecord(_sigRec); }
   _updateSigStatus();
   if(_sigTab<2){ switchSigTab(_sigTab+1); }
 }
