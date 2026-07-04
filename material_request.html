@@ -158,6 +158,17 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#0d1b2e;min-height:100vh
 .modal-body{padding:20px}
 .modal-section{margin-bottom:18px}
 .modal-section-title{font-size:11px;font-weight:900;color:#4fc3f7;text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid #1e3a5f}
+.vr-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 16px}
+.vr-grid.full{grid-template-columns:1fr}
+.vr-field{display:flex;flex-direction:column;gap:3px}
+.vr-label{font-size:10px;font-weight:800;color:#5a7a9a;text-transform:uppercase;letter-spacing:.5px}
+.vr-value{font-size:13.5px;color:#e0efff;font-weight:600;word-break:break-word}
+.vr-items-table{width:100%;border-collapse:collapse;font-size:13px}
+.vr-items-table th{text-align:left;color:#5a7a9a;font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;padding:6px 8px;border-bottom:1px solid #1e3a5f}
+.vr-items-table td{padding:8px;border-bottom:1px solid #16283f;color:#c8dff5}
+.vr-items-table tr:last-child td{border-bottom:none}
+.vr-note-box{background:#0f2237;border:1px solid #1e3a5f;border-radius:8px;padding:10px 12px;font-size:13px;color:#c8dff5;line-height:1.6;white-space:pre-wrap}
+.vr-status-block{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
 .form-row.full{grid-template-columns:1fr}
 .form-group{display:flex;flex-direction:column;gap:5px}
@@ -386,6 +397,22 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#0d1b2e;min-height:100vh
  </div>
 </div>
 
+<!-- ═══════ VIEW REQUEST DETAILS MODAL ═══════ -->
+<div class="modal-overlay hidden" id="viewReqModal" onclick="onViewModalOverlayClick(event)">
+ <div class="modal-box" onclick="event.stopPropagation()">
+  <div class="modal-header">
+    <span class="modal-title" id="vr-title">📋 تفاصيل الطلب — Request Details</span>
+    <button class="modal-close" onclick="closeViewRequest()">✕</button>
+  </div>
+  <div class="modal-body" id="vr-body">
+    <!-- populated dynamically by renderViewRequest() -->
+  </div>
+  <div class="modal-footer">
+    <button class="btn-cancel" onclick="closeViewRequest()">إغلاق — Close</button>
+  </div>
+ </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -398,9 +425,18 @@ const firebaseConfig = {
   messagingSenderId: "429823910983",
   appId: "1:429823910983:web:1836576203d10cbc9c3d62"
 };
-if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-const COL = 'material_requests';
+var db = null;
+var COL = 'material_requests';
+try {
+  if (typeof firebase !== 'undefined') {
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+  } else {
+    console.warn('Firebase SDK لم يتم تحميله — سيعمل الطلب محلياً فقط (بدون مزامنة سحابية)');
+  }
+} catch (e) {
+  console.warn('تعذر تهيئة Firebase:', e);
+}
 
 // ═══════════════ STATE ═══════════════
 var allRequests = [];
@@ -431,18 +467,121 @@ function applyUser(u) {
 // ═══════════════ NEW REQUEST ═══════════════
 // openNewRequest() defined below with modal logic
 
-// ═══════════════ OPEN EXISTING REQUEST ═══════════════
+// ═══════════════ VIEW REQUEST DETAILS ═══════════════
 function openRequest(docId) {
-  var url = 'material_request.html?id=' + encodeURIComponent(docId);
-  if (window.parent && window.parent !== window) {
-    window.parent.postMessage({ type: 'NAVIGATE', url: url }, '*');
-    return;
+  var r = allRequests.find(function(x){ return x._id === docId; });
+  if (!r) { showToast('⚠️ تعذر إيجاد بيانات الطلب'); return; }
+  renderViewRequest(r);
+  document.getElementById('viewReqModal').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeViewRequest() {
+  document.getElementById('viewReqModal').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+
+function onViewModalOverlayClick(e) {
+  if (e.target === document.getElementById('viewReqModal')) closeViewRequest();
+}
+
+function vrField(label, value) {
+  if (value === undefined || value === null || value === '') return '';
+  return '<div class="vr-field"><span class="vr-label">' + escHtml(label) + '</span>' +
+         '<span class="vr-value">' + escHtml(String(value)) + '</span></div>';
+}
+
+function vrFormatDate(r) {
+  var d = null;
+  if (r.createdAt) d = r.createdAt.toDate ? r.createdAt.toDate() : new Date(r.createdAt);
+  else if (r.date) d = new Date(r.date);
+  if (!d || isNaN(d.getTime())) return '—';
+  var pad = function(n){ return String(n).padStart(2,'0'); };
+  return d.getFullYear() + '/' + pad(d.getMonth()+1) + '/' + pad(d.getDate()) +
+         '  ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+}
+
+function renderViewRequest(r) {
+  var status   = r.status   || 'Pending';
+  var priority = r.priority || 'Normal';
+
+  document.getElementById('vr-title').textContent =
+    '📋 ' + (r.reqNo || 'Request') + ' — تفاصيل الطلب';
+
+  var html = '';
+
+  // Status row
+  html += '<div class="modal-section">' +
+    '<div class="vr-status-block">' + statusBadgeHtml(status) + priorityBadgeHtml(priority) +
+    '<span class="vr-value" style="margin-inline-start:auto">📅 ' + escHtml(vrFormatDate(r)) + '</span>' +
+    '</div></div>';
+
+  // Request info
+  var infoFields =
+    vrField('رقم الطلب — Request No', r.reqNo) +
+    vrField('اسم الفني — Technician', r.techName) +
+    vrField('رقم الهوية — ID / Iqama', r.techId) +
+    vrField('المبنى — Building', r.building) +
+    vrField('أمر العمل — Work Order', r.workOrder) +
+    vrField('الحالة — Status', status) +
+    vrField('الأولوية — Priority', priority);
+  if (infoFields) {
+    html += '<div class="modal-section"><div class="modal-section-title">بيانات الطلب — Request Info</div>' +
+      '<div class="vr-grid">' + infoFields + '</div></div>';
   }
-  window.location.href = url;
+
+  // Reason / notes
+  if (r.reason) {
+    html += '<div class="modal-section"><div class="modal-section-title">سبب الطلب — Reason</div>' +
+      '<div class="vr-note-box">' + escHtml(r.reason) + '</div></div>';
+  }
+
+  // Items table
+  var items = r.items || [];
+  var rows = items.map(function(it) {
+    return '<tr>' +
+      '<td>' + escHtml(it.matName || '—') + (it.matCode ? ' <span style="color:#5a7a9a;font-size:11px">(' + escHtml(it.matCode) + ')</span>' : '') + '</td>' +
+      '<td style="text-align:center">' + escHtml(it.qty != null ? String(it.qty) : '—') + '</td>' +
+      '<td style="text-align:center">' + escHtml(it.unit || 'pcs') + '</td>' +
+      '<td style="text-align:center">' + (it.inStock != null ? escHtml(String(it.inStock)) : '—') + '</td>' +
+    '</tr>';
+  }).join('');
+  html += '<div class="modal-section"><div class="modal-section-title">القطع المطلوبة — Requested Materials (' + items.length + ')</div>' +
+    '<table class="vr-items-table"><thead><tr>' +
+      '<th>المادة — Material</th><th style="text-align:center">الكمية</th>' +
+      '<th style="text-align:center">الوحدة</th><th style="text-align:center">الرصيد وقت الطلب</th>' +
+    '</tr></thead><tbody>' +
+    (rows || '<tr><td colspan="4" style="text-align:center;color:#5a7a9a">لا توجد قطع</td></tr>') +
+    '</tbody></table></div>';
+
+  // Approval / issuing workflow info (only shown if present, since these are added by other stages)
+  var wfFields =
+    vrField('اعتمد بواسطة — Approved By', r.approvedBy || r.engineerName) +
+    vrField('تاريخ الاعتماد — Approved At', r.approvedAt ? vrFormatDate({createdAt:r.approvedAt}) : '') +
+    vrField('صرف بواسطة — Issued By', r.issuedBy || r.warehouseUser) +
+    vrField('تاريخ الصرف — Issued At', r.issuedAt ? vrFormatDate({createdAt:r.issuedAt}) : '') +
+    vrField('سبب الرفض — Reject Reason', r.rejectReason);
+  if (wfFields) {
+    html += '<div class="modal-section"><div class="modal-section-title">سجل الاعتماد والصرف — Approval / Issuing</div>' +
+      '<div class="vr-grid">' + wfFields + '</div></div>';
+  }
+  if (r.engineerNote || r.warehouseNote) {
+    html += '<div class="modal-section"><div class="modal-section-title">ملاحظات — Notes</div>' +
+      '<div class="vr-note-box">' + escHtml(r.engineerNote || r.warehouseNote) + '</div></div>';
+  }
+
+  document.getElementById('vr-body').innerHTML = html;
 }
 
 // ═══════════════ LOAD DATA (live) ═══════════════
 function loadRequests() {
+  if (!db) {
+    document.getElementById('reqList').innerHTML =
+      '<div class="empty-wrap"><div class="empty-icon">⚠️</div>' +
+      '<div class="empty-text">لا يوجد اتصال بقاعدة البيانات السحابية</div>' +
+      '<div class="empty-sub">تحقق من الإنترنت ثم أعد تحميل الصفحة</div></div>';
+    return;
+  }
   db.collection(COL)
     .onSnapshot(function(snap) {
       allRequests = [];
@@ -556,6 +695,7 @@ function renderList() {
 function deleteRequest(id, reqNo) {
   if (!id) return;
   if (!confirm('حذف الطلب ' + (reqNo || '') + '؟\nDelete this request permanently?')) return;
+  if (!db) { showToast('❌ لا يوجد اتصال بقاعدة البيانات'); return; }
   db.collection(COL).doc(id).delete().then(function() {
     showToast('🗑 تم حذف الطلب ' + (reqNo || ''));
   }).catch(function(err) {
@@ -732,7 +872,7 @@ function filterMats(input, rowId) {
 
   // Position dropdown under input
   var rect = input.getBoundingClientRect();
-  dd.style.top  = (rect.bottom + window.scrollY + 2) + 'px';
+  dd.style.top  = (rect.bottom + 2) + 'px';
   dd.style.left = rect.left + 'px';
   dd.style.width = rect.width + 'px';
 
@@ -850,6 +990,9 @@ function submitNewRequest() {
   var reqNo   = genReqNo();
 
   var submitBtn = document.getElementById('nr-submit-btn');
+
+  if (!db) { showToast('❌ لا يوجد اتصال بقاعدة البيانات — تحقق من الإنترنت'); return; }
+
   submitBtn.disabled = true;
   submitBtn.textContent = '⏳ جاري الإرسال…';
 
