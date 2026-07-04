@@ -1742,6 +1742,12 @@ function submitF(){
     tech:fd._tech, date:fd._date, data:{...fd},
     photos:fd.photos||[], doneT, notDoneT, ts:Date.now()
   };
+  var _autoSig=_sigAutoAttach();
+  if(_autoSig){
+    var _fieldMap={tech:'technician',engineer:'engineer',head:'head'};
+    var _field=_fieldMap[_autoSig.roleKey];
+    if(_field){ rec.signatures={}; rec.signatures[_field]=_autoSig.sig; }
+  }
   const photos=rec.photos||[];
   const recToSave={...rec,photos:[],_photoCount:photos.length,_source:'exfan-ppm-v2'};
   if(fbConnected){
@@ -2305,6 +2311,12 @@ function zsSaveAll(){
     zsData:    JSON.parse(JSON.stringify(zsData)),
     ts:        Date.now()
   };
+  var _autoSig=_sigAutoAttach();
+  if(_autoSig){
+    var _fieldMap={tech:'technician',engineer:'engineer',head:'head'};
+    var _field=_fieldMap[_autoSig.roleKey];
+    if(_field){ rec.signatures={}; rec.signatures[_field]=_autoSig.sig; }
+  }
 
   if(typeof fbConnected!=='undefined'&&fbConnected&&db){
     db.collection(COL).add(rec).then(function(docRef){ rec._fbId=docRef.id; }).catch(function(){});
@@ -3078,9 +3090,9 @@ function sigPrintSigned(){
   if(!anySig){ alert('Please save at least one signature first'); return; }
   var sigs={technician:_signatures[0], engineer:_signatures[1], head:_signatures[2]};
   rec.signatures=sigs;
-  // Persist to local cache + Firestore mirror (best effort)
-  try{ if(typeof records!=='undefined'){ localStorage.setItem('hvac_kfmc',JSON.stringify(records.slice(0,500))); } }catch(e){}
+  // Persist to local cache + Firebase (real sync, not just a local mirror)
   try{ if(rec._fbId){ localStorage.setItem('sigs_'+rec._fbId,JSON.stringify(sigs)); } }catch(e){}
+  _sigPersistRecord(rec);
   document.getElementById('sig-modal-bg').style.display='none';
   setTimeout(function(){
     if(rec._zoneRecord||rec._fromZoneSheet||rec.zsData){ printZoneRec(rec,sigs); }
@@ -3220,6 +3232,31 @@ function _sigWrongPadMessage(info){
   var label=(info&&info.roleIndex!=null)?_SIG_ROLE_LABELS[info.roleIndex]:'your';
   return 'You are logged in as '+(info&&info.position?info.position:'')+'. You can only sign the '+label+' pad.';
 }
+function _sigAutoAttach(){
+  var user=_sigCurrentUser();
+  var info=_sigMyRoleInfo(user);
+  if(!info||!info.roleKey) return null;
+  var entry=_sigLookupForUser(user);
+  if(!entry) return null;
+  return {roleKey:info.roleKey, roleIndex:info.roleIndex, sig:entry.sig};
+}
+function _sigPersistRecord(rec){
+  if(!rec) return;
+  try{
+    if(typeof records!=='undefined'){
+      localStorage.setItem('hvac_kfmc', JSON.stringify(records.slice(0,500)));
+    }
+  }catch(e){}
+  try{
+    if(rec._fbId && typeof fbConnected!=='undefined' && fbConnected && typeof db!=='undefined' && typeof COL!=='undefined'){
+      var patch={};
+      ['_sig0','_sig1','_sig2','_signatures','signatures'].forEach(function(k){
+        if(rec[k]!==undefined) patch[k]=rec[k];
+      });
+      db.collection(COL).doc(rec._fbId).set(patch,{merge:true}).catch(function(e){console.warn('Signature sync error',e);});
+    }
+  }catch(e){}
+}
 function _drawSavedSigOnCanvas(canvas, cb){
   var user=_sigCurrentUser();
   var entry=_sigLookupForUser(user);
@@ -3271,6 +3308,7 @@ function sigSave(){
     var prev=document.getElementById('sig-prev-'+_sigStep);
     prev.className='sig-prev-item done-sig';
     prev.innerHTML='<img class="sig-prev-img" src="'+_signatures[_sigStep]+'" alt="sig"><span class="sig-prev-lbl" style="color:#1a7a4a">\u2713 '+SIG_LABELS[_sigStep]+'</span>';
+    _sigCommitPartial();
   }
   if(_sigStep<2){ sigGoStep(_sigStep+1); }
   else if(_sigEditExisting){ sigSaveExisting(); }
@@ -3284,10 +3322,19 @@ function sigSkip(){
   else { sigFinalize(); }
 }
 
+function _sigCommitPartial(){
+  var rec=_sigPendingRec; if(!rec) return;
+  rec.signatures={technician:_signatures[0], engineer:_signatures[1], head:_signatures[2]};
+  try{ if(rec._fbId) localStorage.setItem('sigs_'+rec._fbId,JSON.stringify(rec.signatures)); }catch(e){}
+  _sigPersistRecord(rec);
+}
+
 function sigSkipAll(){
   if(_sigEditExisting){
-    // Editing existing record: just close, don't wipe what was already signed
+    // Editing existing record: persist whatever was signed so far, don't wipe it
+    _sigCommitPartial();
     document.getElementById('sig-modal-bg').style.display='none';
+    if(typeof renderRecs==='function') renderRecs();
     return;
   }
   _signatures=[null,null,null]; sigFinalize();
@@ -3298,7 +3345,7 @@ function sigSaveExisting(){
   var rec=_sigPendingRec; if(!rec) return;
   rec.signatures={technician:_signatures[0], engineer:_signatures[1], head:_signatures[2]};
   try{ if(rec._fbId) localStorage.setItem('sigs_'+rec._fbId,JSON.stringify(rec.signatures)); }catch(e){}
-  try{ localStorage.setItem('hvac_kfmc',JSON.stringify(records.slice(0,500))); }catch(e){}
+  _sigPersistRecord(rec);
   document.getElementById('sig-modal-bg').style.display='none';
   if(typeof renderRecs==='function') renderRecs();
 }
@@ -3310,7 +3357,7 @@ function sigFinalize(){
   rec.signatures={technician:_signatures[0], engineer:_signatures[1], head:_signatures[2]};
   var signedCount=_signatures.filter(function(s){return s!==null;}).length;
   var photos=rec.photos||[];
-  var recCloud=Object.assign({},rec,{photos:[],signatures:null,_photoCount:photos.length,_source:'exfan-ppm-v2'});
+  var recCloud=Object.assign({},rec,{photos:[],_photoCount:photos.length,_source:'exfan-ppm-v2'});
   if(typeof fbConnected!=='undefined' && fbConnected && typeof db!=='undefined'){
     db.collection(COL).add(recCloud).then(function(docRef){
       if(photos.length){try{localStorage.setItem('photos_'+docRef.id,JSON.stringify(photos));}catch(e){}}
