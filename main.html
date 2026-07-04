@@ -1651,6 +1651,8 @@ function submitForm(){
   var rec={unitId:selUnit.id,unit:JSON.parse(JSON.stringify(selUnit)),lvl:selLvl,
            tech:fd._tech,date:fd._date,data:JSON.parse(JSON.stringify(fd)),
            doneT:dT,notDoneT:nT,ts:Date.now()};
+  var _autoSig=_sigAutoAttach();
+  if(_autoSig){ rec._signatures={}; rec._signatures[_autoSig.roleKey]=_autoSig.sig; }
   // Save to Firebase (cloud) — primary storage
   var recToSave=JSON.parse(JSON.stringify(rec));
   // Store photos separately to avoid Firestore 1MB limit per doc
@@ -1898,6 +1900,8 @@ function zsSaveAll(){
     zsData:    JSON.parse(JSON.stringify(zsData)),
     ts:        Date.now()
   };
+  var _autoSig=_sigAutoAttach();
+  if(_autoSig){ rec._signatures={}; rec._signatures[_autoSig.roleKey]=_autoSig.sig; }
 
   if(typeof fbConnected!=='undefined'&&fbConnected&&db){
     db.collection(COL).add(rec).then(function(docRef){ rec._fbId=docRef.id; }).catch(function(){});
@@ -2335,6 +2339,8 @@ function openSigModal(rec){
     active:'tech',
     signatures:JSON.parse(JSON.stringify(rec._signatures||{}))
   };
+  var _next=SIG_ROLES.find(function(role){return !sigState.signatures[role.key];});
+  sigState.active=_next?_next.key:'tech';
   var modal=document.getElementById('sig-modal');
   if(modal) modal.style.display='flex';
   setTimeout(function(){ sigResizeCanvas(); renderSigModal(); },30);
@@ -2500,6 +2506,31 @@ function _sigWrongPadMessage(info){
   var label=(info&&info.roleIndex!=null)?_SIG_ROLE_LABELS[info.roleIndex]:'your';
   return 'You are logged in as '+(info&&info.position?info.position:'')+'. You can only sign the '+label+' pad.';
 }
+function _sigAutoAttach(){
+  var user=_sigCurrentUser();
+  var info=_sigMyRoleInfo(user);
+  if(!info||!info.roleKey) return null;
+  var entry=_sigLookupForUser(user);
+  if(!entry) return null;
+  return {roleKey:info.roleKey, roleIndex:info.roleIndex, sig:entry.sig};
+}
+function _sigPersistRecord(rec){
+  if(!rec) return;
+  try{
+    if(typeof records!=='undefined'){
+      localStorage.setItem('hvac_kfmc', JSON.stringify(records.slice(0,500)));
+    }
+  }catch(e){}
+  try{
+    if(rec._fbId && typeof fbConnected!=='undefined' && fbConnected && typeof db!=='undefined' && typeof COL!=='undefined'){
+      var patch={};
+      ['_sig0','_sig1','_sig2','_signatures','signatures'].forEach(function(k){
+        if(rec[k]!==undefined) patch[k]=rec[k];
+      });
+      db.collection(COL).doc(rec._fbId).set(patch,{merge:true}).catch(function(e){console.warn('Signature sync error',e);});
+    }
+  }catch(e){}
+}
 function sigUseSaved(){
   if(!sigState){alert('Open a record first');return;}
   var user=_sigCurrentUser();
@@ -2532,6 +2563,7 @@ function sigSaveCurrent(){
   if(!sigPadDirty){alert('Please sign in the box first');return;}
   sigState.signatures[sigState.active]=sigPadCanvas.toDataURL('image/png');
   sigState.rec._signatures=JSON.parse(JSON.stringify(sigState.signatures));
+  _sigPersistRecord(sigState.rec);
   var next=SIG_ROLES.find(function(role){return !sigState.signatures[role.key];});
   if(next) sigState.active=next.key;
   renderSigModal();
