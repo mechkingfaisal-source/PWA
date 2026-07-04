@@ -143,6 +143,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#0d1b2e;min-height:100vh
 .sig-wrap{border:2px dashed var(--border);border-radius:10px;background:#060e1a;position:relative}
 .sig-wrap canvas{display:block;width:100%;touch-action:none;cursor:crosshair}
 .sig-lbl{font-size:11px;color:var(--sub);padding:6px;font-weight:700;text-align:center}
+.sig-auto-note{font-size:10.5px;color:#4caf50;text-align:center;padding:5px 6px 7px;font-weight:700}
 .sig-clear-btn{position:absolute;top:6px;right:8px;background:#3a0a0a;color:#ef5350;
   border:none;border-radius:6px;padding:3px 9px;cursor:pointer;font-size:11px;font-weight:700}
 .confirm-btn{width:100%;padding:13px;background:var(--blue2);color:#fff;border:none;
@@ -269,9 +270,18 @@ var firebaseConfig = {
   messagingSenderId: "429823910983",
   appId: "1:429823910983:web:1836576203d10cbc9c3d62"
 };
-if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-var db  = firebase.firestore();
+var db  = null;
 var COL = 'material_requests';
+try {
+  if (typeof firebase !== 'undefined') {
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+  } else {
+    console.warn('Firebase SDK لم يتم تحميله — تحقق من الإنترنت');
+  }
+} catch (e) {
+  console.warn('تعذر تهيئة Firebase:', e);
+}
 
 // ══════════════════════════════════════
 //  STATE
@@ -296,6 +306,7 @@ function applyUser(u) {
   var initials = (u.name||'E').split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2);
   document.getElementById('userAvatar').textContent    = initials;
   document.getElementById('userNameChip').textContent  = (u.role==='engineer'?'Eng. ':'')+u.name;
+  fetchEngSignature();
 }
 // Accept user data pushed from parent iframe
 window.addEventListener('message', function(e) {
@@ -320,6 +331,10 @@ function init() {
 //  FIRESTORE LISTENER
 // ══════════════════════════════════════
 function listenRequests() {
+  if (!db) {
+    showToast('❌ لا يوجد اتصال بقاعدة البيانات — تحقق من الإنترنت');
+    return;
+  }
   // No orderBy — avoids composite index error; sort client-side
   db.collection(COL).onSnapshot(function(snap) {
     allRequests = [];
@@ -718,6 +733,60 @@ function toggleDetail(id) {
 }
 
 // ══════════════════════════════════════
+//  ENGINEER SIGNATURE AUTO-FILL (by login / iqama)
+//  Stored centrally in Firestore so it works from any device,
+//  with a localStorage cache for speed / offline fallback.
+// ══════════════════════════════════════
+var ENG_SIG_KEY  = 'eng_signatures_v1';
+var SIG_COL      = 'engineer_signatures';
+var cachedEngSig = null;   // in-memory copy of the current engineer's cloud signature
+
+function loadEngSignaturesLocal() {
+  try { return JSON.parse(localStorage.getItem(ENG_SIG_KEY) || '{}'); } catch(e) { return {}; }
+}
+function setEngSignatureLocal(iqama, dataUrl) {
+  var store = loadEngSignaturesLocal();
+  store[iqama] = dataUrl;
+  try { localStorage.setItem(ENG_SIG_KEY, JSON.stringify(store)); } catch(e) {}
+}
+
+// Pulls the logged-in engineer's saved signature from the cloud once at startup
+function fetchEngSignature() {
+  if (!loggedUser || !loggedUser.iqama) return;
+  // Use local cache immediately (instant, works offline) while the cloud copy loads
+  cachedEngSig = loadEngSignaturesLocal()[loggedUser.iqama] || null;
+  if (!db) return;
+  db.collection(SIG_COL).doc(loggedUser.iqama).get().then(function(doc) {
+    if (doc.exists && doc.data().sig) {
+      cachedEngSig = doc.data().sig;
+      setEngSignatureLocal(loggedUser.iqama, cachedEngSig);
+    }
+  }).catch(function(err) {
+    console.warn('تعذر تحميل التوقيع من السحابة، سيتم استخدام النسخة المحلية إن وُجدت', err);
+  });
+}
+
+function getSavedEngSignature() {
+  if (!loggedUser || !loggedUser.iqama) return null;
+  return cachedEngSig || loadEngSignaturesLocal()[loggedUser.iqama] || null;
+}
+
+// Saves the signature both locally (instant) and to the cloud (so other devices see it)
+function saveEngSignature(dataUrl) {
+  if (!loggedUser || !loggedUser.iqama || !dataUrl) return;
+  cachedEngSig = dataUrl;
+  setEngSignatureLocal(loggedUser.iqama, dataUrl);
+  if (!db) return;
+  db.collection(SIG_COL).doc(loggedUser.iqama).set({
+    sig:       dataUrl,
+    name:      loggedUser.name || '',
+    updatedAt: new Date().toISOString()
+  }, { merge: true }).catch(function(err) {
+    console.warn('تعذر حفظ التوقيع في السحابة (تم حفظه محلياً فقط على هذا الجهاز)', err);
+  });
+}
+
+// ══════════════════════════════════════
 //  SIGNATURE PAD
 // ══════════════════════════════════════
 function initSig(id) {
@@ -747,11 +816,33 @@ function initSig(id) {
   canvas.addEventListener('touchend',   function(){ drawing=false; });
 
   sigCanvases[id] = canvas;
+
+  // Auto-fill with the engineer's previously saved signature (matched by login iqama)
+  var savedSig = getSavedEngSignature();
+  if (savedSig) {
+    var img = new Image();
+    img.onload = function() {
+      var cw = canvas.width, ch = canvas.height;
+      var scale = Math.min(cw / img.width, ch / img.height);
+      var dw = img.width * scale, dh = img.height * scale;
+      ctx.drawImage(img, (cw - dw) / 2, (ch - dh) / 2, dw, dh);
+    };
+    img.src = savedSig;
+    if (!wrap.querySelector('.sig-auto-note')) {
+      var note = document.createElement('div');
+      note.className = 'sig-auto-note';
+      note.textContent = '✍️ تم تعبئة توقيعك المحفوظ تلقائيًا — Auto-filled (press Clear to sign again)';
+      wrap.appendChild(note);
+    }
+  }
 }
 
 function clearSig(id) {
   var c = sigCanvases[id];
   if (c) c.getContext('2d').clearRect(0, 0, c.width, c.height);
+  var wrap = document.getElementById('sigWrap-' + id);
+  var note = wrap ? wrap.querySelector('.sig-auto-note') : null;
+  if (note) note.remove();
 }
 
 function isSigEmpty(id) {
@@ -800,6 +891,7 @@ function confirmDecision(id) {
   var engSigData = canvas ? canvas.toDataURL('image/png') : '';
 
   var confirmBtn = document.getElementById('confirmBtn-' + id);
+  if (!db) { showToast('❌ لا يوجد اتصال بقاعدة البيانات — تحقق من الإنترنت'); return; }
   if (confirmBtn) { confirmBtn.disabled = true; confirmBtn.textContent = '⏳ Saving…'; }
 
   db.collection(COL).doc(id).update({
@@ -815,6 +907,7 @@ function confirmDecision(id) {
               decision==='Rejected' ? '❌ رُفض الطلب' :
               '⚠️ اعتماد جزئي — الطلب أُرسل للمستودع';
     showToast(msg);
+    saveEngSignature(engSigData);
     delete decisions[id];
     delete sigCanvases[id];
     // onSnapshot auto-refreshes the list
