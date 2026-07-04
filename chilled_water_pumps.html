@@ -1259,6 +1259,8 @@ function submitF(){
   const doneT=togs.filter(c=>fd[c.id]===true).length;
   const notDoneT=togs.filter(c=>fd[c.id]===false).length;
   const rec={unitId:selUnit.id,unit:{...selUnit},lvl:selLvl,tech:fd._tech,date:fd._date,data:{...fd},photos:fd.photos||[],doneT,notDoneT,ts:Date.now()};
+ var _autoSig=_sigAutoAttach();
+ if(_autoSig&&_autoSig.roleIndex!=null){ rec['_sig'+_autoSig.roleIndex]=_autoSig.sig; }
   const photos=rec.photos||[];
   const recToSave={...rec,photos:[],_photoCount:photos.length,_source:'hvac-chw-maintenance'};
   if(fbConnected){
@@ -1574,10 +1576,13 @@ var _sigCtx=null,_sigDrawing=false;
 const SIG_LABELS=['TECHNICIAN','HVAC ENG.','HEAD OF DEPT.'];
 function closeSigModal(){document.getElementById('sig-modal').style.display='none';}
 function openSigModal(rec){
-  _sigRec=rec;_sigData={0:null,1:null,2:null};_sigTab=0;
+  _sigRec=rec;_sigData={0:rec._sig0||null,1:rec._sig1||null,2:rec._sig2||null};
+  var _startIdx=0;
+  for(var _i=0;_i<3;_i++){ if(!_sigData[_i]){ _startIdx=_i; break; } }
+  _sigTab=_startIdx;
   document.getElementById('sig-modal').style.display='flex';
-  document.querySelectorAll('.sig-tab').forEach((t,i)=>t.classList.toggle('active',i===0));
-  document.getElementById('sig-pad-lbl').textContent=SIG_LABELS[0];
+  document.querySelectorAll('.sig-tab').forEach((t,i)=>t.classList.toggle('active',i===_startIdx));
+  document.getElementById('sig-pad-lbl').textContent=SIG_LABELS[_startIdx];
   initSigCanvas();updateSigStatus();updateSigPrintBtn();
 }
 function switchSigTab(i){
@@ -1716,6 +1721,31 @@ function _sigWrongPadMessage(info){
   var label=(info&&info.roleIndex!=null)?_SIG_ROLE_LABELS[info.roleIndex]:'your';
   return 'You are logged in as '+(info&&info.position?info.position:'')+'. You can only sign the '+label+' pad.';
 }
+function _sigAutoAttach(){
+  var user=_sigCurrentUser();
+  var info=_sigMyRoleInfo(user);
+  if(!info||!info.roleKey) return null;
+  var entry=_sigLookupForUser(user);
+  if(!entry) return null;
+  return {roleKey:info.roleKey, roleIndex:info.roleIndex, sig:entry.sig};
+}
+function _sigPersistRecord(rec){
+  if(!rec) return;
+  try{
+    if(typeof records!=='undefined'){
+      localStorage.setItem('hvac_kfmc', JSON.stringify(records.slice(0,500)));
+    }
+  }catch(e){}
+  try{
+    if(rec._fbId && typeof fbConnected!=='undefined' && fbConnected && typeof db!=='undefined' && typeof COL!=='undefined'){
+      var patch={};
+      ['_sig0','_sig1','_sig2','_signatures','signatures'].forEach(function(k){
+        if(rec[k]!==undefined) patch[k]=rec[k];
+      });
+      db.collection(COL).doc(rec._fbId).set(patch,{merge:true}).catch(function(e){console.warn('Signature sync error',e);});
+    }
+  }catch(e){}
+}
 function _drawSavedSigOnCanvas(canvas, cb){
   var user=_sigCurrentUser();
   var entry=_sigLookupForUser(user);
@@ -1755,6 +1785,7 @@ function saveSig(){
   if(info&&info.roleIndex!=null&&_sigTab!==info.roleIndex){ alert(_sigWrongPadMessage(info)); return; }
   var canvas=document.getElementById('sig-canvas');
   _sigData[_sigTab]=canvas.toDataURL('image/png');
+  if(_sigRec){ _sigRec['_sig'+_sigTab]=_sigData[_sigTab]; _sigPersistRecord(_sigRec); }
   updateSigStatus();updateSigPrintBtn();
   if(_sigTab<2)switchSigTab(_sigTab+1);
 }
@@ -1921,6 +1952,8 @@ function zsSaveAll(){
     zsData:    JSON.parse(JSON.stringify(zsData)),
     ts:        Date.now()
   };
+  var _autoSig=_sigAutoAttach();
+  if(_autoSig&&_autoSig.roleIndex!=null){ rec['_sig'+_autoSig.roleIndex]=_autoSig.sig; }
 
   if(typeof fbConnected!=='undefined'&&fbConnected&&db){
     db.collection(COL).add(rec).then(function(docRef){ rec._fbId=docRef.id; }).catch(function(){});
