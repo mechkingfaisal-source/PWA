@@ -170,10 +170,14 @@ function uid(){ return Math.random().toString(36).slice(2,10); }
 function now(){ return new Date().toISOString().slice(0,10); }
 
 let state = (()=>{ try{ const r=localStorage.getItem(LS_KEY); if(r){ const p=JSON.parse(r); if(p&&p.items&&p.items.length) return p; } }catch(e){} return {items:SEED_DATA.items.slice(),transactions:[],purchaseRequests:[]}; })();
+if(!state.currentPO) state.currentPO = {overrides:{}, excluded:{}};
+if(!state.currentPO.overrides) state.currentPO.overrides = {};
+if(!state.currentPO.excluded) state.currentPO.excluded = {};
+if(!state.poHistory) state.poHistory = [];
 function save(){ localStorage.setItem(LS_KEY,JSON.stringify(state)); }
 
 const PAGES = ['dashboard','inventory','min-quantity','receiving','issue','approved-requests','purchase-requests','alerts','transactions','reports','stock-count','settings'];
-const LABELS = {dashboard:'Dashboard',inventory:'Inventory','min-quantity':'Min Qty Manager',receiving:'Receiving',issue:'Issue Material','approved-requests':'✅ Approved Requests',  'purchase-requests':'Purchase Requests',alerts:'Alerts',transactions:'Transactions',reports:'Reports','stock-count':'Stock Count',settings:'Settings'};
+const LABELS = {dashboard:'Dashboard',inventory:'Inventory','min-quantity':'Min Qty Manager',receiving:'Receiving',issue:'Issue Material','approved-requests':'✅ Approved Requests',  'purchase-requests':'Purchase Order',alerts:'Alerts',transactions:'Transactions',reports:'Reports','stock-count':'Stock Count',settings:'Settings'};
 const ICONS = {dashboard:'📊',inventory:'📦','min-quantity':'🔔',receiving:'📥',issue:'📤','approved-requests':'📬','purchase-requests':'🛒',alerts:'🚨',transactions:'📋',reports:'📈','stock-count':'📋',settings:'⚙️'};
 
 let currentPage = 'dashboard';
@@ -181,9 +185,9 @@ let currentPage = 'dashboard';
 function renderNav(){
   const alertCount = state.items.filter(i=>{ const s=stockStatus(i); return s==='low'||s==='critical'||s==='out'; }).length;
   const minQtyAlarms = state.items.filter(i=>i.stock <= i.minStock).length;
-  const openPR = state.purchaseRequests.filter(p=>p.status==='Open').length;
+  const poCount = getPOItems().length;
   $('nav').innerHTML = PAGES.map(p=>{
-    const count = p==='alerts'?alertCount : p==='purchase-requests'?openPR : p==='min-quantity'?minQtyAlarms : p==='approved-requests'?_approvedCount : 0;
+    const count = p==='alerts'?alertCount : p==='purchase-requests'?poCount : p==='min-quantity'?minQtyAlarms : p==='approved-requests'?_approvedCount : 0;
     const active = p===currentPage?'active':'';
     const badgeColor = p==='approved-requests' ? 'var(--success)' : 'var(--danger)';
     return `<a href="#" class="${active}" onclick="go('${p}');return false;"><span>${ICONS[p]}</span><span style="flex:1">${LABELS[p]}</span>${count>0?`<span style="background:${badgeColor};color:#fff;border-radius:999px;padding:2px 8px;font-size:10px;font-weight:700">${count}</span>`:''}</a>`;
@@ -203,7 +207,7 @@ function go(page){
   if(page==='issue') renderIssue();
   if(page==='transactions') renderTransactions();
   if(page==='approved-requests') renderApprovedRequests();
-  if(page==='purchase-requests') renderPRs();
+  if(page==='purchase-requests') renderPO();
   if(page==='reports') renderReports();
   if(page==='stock-count') renderStockCount();
 }
@@ -238,7 +242,7 @@ function renderDashboard(){
   const critical = items.filter(i=>{ const s=stockStatus(i); return s==='critical'||s==='out'; }).length;
   const monthly = items.reduce((s,i)=>s+i.monthlyAvg*i.unitPrice,0);
   const fast = items.filter(i=>i.monthlyAvg>0).length;
-  const openPR = state.purchaseRequests.filter(p=>p.status==='Open').length;
+  const poCount = getPOItems().length;
   const labels = ['Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar','Apr','May'];
   const monthlyData = labels.map((m,idx)=>({month:m,qty:items.reduce((s,i)=>s+(i.history[idx]||0),0)}));
   const spark = monthlyData.map(d=>d.qty);
@@ -260,7 +264,7 @@ function renderDashboard(){
       <div class="kpi"><div><div class="kpi-label">Critical Items</div><div class="kpi-value">${critical}</div><div class="kpi-hint">Out / critically low</div></div><div class="kpi-icon" style="color:var(--danger)">⚠️</div></div>
       <div class="kpi"><div><div class="kpi-label">In Stock</div><div class="kpi-value">${inStock}</div></div><div class="kpi-icon" style="color:var(--success)">✅</div></div>
       <div class="kpi"><div><div class="kpi-label">Low Stock</div><div class="kpi-value">${low}</div></div><div class="kpi-icon" style="color:var(--orange)">⚠️</div></div>
-      <div class="kpi"><div><div class="kpi-label">Pending Requests</div><div class="kpi-value">${openPR}</div></div><div class="kpi-icon" style="color:var(--chart-2)">🛒</div></div>
+      <div class="kpi"><div><div class="kpi-label">Purchase Order Items</div><div class="kpi-value">${poCount}</div></div><div class="kpi-icon" style="color:var(--chart-2)">🛒</div></div>
       <div class="kpi"><div><div class="kpi-label">Stock Accuracy</div><div class="kpi-value">98.4%</div><div class="kpi-hint">Last count</div></div><div class="kpi-icon" style="color:var(--success)">🎯</div></div>
     </div>
     <div style="display:grid;gap:16px;margin-top:16px;grid-template-columns:1fr">
@@ -402,7 +406,7 @@ function invSaveMin(id, input){
 function renderAlerts(){
   const alerts = state.items.filter(i=>stockStatus(i)!=='normal').sort((a,b)=>a.stock-b.stock);
   $('alerts').innerHTML = `
-    <div class="page-header"><div><h2>Stock Alerts</h2><p>${alerts.length} materials need attention</p></div>${alerts.length>0?`<div class="no-print" style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-primary" onclick="createBulkPR()">🛒 Create PO for All (${alerts.length})</button><button class="btn" onclick="printBulkPO()">🖨️ Print PO</button></div>`:''}</div>
+    <div class="page-header"><div><h2>Stock Alerts</h2><p>${alerts.length} materials need attention</p></div></div>
     <div style="display:flex;flex-direction:column;gap:8px">
       ${alerts.length===0?`<div class="card"><p style="font-size:13px;color:var(--muted-foreground)">All stock levels are healthy. 🎉</p></div>`:''}
       ${alerts.map(i=>`
@@ -413,60 +417,11 @@ function renderAlerts(){
             <div style="font-size:11px;color:var(--muted-foreground)">${i.code} · Stock ${i.stock} / Min ${i.minStock} ${i.unit}</div>
           </div>
           <span class="badge badge-${stockStatus(i)}">${i.stock<=0?'Out of Stock':i.stock<=Math.max(1,Math.ceil(i.minStock*.5))?'Critical':'Low'}</span>
-          <button class="btn btn-primary" style="font-size:12px;padding:6px 12px" onclick="createPRFromAlert(${i.id})">Create PR</button>
+          <button class="btn btn-primary" style="font-size:12px;padding:6px 12px" onclick="go('purchase-requests')">🛒 View in Purchase Order</button>
         </div>
       `).join('')}
     </div>
   `;
-}
-function createPRFromAlert(id){
-  const item=state.items.find(i=>i.id===id); if(!item) return;
-  const qty=Math.max(item.minStock*2-item.stock,item.minStock);
-  const prId='PR-'+new Date().getFullYear()+'-'+String(state.purchaseRequests.length+1).padStart(3,'0');
-  state.purchaseRequests.unshift({id:prId,itemId:item.id,itemName:item.name,qty,unit:item.unit,status:'Open',requestedBy:'Store Keeper',note:'From alerts',ts:Date.now()});
-  save(); renderNav(); toast('PR created for '+qty+' '+item.unit+' of '+item.name); if(currentPage==='alerts') renderAlerts();
-}
-function createBulkPR(){
-  const alerts = state.items.filter(i=>stockStatus(i)!=='normal');
-  if(!alerts.length){ toast('No low-stock items'); return; }
-  if(!confirm('Create purchase orders for '+alerts.length+' low-stock items? (Grouped by supplier)')) return;
-  const groups = {};
-  alerts.forEach(i=>{ const sup=i.supplier||'Unassigned'; (groups[sup]=groups[sup]||[]).push(i); });
-  const year=new Date().getFullYear(); let n=state.purchaseRequests.length; let created=0;
-  Object.keys(groups).forEach(sup=>{
-    n++; const prId='PR-'+year+'-'+String(n).padStart(3,'0');
-    const lines = groups[sup].map(i=>{ const qty=Math.max(i.minStock*2-i.stock,i.minStock); return {itemId:i.id,code:i.code,name:i.name,qty,unit:i.unit,unitPrice:i.unitPrice||0}; });
-    const totalQty = lines.reduce((a,b)=>a+b.qty,0);
-    const totalValue = lines.reduce((a,b)=>a+b.qty*b.unitPrice,0);
-    state.purchaseRequests.unshift({id:prId,supplier:sup,lines,itemName:lines.length+' items ('+sup+')',qty:totalQty,unit:'items',totalValue,status:'Open',requestedBy:'Store Keeper',note:'Bulk auto-PO from low stock',ts:Date.now()});
-    created++;
-  });
-  save(); renderNav(); renderAlerts();
-  toast('Created '+created+' purchase order(s) for '+alerts.length+' items');
-  go('purchase-requests');
-}
-function printBulkPO(){
-  const alerts = state.items.filter(i=>stockStatus(i)!=='normal');
-  if(!alerts.length){ toast('No low-stock items'); return; }
-  const groups = {};
-  alerts.forEach(i=>{ const sup=i.supplier||'Unassigned'; (groups[sup]=groups[sup]||[]).push(i); });
-  const today = new Date().toLocaleDateString();
-  let html = '<html><head><title>Purchase Order - Low Stock</title><style>body{font-family:Arial,sans-serif;padding:24px;color:#0f172a}h1{margin:0 0 4px;font-size:22px}h2{margin:24px 0 8px;font-size:16px;background:#f1f5f9;padding:8px 12px;border-radius:6px}table{width:100%;border-collapse:collapse;margin-bottom:12px;font-size:12px}th,td{border:1px solid #cbd5e1;padding:6px 8px;text-align:left}th{background:#e2e8f0}tfoot td{font-weight:700;background:#f8fafc}.meta{color:#64748b;font-size:12px;margin-bottom:16px}@media print{h2{background:#eee!important;-webkit-print-color-adjust:exact}}</style></head><body>';
-  html += '<h1>Purchase Order — Low Stock Replenishment</h1><div class="meta">Date: '+today+' · Items: '+alerts.length+' · Suppliers: '+Object.keys(groups).length+'</div>';
-  Object.keys(groups).sort().forEach(sup=>{
-    let sub=0;
-    html += '<h2>Supplier: '+sup+'</h2><table><thead><tr><th>Code</th><th>Material</th><th>Stock</th><th>Min</th><th>Order Qty</th><th>Unit</th><th>Unit Price (SAR)</th><th>Line Total</th></tr></thead><tbody>';
-    groups[sup].forEach(i=>{
-      const qty=Math.max(i.minStock*2-i.stock,i.minStock);
-      const lt=qty*(i.unitPrice||0); sub+=lt;
-      html += '<tr><td>'+i.code+'</td><td>'+i.name+'</td><td>'+i.stock+'</td><td>'+i.minStock+'</td><td><b>'+qty+'</b></td><td>'+i.unit+'</td><td>'+(i.unitPrice||0).toFixed(2)+'</td><td>'+lt.toFixed(2)+'</td></tr>';
-    });
-    html += '</tbody><tfoot><tr><td colspan="7" style="text-align:right">Subtotal</td><td>'+sub.toFixed(2)+' SAR</td></tr></tfoot></table>';
-  });
-  const grand = alerts.reduce((a,i)=>a+Math.max(i.minStock*2-i.stock,i.minStock)*(i.unitPrice||0),0);
-  html += '<h2 style="text-align:right;background:#0f172a;color:#fff">Grand Total: '+grand.toFixed(2)+' SAR</h2>';
-  html += '<script>window.onload=()=>window.print()<\/script></body></html>';
-  const w=window.open('','_blank'); w.document.write(html); w.document.close();
 }
 
 // ===== Receiving =====
@@ -627,21 +582,142 @@ function renderTransactions(){
   `;
 }
 
-// ===== Purchase Requests =====
-const prColors = {Open:'badge-low',Approved:'badge-normal',Ordered:'badge-normal',Received:'badge-normal',Cancelled:'badge-out'};
-function renderPRs(){
+// ===== Purchase Order (single consolidated order for all low-stock items) =====
+function poSuggestedQty(item){ return Math.max(item.minStock*2 - item.stock, item.minStock, 1); }
+
+// Builds the current PO: every item at/below min is included automatically (unless explicitly
+// excluded by the user), plus any items manually added even if not currently low.
+function getPOItems(){
+  const po = state.currentPO;
+  const map = new Map();
+  state.items.forEach(i=>{
+    if(i.stock <= i.minStock && !po.excluded[i.id]){
+      const qty = (po.overrides[i.id] !== undefined) ? po.overrides[i.id] : poSuggestedQty(i);
+      map.set(i.id, qty);
+    }
+  });
+  Object.keys(po.overrides).forEach(idStr=>{
+    const id = Number(idStr);
+    if(map.has(id)) return;
+    const item = state.items.find(i=>i.id===id);
+    if(item && po.overrides[id] > 0) map.set(id, po.overrides[id]);
+  });
+  return [...map.entries()]
+    .map(([id,qty])=>({item:state.items.find(i=>i.id===id), qty}))
+    .filter(x=>x.item)
+    .sort((a,b)=>(a.item.stock-a.item.minStock)-(b.item.stock-b.item.minStock));
+}
+
+function poSetQty(id, val){
+  val = parseInt(val);
+  if(isNaN(val) || val<0){ toast('Enter a valid quantity','error'); renderPO(); return; }
+  if(val<=0){ poRemoveItem(id); return; }
+  state.currentPO.overrides[id] = val;
+  delete state.currentPO.excluded[id];
+  save(); renderNav(); renderPO();
+}
+
+function poRemoveItem(id){
+  const item = state.items.find(i=>i.id===id);
+  delete state.currentPO.overrides[id];
+  if(item && item.stock <= item.minStock) state.currentPO.excluded[id] = true;
+  save(); renderNav(); renderPO();
+  toast('Removed from purchase order');
+}
+
+function poAddItem(id){
+  id = Number(id);
+  const item = state.items.find(i=>i.id===id); if(!item) return;
+  state.currentPO.overrides[id] = state.currentPO.overrides[id] || poSuggestedQty(item);
+  delete state.currentPO.excluded[id];
+  save(); renderNav(); renderPO();
+  toast(`Added ${item.name} to purchase order`);
+}
+
+function poMarkOrdered(){
+  const list = getPOItems();
+  if(list.length===0){ toast('Purchase order is empty','error'); return; }
+  if(!confirm(`Mark this Purchase Order as Ordered (${list.length} item${list.length!==1?'s':''})? It will be archived and a new order will start.`)) return;
+  const poNumber = 'PO-'+new Date().getFullYear()+'-'+String(state.poHistory.length+1).padStart(3,'0');
+  state.poHistory.unshift({
+    id: poNumber,
+    ts: Date.now(),
+    items: list.map(x=>({itemId:x.item.id, code:x.item.code, name:x.item.name, unit:x.item.unit, qty:x.qty}))
+  });
+  state.currentPO = {overrides:{}, excluded:{}};
+  save(); renderNav(); renderPO();
+  toast(`Purchase order ${poNumber} marked as ordered`);
+}
+
+function renderPO(){
+  const list = getPOItems();
+  const inPO = new Set(list.map(x=>x.item.id));
+  const availableToAdd = state.items.filter(i=>!inPO.has(i.id)).sort((a,b)=>a.name.localeCompare(b.name));
+
   $('purchase-requests').innerHTML = `
-    <div class="page-header"><div><h2>Purchase Requests</h2><p>${state.purchaseRequests.length} requests</p></div></div>
+    <div class="page-header">
+      <div><h2>🛒 Purchase Order</h2><p>One order for every item at or below minimum stock. Adjust quantities as needed.</p></div>
+      <div class="no-print" style="display:flex;gap:8px">
+        <button class="btn" onclick="window.print()">🖨️ Print</button>
+        <button class="btn btn-primary" onclick="poMarkOrdered()">✅ Mark as Ordered</button>
+      </div>
+    </div>
+
+    <div class="card no-print" style="margin-bottom:16px;padding:12px">
+      <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+        <select id="poAddSelect" style="flex:1;min-width:220px">
+          <option value="">+ Add another item to this order...</option>
+          ${availableToAdd.map(i=>`<option value="${i.id}">${i.name} (${i.code})</option>`).join('')}
+        </select>
+        <button class="btn btn-primary" onclick="const v=document.getElementById('poAddSelect').value; if(v) poAddItem(v);">Add</button>
+      </div>
+    </div>
+
     <div class="card" style="padding:0;overflow:hidden">
+      <div style="padding:14px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">
+        <div style="font-weight:700;font-size:14px">Draft Purchase Order</div>
+        <div style="font-size:12px;color:var(--muted-foreground)">${fmtDate(now())} · ${list.length} item${list.length!==1?'s':''}</div>
+      </div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>PR No.</th><th>Material</th><th style="text-align:center">Qty</th><th>Requested By</th><th>Status</th></tr></thead>
-          <tbody>${state.purchaseRequests.map(p=>`
-            <tr><td style="font-family:monospace;font-size:11px">${p.id}</td><td style="font-weight:500">${p.itemName}${p.lines?`<div style="font-size:11px;color:var(--muted-foreground);margin-top:4px">${p.lines.map(l=>l.code+' × '+l.qty+' '+l.unit).join(' · ')}</div>`:''}</td><td style="text-align:center">${p.qty} ${p.unit}${p.totalValue?`<div style="font-size:11px;color:var(--muted-foreground)">${p.totalValue.toFixed(2)} SAR</div>`:''}</td><td style="color:var(--muted-foreground)">${p.supplier?p.supplier+'<br><span style="font-size:10px">'+p.requestedBy+'</span>':p.requestedBy}</td><td><span class="badge ${prColors[p.status]}">${p.status}</span></td></tr>
-          `).join('')}${state.purchaseRequests.length===0?`<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--muted-foreground)">No purchase requests yet.</td></tr>`:''}</tbody>
+          <thead><tr><th>Code</th><th>Material</th><th style="text-align:center">Current Stock</th><th style="text-align:center">Min</th><th style="text-align:center">Order Qty</th><th class="no-print" style="text-align:center">Remove</th></tr></thead>
+          <tbody>
+            ${list.map(({item,qty})=>`
+              <tr>
+                <td style="font-family:monospace;font-size:11px;color:var(--muted-foreground)">${item.code}</td>
+                <td style="font-weight:500">${item.name}</td>
+                <td style="text-align:center;font-weight:600;color:${item.stock<=0?'var(--danger)':'var(--warning)'}">${item.stock} ${item.unit}</td>
+                <td style="text-align:center">${item.minStock} ${item.unit}</td>
+                <td style="text-align:center">
+                  <div style="display:flex;align-items:center;justify-content:center;gap:6px">
+                    <button class="btn no-print" style="padding:4px 9px" onclick="poSetQty(${item.id}, ${qty}-1)">−</button>
+                    <input type="number" min="1" value="${qty}" style="width:64px;text-align:center;padding:4px 6px" onchange="poSetQty(${item.id}, this.value)" onkeydown="if(event.key==='Enter')this.blur()">
+                    <button class="btn no-print" style="padding:4px 9px" onclick="poSetQty(${item.id}, ${qty}+1)">+</button>
+                  </div>
+                </td>
+                <td class="no-print" style="text-align:center"><button class="btn btn-danger" style="padding:4px 10px;font-size:11px" onclick="poRemoveItem(${item.id})">✕</button></td>
+              </tr>
+            `).join('')}
+            ${list.length===0?`<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--muted-foreground)">✅ No items currently need ordering.</td></tr>`:''}
+          </tbody>
         </table>
       </div>
     </div>
+
+    ${state.poHistory.length ? `
+    <div class="card no-print" style="margin-top:20px">
+      <h3 style="font-size:15px;font-weight:600;margin-bottom:12px">📜 Order History</h3>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        ${state.poHistory.map(po=>`
+          <details style="border:1px solid var(--border);border-radius:10px;padding:10px 12px">
+            <summary style="cursor:pointer;font-weight:600;font-size:13px">${po.id} — ${po.items.length} item${po.items.length!==1?'s':''} · ${fmtDate(new Date(po.ts))}</summary>
+            <div style="margin-top:8px;font-size:12px;color:var(--muted-foreground)">
+              ${po.items.map(it=>`<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border)"><span>${it.name}</span><span style="font-weight:600">${it.qty} ${it.unit}</span></div>`).join('')}
+            </div>
+          </details>
+        `).join('')}
+      </div>
+    </div>` : ''}
   `;
 }
 
@@ -812,7 +888,7 @@ function openDetail(id){
         <div class="detail-row"><span style="color:var(--muted-foreground)">Last Issued</span><span style="font-weight:600">${fmtDate(item.lastIssued)}</span></div>
         <div class="detail-row"><span style="color:var(--muted-foreground)">Last Count</span><span style="font-weight:600">${fmtDate(item.lastCount)}</span></div>
       </div>
-      <button class="btn btn-primary" style="width:100%" onclick="createPRFromDetail(${item.id},this)">🛒 Create Purchase Request</button>
+      <button class="btn btn-primary" style="width:100%" onclick="poAddItem(${item.id});this.closest('.modal-overlay').remove();go('purchase-requests');">🛒 Add to Purchase Order</button>
     </div>
   `;
   overlay.onclick = ()=>overlay.remove();
@@ -830,13 +906,7 @@ function openDetail(id){
     ctx.lineWidth=2; ctx.stroke();
   });
 }
-function createPRFromDetail(id,btn){
-  const item=state.items.find(i=>i.id===id); if(!item) return;
-  const qty=Math.max(item.minStock*2-item.stock,item.minStock);
-  const prId='PR-'+new Date().getFullYear()+'-'+String(state.purchaseRequests.length+1).padStart(3,'0');
-  state.purchaseRequests.unshift({id:prId,itemId:item.id,itemName:item.name,qty,unit:item.unit,status:'Open',requestedBy:'Store Keeper',note:'Auto from material details',ts:Date.now()});
-  save(); renderNav(); toast(`Purchase request created for ${qty} ${item.unit}`); btn.closest('.modal-overlay').remove();
-}
+
 
 // ===== Add Material =====
 function showAdd(){
@@ -907,7 +977,7 @@ function renderMinQty(){
               <div style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${i.name}</div>
               <div style="font-size:11px;color:var(--muted-foreground)">${i.code} &nbsp;|&nbsp; Stock: <b style="color:${i.stock<=0?'var(--danger)':'var(--warning)'}">${i.stock}</b> / Min: <b>${i.minStock}</b> ${i.unit}</div>
             </div>
-            <button class="btn btn-primary" style="font-size:11px;padding:4px 10px;white-space:nowrap" onclick="event.stopPropagation();mqCreatePR(${i.id})">Create PR</button>
+            <button class="btn btn-primary" style="font-size:11px;padding:4px 10px;white-space:nowrap" onclick="event.stopPropagation();go('purchase-requests')">🛒 View PO</button>
           </div>
         `).join('')}
       </div>
@@ -1015,14 +1085,7 @@ function mqBulkSet(){
   toast(`Min qty set to ${val} for ${affected.length} items in "${cat}"`);
 }
 
-function mqCreatePR(id){
-  const item = state.items.find(i=>i.id===id); if(!item) return;
-  const qty = Math.max(item.minStock * 2 - item.stock, item.minStock, 1);
-  const prId = 'PR-'+new Date().getFullYear()+'-'+String(state.purchaseRequests.length+1).padStart(3,'0');
-  state.purchaseRequests.unshift({id:prId,itemId:item.id,itemName:item.name,qty,unit:item.unit,status:'Open',requestedBy:'Store Keeper',note:'Auto from Min Qty alarm',ts:Date.now()});
-  save(); renderNav(); toast(`Purchase request created: ${qty} ${item.unit} of ${item.name}`);
-  if(currentPage==='min-quantity') renderMinQty();
-}
+
 
 // ===== FIREBASE — Material Requests Integration =====
 const firebaseConfig = {
