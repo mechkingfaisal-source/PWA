@@ -445,15 +445,12 @@
 
     <!-- Role Toggle -->
     <div class="role-label">Select Access Role</div>
-    <div class="role-toggle cols-3">
+    <div class="role-toggle">
       <button class="role-btn active" id="btnTech" onclick="setRole('tech')">
         <span class="role-icon">🔧</span> Technician
       </button>
       <button class="role-btn" id="btnEng" onclick="setRole('eng')">
         <span class="role-icon">👷</span> Engineer
-      </button>
-      <button class="role-btn" id="btnWarehouse" onclick="setRole('warehouse')">
-        <span class="role-icon">📦</span> Warehouse
       </button>
     </div>
 
@@ -562,7 +559,6 @@
     currentRole = r;
     document.getElementById('btnTech').classList.toggle('active', r === 'tech');
     document.getElementById('btnEng').classList.toggle('active', r === 'eng');
-    document.getElementById('btnWarehouse').classList.toggle('active', r === 'warehouse');
   }
 
   // ── Validation ──
